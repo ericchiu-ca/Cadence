@@ -95,8 +95,8 @@
 "github_repository" = "Репозиторий GitHub";
 "use_simple_icons" = "Использовать простые иконки без цветного фона в разделах медиатеки.";
 "override_system_appearance" = "Игнорировать системную тему и всегда использовать тёмный режим.";
-"background_color" = "Цвет фона";
-"choose_color_theme" = "Выберите цветовую тему для фоновых эффектов на всех экранах.";
+"background_color" = "Цвет акцента";
+"choose_color_theme" = "Цвет значков, выделений и отметки текущего трека.";
 "library_section" = "Медиатека";
 "home_sections" = "Разделы главного экрана";
 "choose_visible_sections" = "Выберите разделы, отображаемые на главном экране";
@@ -475,3 +475,4 @@
 "sync_library" = "Синхронизировать медиатеку";
 "recently_added" = "Недавно добавленные";
 "based_on_cosmos" = "Основано на Cosmos Music Player";
+"lyrics_in_dynamic_island" = "Текст в Dynamic Island и на экране блокировки";

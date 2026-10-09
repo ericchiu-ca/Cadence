@@ -95,8 +95,8 @@
 "github_repository" = "Dépôt GitHub";
 "use_simple_icons" = "Utilisez des icônes simples sans arrière-plans colorés dans les sections de la bibliothèque.";
 "override_system_appearance" = "Remplacer l'apparence du système et forcer l'application à utiliser le mode sombre.";
-"background_color" = "Couleur d'arrière-plan";
-"choose_color_theme" = "Choisissez le thème de couleur pour les effets d'arrière-plan sur tous les écrans.";
+"background_color" = "Couleur d'accent";
+"choose_color_theme" = "La couleur des icônes, des mises en évidence et de l'indicateur de lecture.";
 "library_section" = "Bibliothèque";
 "home_sections" = "Sections de l'accueil";
 "choose_visible_sections" = "Choisissez quelles sections sont visibles sur l'écran d'accueil";
@@ -478,3 +478,4 @@
 "sync_library" = "Synchroniser la bibliothèque";
 "recently_added" = "Ajouts récents";
 "based_on_cosmos" = "Basé sur Cosmos Music Player";
+"lyrics_in_dynamic_island" = "Paroles en direct (Dynamic Island et écran verrouillé)";

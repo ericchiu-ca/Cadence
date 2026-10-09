@@ -24,6 +24,7 @@
 - The mini player is a glass card that zooms into the full player; pull down anywhere to close it again. Swipe the card to skip.
 - In-place synced lyrics: the artwork shrinks into the header, lines fill word by word at the display's refresh rate with a feathered edge, and the list advances with a staggered spring. Tap a line to seek.
 - Library, song and album screens on the plain system background with native large titles, glass toolbars, hairline separators and a Recently Added grid.
+- Optional live lyrics in the Dynamic Island and on the Lock Screen (*Settings › Player Controls*). Off by default, so the island shows the system Now Playing just as it does for Apple Music.
 
 **Fixes**
 - A missing `.env` file no longer crashes the app after the first library scan; online artist info is simply skipped.
@@ -40,7 +41,7 @@
 ## Building
 
 1. Open `Cosmos Music Player.xcodeproj`.
-2. For each target (app, PlayerWidget, Share, SiriIntentsExtension), select your team under *Signing & Capabilities*.
+2. For each target (app, PlayerWidget, Share, SiriIntentsExtension), select your team under *Signing & Capabilities* (the project is set to the maintainer's team).
 3. The bundle identifiers use the prefix `io.github.ericchiuca.cadence`. If you build your own copy, change that prefix (and the matching `group.` and `iCloud.` identifiers in the entitlements) to one you own.
 4. Optional: copy `.env.template` to `.env` and add Spotify / Discogs keys to enable online artist information. Without them the app works fully offline.
 

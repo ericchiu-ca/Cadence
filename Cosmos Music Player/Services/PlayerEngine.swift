@@ -5036,6 +5036,12 @@ class PlayerEngine: NSObject, ObservableObject {
         cachedNowPlayingAlbumName = nil
     }
 
+    /// The live render position. Unlike `progress.playbackTime`, which only
+    /// moves with the UI timer, this is exact at any moment.
+    func currentPlaybackPosition() -> TimeInterval {
+        nowPlayingElapsedTime()
+    }
+
     private func nowPlayingElapsedTime() -> TimeInterval {
         if usingSFBEngine {
             return sfbAudioManager.currentTime

@@ -299,3 +299,28 @@ public final class PlaylistDataManager: @unchecked Sendable {
     }
 }
 
+
+// MARK: - Lyrics Live Activity
+
+#if canImport(ActivityKit)
+import ActivityKit
+
+/// The lyric line in the Dynamic Island and on the Lock Screen. The app starts
+/// and updates it; the widget extension draws it. The cover comes from the
+/// widget artwork file in the App Group rather than the content state, which
+/// is limited to a few kilobytes.
+struct LyricsActivityAttributes: ActivityAttributes {
+    struct ContentState: Codable, Hashable {
+        var trackId: String
+        var title: String
+        var artist: String
+        /// The line being sung; empty before the first line or in a break.
+        var line: String
+        var nextLine: String
+        var isPlaying: Bool
+        /// False when the track has no synced lyrics; the views then show
+        /// the title and artist instead of a line.
+        var hasLyrics: Bool
+    }
+}
+#endif

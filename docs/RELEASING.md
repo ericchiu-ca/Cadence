@@ -16,11 +16,12 @@ Signing and submission need your Apple Developer account, so these steps happen 
 | `group.io.github.ericchiuca.cadence` | App Group |
 | `iCloud.io.github.ericchiuca.cadence` | iCloud container |
 
-- Enable the capabilities each target uses: App Groups, iCloud (iCloud Documents), Siri, and the CarPlay audio entitlement (`com.apple.developer.carplay-audio`). CarPlay audio has to be **requested from Apple** before it can be used in a distributed build; until it is granted, remove that entitlement from the release build.
+- Enable the capabilities each target uses: App Groups, iCloud (iCloud Documents), Siri and Live Activities.
+- **CarPlay**: the CarPlay audio entitlement has to be [requested from Apple](https://developer.apple.com/contact/carplay/). The project ships without it so it can be signed by any team; once granted, add `com.apple.developer.carplay-audio = YES` back to `Cosmos Music Player.entitlements`. The CarPlay scene code is already in the app.
 
 ## 2. Project settings
 
-- Set your Team on all four targets (the project ships with no team).
+- The project is set to team `A9A5LS66BT`; to build your own copy, select your team on all four targets.
 - Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` for every upload.
 - Optional: add Spotify / Discogs keys through a `.env` file bundled at build time. Note that any key shipped inside an app can be extracted from it; prefer leaving online artist info disabled, or proxying it through your own server.
 

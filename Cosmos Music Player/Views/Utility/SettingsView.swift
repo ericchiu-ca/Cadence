@@ -207,6 +207,11 @@ struct SettingsView: View {
                             deleteSettings.save()
                         }
 
+                    Toggle(Localized.lyricsInDynamicIsland, isOn: $deleteSettings.showLyricsInDynamicIsland)
+                        .onChange(of: deleteSettings.showLyricsInDynamicIsland) { _, _ in
+                            deleteSettings.save()
+                        }
+
                     Toggle(Localized.showSleepTimerButton, isOn: $deleteSettings.showSleepTimerButton)
                         .onChange(of: deleteSettings.showSleepTimerButton) { _, _ in
                             deleteSettings.save()

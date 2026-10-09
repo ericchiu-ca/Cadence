@@ -95,8 +95,8 @@
 "github_repository" = "GitHub 开源仓库";
 "use_simple_icons" = "在媒体库界面中移除图标的彩色背景，使用极简风格。";
 "override_system_appearance" = "无视 iOS 系统外观设置，强制让应用保持深色模式。";
-"background_color" = "背景颜色";
-"choose_color_theme" = "为所有界面的背景效果选择你喜欢的主题色。";
+"background_color" = "强调色";
+"choose_color_theme" = "用于图标、高亮和正在播放标记的颜色。";
 "library_section" = "媒体库";
 "home_sections" = "主页显示板块";
 "choose_visible_sections" = "自定义哪些板块将显示在你的主页上";
@@ -479,3 +479,4 @@
 "sync_library" = "同步资料库";
 "recently_added" = "最近添加";
 "based_on_cosmos" = "基于 Cosmos Music Player";
+"lyrics_in_dynamic_island" = "灵动岛与锁屏实时歌词";

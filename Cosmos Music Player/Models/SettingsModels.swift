@@ -205,6 +205,10 @@ struct DeleteSettings: Codable {
     var lastLibraryScanDate: Date? = nil
     var autoCreateFolderPlaylists: Bool = true
     var showLyricsButton: Bool = true
+    /// The current lyric line as a Live Activity in the Dynamic Island and on
+    /// the Lock Screen. Off by default: out of the box the island shows the
+    /// system's own Now Playing, as with Apple Music.
+    var showLyricsInDynamicIsland: Bool = false
     var showSleepTimerButton: Bool = false
     var libraryScanInterval: LibraryScanInterval = .daily
     var artistListMode: ArtistListMode = .albumArtists
@@ -244,6 +248,7 @@ struct DeleteSettings: Codable {
         lastLibraryScanDate = try container.decodeIfPresent(Date.self, forKey: .lastLibraryScanDate)
         autoCreateFolderPlaylists = try container.decodeIfPresent(Bool.self, forKey: .autoCreateFolderPlaylists) ?? true
         showLyricsButton = try container.decodeIfPresent(Bool.self, forKey: .showLyricsButton) ?? true
+        showLyricsInDynamicIsland = try container.decodeIfPresent(Bool.self, forKey: .showLyricsInDynamicIsland) ?? false
         showSleepTimerButton = try container.decodeIfPresent(Bool.self, forKey: .showSleepTimerButton) ?? false
         // Both default to the tidier behaviour rather than the historical one:
         // rescanning a large library on nearly every launch, and listing every
