@@ -357,12 +357,16 @@ private enum LyricRowBuilder {
 
 // MARK: - Lyrics View
 
+/// The player's in-place lyrics: drawn straight onto the artwork backdrop in
+/// the Apple Music layout, with transparent edges instead of a backdrop or
+/// header of its own.
 struct LyricsView: View {
     let lyrics: Lyrics?
     let currentTime: TimeInterval
     let isLoading: Bool
-    var trackTitle: String? = nil
-    var trackArtist: String? = nil
+    /// Lets the view run its own frame clock between the player's
+    /// quarter-second position updates.
+    var isPlaying: Bool = false
     /// Seek handler for tap-to-jump. Without one the lines stay read-only.
     var onSeek: ((TimeInterval) -> Void)? = nil
     /// Re-runs the lookup, ignoring any remembered miss.
@@ -374,218 +378,59 @@ struct LyricsView: View {
 
     @State private var settings = DeleteSettings.load()
     @State private var showVersionPicker = false
-    @Environment(\.dismiss) var dismiss
 
-    @ScaledMetric(relativeTo: .body) private var plainFontSize: CGFloat = 21
-
-    private var accent: Color { settings.backgroundColorChoice.color }
+    @ScaledMetric(relativeTo: .body) private var plainFontSize: CGFloat = 26
 
     var body: some View {
-        ZStack {
-            backgroundLayers
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                header
-                content
-                    // The lyrics run to the physical bottom of the screen, not
-                    // to the safe-area line. Respecting it left the scroll view
-                    // - and so the fade that softens its edge - stopping short
-                    // above the home indicator, which read as a black band
-                    // ending in mid-air with live text below it.
-                    .ignoresSafeArea(edges: .bottom)
-            }
-        }
-        .preferredColorScheme(.dark)
-        // The lyric type scales with the user's text size, but the two largest
-        // accessibility steps leave room for barely a word per line.
-        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-        .sheet(isPresented: $showVersionPicker) {
-            if let loadAlternatives {
-                LyricsVersionPicker(
-                    accent: accent,
-                    load: loadAlternatives,
-                    onSelect: { id in
-                        showVersionPicker = false
-                        onSelectAlternative?(id)
-                    }
-                )
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BackgroundColorChanged"))) { _ in
-            settings = DeleteSettings.load()
-        }
-    }
-
-    // MARK: - Background
-
-    private var backgroundLayers: some View {
-        ZStack {
-            // Base dark background
-            Color.black
-
-            // Top radial glow
-            Circle()
-                .fill(
-                    RadialGradient(
-                        gradient: Gradient(colors: [
-                            accent.opacity(0.25),
-                            accent.opacity(0.12),
-                            Color.clear
-                        ]),
-                        center: .top,
-                        startRadius: 0,
-                        endRadius: 350
-                    )
-                )
-                .frame(height: 600)
-                .blur(radius: 50)
-                .offset(y: -200)
-
-            // Center diagonal gradient
-            LinearGradient(
-                gradient: Gradient(stops: [
-                    .init(color: Color.clear, location: 0.0),
-                    .init(color: accent.opacity(0.08), location: 0.3),
-                    .init(color: accent.opacity(0.12), location: 0.5),
-                    .init(color: accent.opacity(0.08), location: 0.7),
-                    .init(color: Color.clear, location: 1.0)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            // Bottom radial glow
-            Circle()
-                .fill(
-                    RadialGradient(
-                        gradient: Gradient(colors: [
-                            accent.opacity(0.2),
-                            accent.opacity(0.1),
-                            Color.clear
-                        ]),
-                        center: .bottom,
-                        startRadius: 0,
-                        endRadius: 300
-                    )
-                )
-                .frame(height: 500)
-                .blur(radius: 60)
-                .offset(y: 200)
-
-            // Vertical accent gradient
-            LinearGradient(
-                gradient: Gradient(stops: [
-                    .init(color: accent.opacity(0.06), location: 0.0),
-                    .init(color: Color.clear, location: 0.2),
-                    .init(color: Color.clear, location: 0.8),
-                    .init(color: accent.opacity(0.08), location: 1.0)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
-    }
-
-    // MARK: - Header
-
-    private var header: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(Localized.lyrics)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-
-                if let subtitle = headerSubtitle {
-                    Text(subtitle)
-                        .font(.footnote)
-                        .foregroundColor(.white.opacity(0.55))
-                        .lineLimit(1)
+        content
+            .overlay(alignment: .topTrailing) {
+                if copyableText != nil {
+                    actionsMenu
                 }
             }
-            .accessibilityElement(children: .combine)
-
-            Spacer(minLength: 8)
-
-            if copyableText != nil || loadAlternatives != nil {
-                Menu {
-                    if copyableText != nil {
-                        Button {
-                            copyLyrics()
-                        } label: {
-                            Label(Localized.lyricsCopy, systemImage: "doc.on.doc")
+            // The lyric type scales with the user's text size, but the two largest
+            // accessibility steps leave room for barely a word per line.
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+            .sheet(isPresented: $showVersionPicker) {
+                if let loadAlternatives {
+                    LyricsVersionPicker(
+                        accent: settings.backgroundColorChoice.color,
+                        load: loadAlternatives,
+                        onSelect: { id in
+                            showVersionPicker = false
+                            onSelectAlternative?(id)
                         }
-                    }
-
-                    if loadAlternatives != nil {
-                        Button {
-                            showVersionPicker = true
-                        } label: {
-                            Label(Localized.lyricsChooseVersion, systemImage: "text.line.first.and.arrowtriangle.forward")
-                        }
-                    }
-                } label: {
-                    headerCircle(systemImage: "ellipsis")
+                    )
                 }
-                .accessibilityLabel(Localized.lyricsMoreActions)
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BackgroundColorChanged"))) { _ in
+                settings = DeleteSettings.load()
+            }
+    }
 
+    private var actionsMenu: some View {
+        Menu {
             Button {
-                dismiss()
+                copyLyrics()
             } label: {
-                headerCircle(systemImage: "xmark")
+                Label(Localized.lyricsCopy, systemImage: "doc.on.doc")
             }
-            .accessibilityLabel(Localized.close)
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .background(
-            ZStack {
-                // Glass effect
-                Rectangle()
-                    .fill(.ultraThinMaterial)
 
-                // Bottom border highlight
-                VStack {
-                    Spacer()
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.white.opacity(0.1),
-                                    Color.clear,
-                                    Color.white.opacity(0.1)
-                                ]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(height: 0.5)
+            if loadAlternatives != nil {
+                Button {
+                    showVersionPicker = true
+                } label: {
+                    Label(Localized.lyricsChooseVersion, systemImage: "text.line.first.and.arrowtriangle.forward")
                 }
             }
-        )
-    }
-
-    private func headerCircle(systemImage: String) -> some View {
-        ZStack {
-            Circle()
-                .fill(.ultraThinMaterial)
-                .frame(width: 36, height: 36)
-
-            Image(systemName: systemImage)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.white.opacity(0.8))
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.85))
+                .frame(width: 32, height: 32)
+                .adaptiveGlass(in: Circle(), interactive: true)
         }
-        .contentShape(Circle())
-    }
-
-    private var headerSubtitle: String? {
-        let parts = [trackTitle, trackArtist].compactMap { value -> String? in
-            guard let value, !value.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
-            return value
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " — ")
+        .accessibilityLabel(Localized.lyricsMoreActions)
     }
 
     // MARK: - Content
@@ -596,23 +441,21 @@ struct LyricsView: View {
             LyricsStatusCard(
                 icon: .progress,
                 title: Localized.lyricsLoading,
-                message: Localized.lyricsLoadingMessage,
-                accent: accent
+                message: Localized.lyricsLoadingMessage
             )
         } else if let lyrics {
             if lyrics.isInstrumental {
                 LyricsStatusCard(
                     icon: .symbol("music.note"),
                     title: Localized.lyricsInstrumental,
-                    message: Localized.lyricsInstrumentalMessage,
-                    accent: accent
+                    message: Localized.lyricsInstrumentalMessage
                 )
             } else if !lyrics.syncedLyrics.isEmpty {
                 SyncedLyricsScroller(
                     lines: lyrics.syncedLyrics,
                     currentTime: currentTime,
-                    accent: accent,
-                    onSeek: onSeek
+                    onSeek: onSeek,
+                    isPlaying: isPlaying
                 )
             } else if !lyrics.plainLyrics.isEmpty {
                 plainLyricsView(lyrics.plainLyrics)
@@ -624,7 +467,7 @@ struct LyricsView: View {
         }
     }
 
-    /// A miss is remembered for a week so reopening this screen is not three
+    /// A miss is remembered for a week so reopening lyrics is not three
     /// fruitless network round trips - which makes an explicit way to ask again
     /// necessary rather than merely nice, for a song whose lyrics were added
     /// upstream since, or that was looked up while offline.
@@ -633,7 +476,6 @@ struct LyricsView: View {
             icon: .symbol("text.badge.xmark"),
             title: Localized.lyricsUnavailable,
             message: Localized.lyricsUnavailableMessage,
-            accent: accent,
             actionTitle: onRetry == nil ? nil : Localized.lyricsSearchAgain,
             action: onRetry
         )
@@ -641,59 +483,28 @@ struct LyricsView: View {
 
     // MARK: - Plain Lyrics
 
-    /// Unsynced lyrics, set to read like the synced view rather than like a
-    /// text dump: the same centred column, the same weight, the same fade at
-    /// the edges. Without timestamps there is no active line to lift out, so
-    /// the type carries the whole job - which is why it is set at the size the
-    /// synced view gives its *neighbouring* lines rather than its body size.
+    /// Unsynced lyrics, set like the synced view: the same left-aligned bold
+    /// column and the same transparent edges, without an active line.
     private func plainLyricsView(_ text: String) -> some View {
-        ZStack {
-            ScrollView {
-                VStack(spacing: 26) {
-                    ForEach(Array(stanzas(of: text).enumerated()), id: \.offset) { _, stanza in
-                        Text(stanza)
-                            .font(.system(size: plainFontSize, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.92))
-                            .lineSpacing(10)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity)
-                    }
+        ScrollView {
+            VStack(spacing: 26) {
+                ForEach(Array(stanzas(of: text).enumerated()), id: \.offset) { _, stanza in
+                    Text(stanza)
+                        .font(.system(size: plainFontSize, weight: .bold))
+                        .foregroundColor(.white.opacity(0.92))
+                        .lineSpacing(6)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .textSelection(.enabled)
-                .padding(.horizontal, 32)
-                .padding(.top, 56)
-                // Clears the taller bottom fade and the home indicator beneath
-                // it, so the closing lines can still be scrolled fully clear.
-                .padding(.bottom, 130)
             }
-            .scrollIndicators(.hidden)
-
-            edgeFades(top: 90, bottom: 150)
-                .allowsHitTesting(false)
+            .textSelection(.enabled)
+            .padding(.horizontal, 4)
+            .padding(.top, 36)
+            .padding(.bottom, 60)
         }
-    }
-
-    /// The same soft edges the synced list uses, so scrolled text dissolves
-    /// into the background instead of colliding with the header.
-    private func edgeFades(top: CGFloat, bottom: CGFloat) -> some View {
-        VStack(spacing: 0) {
-            LinearGradient(
-                colors: [Color.black, Color.black.opacity(0.45), Color.clear],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: top)
-
-            Spacer()
-
-            LinearGradient(
-                colors: [Color.clear, Color.black.opacity(0.45), Color.black],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: bottom)
-        }
+        .scrollIndicators(.hidden)
+        .mask { LyricsEdgeMask(top: 36, bottom: 56) }
     }
 
     /// Splits on blank lines so verses and choruses keep their own breathing
@@ -729,13 +540,54 @@ struct LyricsView: View {
     }
 }
 
+struct PlaybackClockAnchor: Equatable {
+    var time: TimeInterval
+    var date: Date
+}
+
+/// Transparent edges for lyrics drawn over the artwork backdrop: the text
+/// itself fades out, so there is no coloured band to match the background.
+private struct LyricsEdgeMask: View {
+    let top: CGFloat
+    let bottom: CGFloat
+
+    var body: some View {
+        VStack(spacing: 0) {
+            LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom)
+                .frame(height: top)
+            Color.black
+            LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: bottom)
+        }
+    }
+}
+
 // MARK: - Synced Lyrics
 
 private struct SyncedLyricsScroller: View {
     let lines: [LyricsLine]
     let currentTime: TimeInterval
-    let accent: Color
     let onSeek: ((TimeInterval) -> Void)?
+    var isPlaying: Bool = false
+
+    /// White on the artwork backdrop, for the sweep, the break dots and the
+    /// resume button alike.
+    private let accent = Color.white
+
+    /// The last reported position and when it arrived. The sung line reads
+    /// the time from this every display frame, so its fill glides at the
+    /// screen's refresh rate instead of stepping four times a second.
+    @State private var clockAnchor = PlaybackClockAnchor(time: 0, date: .distantPast)
+
+    private func interpolatedTime(at date: Date) -> TimeInterval {
+        guard isPlaying, clockAnchor.date != .distantPast else { return currentTime }
+        // Capped so a stalled engine never lets the text run on ahead.
+        let elapsed = min(max(date.timeIntervalSince(clockAnchor.date), 0), 0.6)
+        return clockAnchor.time + elapsed
+    }
+
+    /// Where the sung line rests: the upper third, as in Apple Music.
+    private let focusAnchor = UnitPoint(x: 0.5, y: 0.28)
 
     /// How long after the user stops scrolling before the view takes the
     /// wheel back. Long enough to read ahead a verse, short enough that the
@@ -744,9 +596,6 @@ private struct SyncedLyricsScroller: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    @ScaledMetric(relativeTo: .title2) private var activeFontSize: CGFloat = 28
-    @ScaledMetric(relativeTo: .body) private var nearFontSize: CGFloat = 21
-    @ScaledMetric(relativeTo: .callout) private var farFontSize: CGFloat = 18
 
     /// Built from `lines` when they change, never in `body`.
     ///
@@ -763,6 +612,21 @@ private struct SyncedLyricsScroller: View {
     /// the way even for a touch that never became a drag.
     @State private var isTouching = false
     @State private var lastInteraction = Date.distantPast
+    /// Measured height of each row, used to work out how far the list moves
+    /// when the active line advances.
+    @State private var rowHeights: [Int: CGFloat] = [:]
+    /// Each row's temporary displacement during the cascade. The list jumps
+    /// by one line instantly and every row starts displaced by the same
+    /// amount, then the rows spring home one after another - the staggered
+    /// "lines flow upward" motion of Apple Music lyrics.
+    @State private var cascadeShift: CGFloat = 0
+    /// Every line is set at one size; only brightness, blur and a slight
+    /// scale separate the sung line from the rest, so nothing reflows.
+    @ScaledMetric(relativeTo: .title) private var fontSize: CGFloat = 30
+
+    /// Rows this far from the sung line take part in the cascade; the rest
+    /// are off screen and move with the list.
+    private static let cascadeWindow = 8
 
     private var activeIndex: Int? {
         LyricRowBuilder.activeIndex(in: rows, at: currentTime)
@@ -770,30 +634,29 @@ private struct SyncedLyricsScroller: View {
 
     var body: some View {
         GeometryReader { geometry in
-            // Half the viewport, so the active row can sit dead centre whether
-            // it is the first line or the last.
-            let inset = max(120, geometry.size.height / 2 - 40)
+            // Enough room above and below that the active row can sit at the
+            // focus point whether it is the first line or the last.
+            let topInset = max(60, geometry.size.height * focusAnchor.y - 20)
+            let bottomInset = max(120, geometry.size.height * (1 - focusAnchor.y))
 
             ScrollViewReader { proxy in
                 ZStack(alignment: .bottom) {
                     ScrollView(.vertical) {
                         VStack(spacing: 0) {
-                            Color.clear.frame(height: inset)
+                            Color.clear.frame(height: topInset)
 
                             ForEach(rows) { row in
                                 rowButton(row, proxy: proxy)
                             }
 
-                            Color.clear.frame(height: inset)
+                            Color.clear.frame(height: bottomInset)
                         }
                     }
                     .scrollIndicators(.hidden)
                     .onScrollPhaseChange { _, phase in
                         handle(phase)
                     }
-
-                    edgeFades
-                        .allowsHitTesting(false)
+                    .mask { LyricsEdgeMask(top: 44, bottom: 72) }
 
                     if isBrowsing {
                         resumeButton(proxy: proxy)
@@ -806,9 +669,13 @@ private struct SyncedLyricsScroller: View {
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
-                .onChange(of: activeIndex) { _, newValue in
+                .onChange(of: activeIndex) { oldValue, newValue in
                     guard !isBrowsing, !isTouching else { return }
-                    scroll(toRowAt: newValue, proxy: proxy, animated: true)
+                    if let oldValue, let newValue, canCascade(from: oldValue, to: newValue) {
+                        cascade(from: oldValue, to: newValue, proxy: proxy)
+                    } else {
+                        scroll(toRowAt: newValue, proxy: proxy, animated: true)
+                    }
                 }
                 .onChange(of: currentTime) { _, _ in
                     // The playback tick doubles as the resume clock: no timer to
@@ -820,6 +687,12 @@ private struct SyncedLyricsScroller: View {
                 }
                 .onChange(of: lines, initial: true) { _, newLines in
                     rows = LyricRowBuilder.rows(for: newLines)
+                }
+                .onChange(of: currentTime, initial: true) { _, newTime in
+                    clockAnchor = PlaybackClockAnchor(time: newTime, date: Date())
+                }
+                .onChange(of: isPlaying) { _, _ in
+                    clockAnchor = PlaybackClockAnchor(time: currentTime, date: Date())
                 }
                 .onAppear {
                     scroll(toRowAt: activeIndex, proxy: proxy, animated: false)
@@ -839,8 +712,13 @@ private struct SyncedLyricsScroller: View {
         } label: {
             rowContent(row, isActive: isActive, distance: distance)
         }
-        .buttonStyle(LyricRowButtonStyle())
+        .buttonStyle(PressableButtonStyle(pressedScale: 0.97))
         .disabled(onSeek == nil)
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+            rowHeights[row.id] = height
+        }
+        .offset(y: distance <= Self.cascadeWindow ? cascadeShift : 0)
+        .animation(distance <= Self.cascadeWindow ? cascadeAnimation(for: row) : nil, value: cascadeShift)
         .id(row.id)
         .accessibilityLabel(accessibilityLabel(for: row))
         .accessibilityHint(onSeek == nil ? "" : Localized.lyricsSeekHint)
@@ -852,16 +730,16 @@ private struct SyncedLyricsScroller: View {
         Group {
             switch row.kind {
             case .line(let text):
-                LyricLineText(
-                    text: text,
-                    font: .system(
-                        size: fontSize(isActive: isActive, distance: distance),
-                        weight: weight(isActive: isActive, distance: distance)
-                    ),
-                    sweep: isActive ? lineSweep(row) : nil,
-                    accent: accent,
-                    reduceMotion: reduceMotion
-                )
+                // Always wrapped, paused unless this is the sung line, so a
+                // line keeps its identity when it becomes active. With Reduce
+                // Motion the clock never runs and the sweep steps with playback.
+                TimelineView(.animation(minimumInterval: nil, paused: !(isActive && isPlaying) || reduceMotion)) { context in
+                    LyricLineText(
+                        text: text,
+                        font: .system(size: fontSize, weight: .bold),
+                        sweep: isActive ? lineSweep(row, at: interpolatedTime(at: context.date)) : nil
+                    )
+                }
             case .gap:
                 LyricsBreakIndicator(
                     progress: breakProgress(row),
@@ -870,11 +748,13 @@ private struct SyncedLyricsScroller: View {
                 )
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 30)
-        .padding(.vertical, isActive ? 20 : 13)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 4)
+        // One height whether active or not, so the cascade can predict
+        // exactly how far the list moves.
+        .padding(.vertical, 12)
         .contentShape(Rectangle())
-        .scaleEffect(isActive ? 1.0 : 0.96, anchor: .center)
+        .scaleEffect(isActive ? 1.0 : 0.97, anchor: .leading)
         // Depth of field. The distant lines were previously only faded, which
         // reads as "dim text"; softening them as well is what makes the sung
         // line sit in front of the others rather than merely brighter than them.
@@ -891,12 +771,12 @@ private struct SyncedLyricsScroller: View {
     /// only the same thing when one line runs straight into the next; the rest
     /// of the time the difference is a breath, and sweeping across it made the
     /// fill visibly trail the voice. Past that point the line simply holds full.
-    private func lineSweep(_ row: LyricRow) -> Double {
+    private func lineSweep(_ row: LyricRow, at time: TimeInterval) -> Double {
         if let words = row.words, words.count > 1 {
-            return wordSweep(words, fallbackEnd: row.sweepEnd)
+            return wordSweep(words, fallbackEnd: row.sweepEnd, at: time)
         }
 
-        return estimatedSweep(row)
+        return estimatedSweep(row, at: time)
     }
 
     /// The sweep for a line with no word timings.
@@ -909,9 +789,9 @@ private struct SyncedLyricsScroller: View {
     /// by syllable and then converting that position into a glyph position lets
     /// the front dwell on long words and skip across short ones, which is the
     /// rhythm the words themselves imply.
-    private func estimatedSweep(_ row: LyricRow) -> Double {
+    private func estimatedSweep(_ row: LyricRow, at time: TimeInterval) -> Double {
         guard row.sweepEnd > row.start else { return 1 }
-        let elapsed = min(max((currentTime - row.start) / (row.sweepEnd - row.start), 0), 1)
+        let elapsed = min(max((time - row.start) / (row.sweepEnd - row.start), 0), 1)
 
         let totalSyllables = row.units.reduce(0) { $0 + $1.syllables }
         let totalCharacters = row.units.reduce(0) { $0 + $1.characters }
@@ -946,11 +826,11 @@ private struct SyncedLyricsScroller: View {
     /// reach the end of a word exactly when the next word starts, and words are
     /// not equal length. Time alone would put it in the middle of "tomorrow"
     /// while the singer is already on the next word.
-    private func wordSweep(_ words: [LyricsWord], fallbackEnd: TimeInterval) -> Double {
+    private func wordSweep(_ words: [LyricsWord], fallbackEnd: TimeInterval, at time: TimeInterval) -> Double {
         let lengths = words.map { Double($0.text.count) }
         let total = lengths.reduce(0, +)
         guard total > 0, let first = words.first else { return 1 }
-        guard currentTime > first.timestamp else { return 0 }
+        guard time > first.timestamp else { return 0 }
 
         var consumed: Double = 0
 
@@ -960,13 +840,13 @@ private struct SyncedLyricsScroller: View {
             // last real word ends exactly where the format says it does.
             let end = index + 1 < words.count ? words[index + 1].timestamp : fallbackEnd
 
-            if currentTime >= end {
+            if time >= end {
                 consumed += lengths[index]
                 continue
             }
 
-            if currentTime > start, end > start {
-                consumed += lengths[index] * ((currentTime - start) / (end - start))
+            if time > start, end > start {
+                consumed += lengths[index] * ((time - start) / (end - start))
             }
             break
         }
@@ -1000,29 +880,16 @@ private struct SyncedLyricsScroller: View {
             : .interpolatingSpring(mass: 1.0, stiffness: 170, damping: 25, initialVelocity: 0)
     }
 
-    private func fontSize(isActive: Bool, distance: Int) -> CGFloat {
-        if isActive { return activeFontSize }
-        if distance <= 1 { return nearFontSize }
-        return farFontSize
-    }
-
-    private func weight(isActive: Bool, distance: Int) -> Font.Weight {
-        if isActive { return .bold }
-        if distance <= 1 { return .semibold }
-        return .medium
-    }
-
     /// One fade curve for the whole stack. Brightness is carried here alone
     /// rather than split between a text colour and a view opacity, so the two
     /// cannot drift apart and the sweep below has a single thing to lift out of.
     private func lineOpacity(distance: Int, isActive: Bool) -> Double {
         if isActive { return 1.0 }
+        // Apple Music keeps the neighbours readable, just recessed.
         switch distance {
-        case 1: return 0.62
-        case 2: return 0.38
-        case 3: return 0.24
-        case 4: return 0.15
-        default: return 0.10
+        case 1: return 0.42
+        case 2: return 0.34
+        default: return 0.26
         }
     }
 
@@ -1032,46 +899,10 @@ private struct SyncedLyricsScroller: View {
     private func blurRadius(distance: Int, isActive: Bool) -> CGFloat {
         guard !isActive, !reduceMotion else { return 0 }
         switch distance {
-        case 1: return 0.4
-        case 2: return 1.2
-        case 3: return 2.0
-        case 4: return 2.6
+        case 1: return 0.8
+        case 2: return 1.6
+        case 3, 4, 5: return 2.4
         default: return 0
-        }
-    }
-
-    /// Ends fully opaque at both edges rather than at 0.95: a fade that stops
-    /// just short of solid leaves a faint seam where it meets the background,
-    /// which is exactly the kind of edge it exists to hide.
-    private var edgeFades: some View {
-        VStack(spacing: 0) {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.black,
-                    Color.black.opacity(0.7),
-                    Color.black.opacity(0.3),
-                    Color.clear
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 150)
-
-            Spacer()
-
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.clear,
-                    Color.black.opacity(0.3),
-                    Color.black.opacity(0.7),
-                    Color.black
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            // Taller than the top: this one now spans the home-indicator area
-            // as well, so the last line has somewhere to dissolve into.
-            .frame(height: 190)
         }
     }
 
@@ -1100,7 +931,7 @@ private struct SyncedLyricsScroller: View {
             )
             .shadow(color: accent.opacity(0.35), radius: 18, y: 6)
         }
-        .buttonStyle(LyricRowButtonStyle())
+        .buttonStyle(PressableButtonStyle(pressedScale: 0.96))
     }
 
     // MARK: Scroll coordination
@@ -1156,13 +987,52 @@ private struct SyncedLyricsScroller: View {
         scroll(toRowID: rows[index].id, proxy: proxy, animated: animated)
     }
 
+    // MARK: Cascade
+
+    /// Only the ordinary case - playback stepping forward by a line or two -
+    /// cascades. Seeks, jumps back and Reduce Motion use a plain scroll.
+    private func canCascade(from old: Int, to new: Int) -> Bool {
+        guard !reduceMotion, new > old, new - old <= 2 else { return false }
+        return (old..<new).allSatisfy { rowHeights[$0] != nil }
+    }
+
+    private func cascade(from old: Int, to new: Int, proxy: ScrollViewProxy) {
+        let travel = (old..<new).reduce(CGFloat(0)) { $0 + (rowHeights[$1] ?? 0) }
+        guard travel > 0, rows.indices.contains(new) else {
+            scroll(toRowAt: new, proxy: proxy, animated: true)
+            return
+        }
+
+        // Move the list and pre-displace every row by the same amount in one
+        // un-animated transaction, so nothing visibly changes yet...
+        var jump = Transaction()
+        jump.disablesAnimations = true
+        withTransaction(jump) {
+            proxy.scrollTo(rows[new].id, anchor: focusAnchor)
+            cascadeShift = travel
+        }
+        // ...then release the rows; each springs home on its own delay.
+        DispatchQueue.main.async {
+            cascadeShift = 0
+        }
+    }
+
+    /// Rows above the outgoing line go together; from there down each row
+    /// starts a beat after the one above it, capped so the tail never lags.
+    private func cascadeAnimation(for row: LyricRow) -> Animation? {
+        guard !reduceMotion else { return nil }
+        let leader = max((activeIndex ?? 0) - 1, 0)
+        let step = Double(min(max(row.id - leader, 0), 7))
+        return .spring(response: 0.62, dampingFraction: 0.86).delay(step * 0.045)
+    }
+
     private func scroll(toRowID id: Int, proxy: ScrollViewProxy, animated: Bool) {
         if animated {
             withAnimation(scrollAnimation) {
-                proxy.scrollTo(id, anchor: .center)
+                proxy.scrollTo(id, anchor: focusAnchor)
             }
         } else {
-            proxy.scrollTo(id, anchor: .center)
+            proxy.scrollTo(id, anchor: focusAnchor)
         }
     }
 }
@@ -1178,28 +1048,21 @@ private struct LyricLineText: View {
     let text: String
     let font: Font
     /// 0...1 through the line, or nil when this line is not the active one.
+    /// Supplied per display frame by the caller, so it is not animated here.
     let sweep: Double?
-    let accent: Color
-    let reduceMotion: Bool
 
     var body: some View {
         Text(text)
             .font(font)
             .foregroundColor(.white)
-            .multilineTextAlignment(.center)
+            .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
             // Applied even when the line is inactive, rather than branching on
             // `sweep`: an if/else here would give the two states different view
             // identities, so a line would be rebuilt at the moment it became
-            // active - visibly, mid-animation. The renderer takes a nil glow as
-            // "draw this normally" and costs a single pass in that case.
-            .textRenderer(
-                LyricSweepRenderer(
-                    progress: sweep ?? 1,
-                    glow: sweep == nil ? nil : accent
-                )
-            )
-            .animation(reduceMotion ? nil : .linear(duration: 0.25), value: sweep)
+            // active - visibly, mid-animation. An inactive line costs the
+            // renderer a single plain pass.
+            .textRenderer(LyricSweepRenderer(progress: sweep ?? 1, isActive: sweep != nil))
     }
 }
 
@@ -1212,25 +1075,18 @@ private struct LyricLineText: View {
 /// can be spent along one line before it starts on the next, which is the order
 /// the words are sung in.
 ///
-/// `Animatable` on `progress` is what lets the front glide between the player's
-/// quarter-second position updates instead of stepping four times a second.
-private struct LyricSweepRenderer: TextRenderer, Animatable {
+private struct LyricSweepRenderer: TextRenderer {
     var progress: Double
-    /// nil for a line that is not being sung: draw it plainly.
-    var glow: Color?
+    /// false for a line that is not being sung: draw it plainly.
+    var isActive: Bool
     /// How dark the not-yet-sung remainder sits behind the front.
     var dimOpacity: Double = 0.32
-
-    var animatableData: Double {
-        get { progress }
-        set { progress = newValue }
-    }
 
     func draw(layout: Text.Layout, in context: inout GraphicsContext) {
         let lines = Array(layout)
         guard !lines.isEmpty else { return }
 
-        guard let glow else {
+        guard isActive else {
             for line in lines { context.draw(line) }
             return
         }
@@ -1266,15 +1122,32 @@ private struct LyricSweepRenderer: TextRenderer, Animatable {
 
             var sung = context
             // Generous vertical bleed: the clip only ever needs to cut
-            // horizontally, and ascenders, descenders and the glow all reach
-            // outside the typographic rect.
-            sung.clip(to: Path(CGRect(
-                x: bounds.minX,
-                y: bounds.minY - bounds.height,
-                width: filled,
-                height: bounds.height * 3
-            )))
-            sung.addFilter(.shadow(color: glow.opacity(0.5), radius: 12))
+            // horizontally, and ascenders and descenders reach outside the
+            // typographic rect.
+            let bandY = bounds.minY - bounds.height
+            let bandHeight = bounds.height * 3
+            if filled >= width {
+                sung.clip(to: Path(CGRect(x: bounds.minX - 20, y: bandY, width: width + 40, height: bandHeight)))
+            } else {
+                // A feathered front rather than a hard cut: the light bleeds
+                // into the next letters the way a voice carries into a word.
+                let feather = min(bounds.height * 0.9, 28)
+                let solidEnd = bounds.minX + max(filled - feather / 2, 0)
+                sung.clipToLayer { layer in
+                    layer.fill(
+                        Path(CGRect(x: bounds.minX - 20, y: bandY, width: solidEnd - bounds.minX + 20, height: bandHeight)),
+                        with: .color(.black)
+                    )
+                    layer.fill(
+                        Path(CGRect(x: solidEnd, y: bandY, width: feather, height: bandHeight)),
+                        with: .linearGradient(
+                            Gradient(colors: [.black, .clear]),
+                            startPoint: CGPoint(x: solidEnd, y: 0),
+                            endPoint: CGPoint(x: solidEnd + feather, y: 0)
+                        )
+                    )
+                }
+            }
             sung.draw(line)
         }
     }
@@ -1308,14 +1181,6 @@ private struct LyricsBreakIndicator: View {
     }
 }
 
-private struct LyricRowButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
-    }
-}
-
 // MARK: - Status Card
 
 /// Loading, instrumental and not-found all share one glass card so the three
@@ -1329,136 +1194,50 @@ private struct LyricsStatusCard: View {
     let icon: Icon
     let title: String
     let message: String
-    let accent: Color
     var actionTitle: String? = nil
     var action: (() -> Void)? = nil
 
+    /// Plain type on the artwork backdrop: no card and no accent glow
+    /// competing with the artwork colours.
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: 32) {
-                ZStack {
-                    // Large outer glow
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                gradient: Gradient(colors: [
-                                    accent.opacity(0.4),
-                                    accent.opacity(0.2),
-                                    accent.opacity(0.05),
-                                    Color.clear
-                                ]),
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 100
-                            )
-                        )
-                        .frame(width: 200, height: 200)
-                        .blur(radius: 30)
-
-                    // Glass circle
-                    Circle()
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            Circle()
-                                .stroke(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            accent.opacity(0.6),
-                                            accent.opacity(0.3),
-                                            accent.opacity(0.1)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 2
-                                )
-                        )
-                        .frame(width: 120, height: 120)
-                        .shadow(color: accent.opacity(0.3), radius: 25, x: 0, y: 10)
-
-                    switch icon {
-                    case .symbol(let name):
-                        Image(systemName: name)
-                            .font(.system(size: 50, weight: .medium))
-                            .foregroundColor(.white)
-                            .shadow(color: accent.opacity(0.6), radius: 15)
-                    case .progress:
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
-                    }
-                }
-                .accessibilityHidden(true)
-
-                VStack(spacing: 12) {
-                    Text(title)
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-
-                    Text(message)
-                        .font(.callout)
-                        .foregroundColor(.white.opacity(0.6))
-                        .multilineTextAlignment(.center)
-                }
-
-                if let actionTitle, let action {
-                    Button(action: action) {
-                        Text(actionTitle)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 22)
-                            .padding(.vertical, 12)
-                            .background(
-                                Capsule()
-                                    .fill(.ultraThinMaterial)
-                                    .overlay(Capsule().stroke(accent.opacity(0.55), lineWidth: 1))
-                            )
-                    }
+        VStack(spacing: 14) {
+            Group {
+                switch icon {
+                case .symbol(let name):
+                    Image(systemName: name)
+                        .font(.system(size: 34, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.7))
+                case .progress:
+                    ProgressView()
+                        .controlSize(.large)
+                        .tint(.white)
                 }
             }
-            .padding(44)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 28)
-                        .fill(.ultraThinMaterial)
+            .frame(height: 44)
 
-                    RoundedRectangle(cornerRadius: 28)
-                        .stroke(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    accent.opacity(0.3),
-                                    Color.white.opacity(0.15),
-                                    accent.opacity(0.2)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.65))
+            }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
 
-                    RoundedRectangle(cornerRadius: 28)
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    accent.opacity(0.05),
-                                    Color.clear,
-                                    accent.opacity(0.08)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                }
-                .shadow(color: accent.opacity(0.2), radius: 35, x: 0, y: 15)
-            )
-            .padding(.horizontal, 40)
-            .accessibilityElement(children: .combine)
-
-            Spacer()
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .adaptiveGlassButtonStyle()
+                    .padding(.top, 4)
+            }
         }
+        .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity)
     }
 }
 
@@ -1581,8 +1360,9 @@ private struct LyricsVersionPicker: View {
         ),
         currentTime: 18.0,
         isLoading: false,
-        trackTitle: "Sample Song",
-        trackArtist: "Sample Artist",
+        isPlaying: true,
         onSeek: { _ in }
     )
+    .padding(20)
+    .background(Color.indigo.gradient)
 }

@@ -2567,7 +2567,7 @@ class LibraryIndexer: NSObject, ObservableObject {
     private func performSharedContainerProcessing() async {
         print("📁 Checking shared container for new music files...")
 
-        guard let sharedContainer = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player") else {
+        guard let sharedContainer = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppGroup.identifier) else {
             print("❌ Failed to get shared container URL")
             return
         }

@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Cosmos</string>
+	<string>Cadence</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>Cadence</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -24,21 +24,9 @@
 	<array>
 		<dict>
 			<key>INAlternativeAppName</key>
-			<string>Cosmos Music Player</string>
+			<string>Cadence Player</string>
 			<key>INAlternativeAppNamePronunciationHint</key>
-			<string>cosmos music player</string>
-		</dict>
-		<dict>
-			<key>INAlternativeAppName</key>
-			<string>Cosmos</string>
-			<key>INAlternativeAppNamePronunciationHint</key>
-			<string>cosmos</string>
-		</dict>
-		<dict>
-			<key>INAlternativeAppName</key>
-			<string>Cosmos Musique</string>
-			<key>INAlternativeAppNamePronunciationHint</key>
-			<string>cosmos musique</string>
+			<string>cadence player</string>
 		</dict>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
@@ -47,12 +35,12 @@
 	<true/>
 	<key>NSUbiquitousContainers</key>
 	<dict>
-		<key>iCloud.dev.clq.Cosmos-Music-Player</key>
+		<key>iCloud.io.github.ericchiuca.cadence</key>
 		<dict>
 			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
 			<true/>
 			<key>NSUbiquitousContainerName</key>
-			<string>Cosmos Music Player</string>
+			<string>Cadence</string>
 			<key>NSUbiquitousContainerSupportedFolderLevels</key>
 			<string>Any</string>
 		</dict>
@@ -228,10 +216,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>dev.clq.cosmos-music-player</string>
+			<string>io.github.ericchiuca.cadence</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>cosmos-music</string>
+				<string>cadence-music</string>
 			</array>
 		</dict>
 	</array>

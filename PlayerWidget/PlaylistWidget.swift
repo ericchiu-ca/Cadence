@@ -133,7 +133,7 @@ struct PlaylistCard: View {
     let themeColor: Color
 
     var body: some View {
-        Link(destination: URL(string: "cosmos-music://playlist/\(playlist.id)")!) {
+        Link(destination: URL(string: "cadence-music://playlist/\(playlist.id)")!) {
             VStack(spacing: 8) {
                 // Show custom cover if available, otherwise show album cover mashup (2x2 grid)
                 if let customPath = playlist.customCoverImagePath,
@@ -228,7 +228,7 @@ struct PlaylistCard: View {
 
     private func loadArtworkFromFile(_ filename: String) -> Data? {
         guard let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+            forSecurityApplicationGroupIdentifier: "group.io.github.ericchiuca.cadence"
         ) else {
             return nil
         }

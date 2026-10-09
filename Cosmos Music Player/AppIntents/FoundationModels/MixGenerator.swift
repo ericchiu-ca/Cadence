@@ -203,7 +203,7 @@ final class MixGenerator {
 
     private func defaultTitle(for request: String) -> String {
         let trimmed = request.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Cosmos Mix" : trimmed.capitalized
+        return trimmed.isEmpty ? "Cadence Mix" : trimmed.capitalized
     }
 }
 

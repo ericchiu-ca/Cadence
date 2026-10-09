@@ -363,7 +363,7 @@ class DatabaseManager: @unchecked Sendable {
 
     private func getDatabaseURL() throws -> URL {
         // Try to use app group container first for sharing with Siri extension
-        if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player") {
+        if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppGroup.identifier) {
             return containerURL.appendingPathComponent("cosmos_music.db")
         } else {
             // Fallback to documents directory
@@ -1112,6 +1112,7 @@ class DatabaseManager: @unchecked Sendable {
         guard !remapping.isEmpty else { return }
         await LyricsManager.shared.migrateStableIds(remapping)
         await ArtworkManager.shared.migrateStableIds(remapping)
+        PlayerEngine.migratePersistedStableIds(remapping)
     }
 
     enum AuthoritativeRelocationReferenceResult {

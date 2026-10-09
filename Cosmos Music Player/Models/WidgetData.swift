@@ -6,6 +6,10 @@
 //
 
 import Foundation
+
+/// Same value as `AppGroup.identifier`. This file is also compiled into the
+/// widget extension, which cannot see the app-only constant.
+let widgetAppGroupIdentifier = "group.io.github.ericchiuca.cadence"
 import UIKit
 
 // MARK: - Widget Track Data
@@ -41,7 +45,7 @@ final class WidgetDataManager: @unchecked Sendable {
     /// without this they could interleave inside `saveArtwork`/`clearArtwork`
     /// and leave the defaults describing one track while the shared image file
     /// held another's.
-    private let writeQueue = DispatchQueue(label: "dev.clq.cosmos.widget-write")
+    private let writeQueue = DispatchQueue(label: "io.github.ericchiuca.cadence.widget-write")
     /// The newest write that has been applied. Serialising alone is not enough:
     /// the two detached tasks can reach the queue in either order, so a stale
     /// save could still land after the clear that was meant to supersede it.
@@ -50,7 +54,7 @@ final class WidgetDataManager: @unchecked Sendable {
 
     private init() {
         // Use App Group to share data between app and widget
-        userDefaults = UserDefaults(suiteName: "group.dev.clq.Cosmos-Music-Player")
+        userDefaults = UserDefaults(suiteName: widgetAppGroupIdentifier)
     }
 
     /// Discards a write that a newer one has already superseded.
@@ -121,7 +125,7 @@ final class WidgetDataManager: @unchecked Sendable {
     
     func getCurrentTrack() -> WidgetTrackData? {
         print("📱 Widget: Attempting to retrieve track data...")
-        print("📱 Widget: Using suite: group.dev.clq.Cosmos-Music-Player")
+        print("📱 Widget: Using suite: \(widgetAppGroupIdentifier)")
         
         guard let userDefaults = userDefaults else {
             print("⚠️ Widget: Failed to access shared UserDefaults - userDefaults is nil")
@@ -167,7 +171,7 @@ final class WidgetDataManager: @unchecked Sendable {
     // MARK: - Artwork File Storage (avoids 4MB UserDefaults limit)
     
     private func getSharedContainerURL() -> URL? {
-        return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player")
+        return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetAppGroupIdentifier)
     }
     
     private func saveArtwork(_ data: Data) {
@@ -248,7 +252,7 @@ public final class PlaylistDataManager: @unchecked Sendable {
     private let playlistsKey = "widget.playlists"
 
     private init() {
-        userDefaults = UserDefaults(suiteName: "group.dev.clq.Cosmos-Music-Player")
+        userDefaults = UserDefaults(suiteName: widgetAppGroupIdentifier)
     }
 
     public func savePlaylists(_ playlists: [WidgetPlaylistData]) {

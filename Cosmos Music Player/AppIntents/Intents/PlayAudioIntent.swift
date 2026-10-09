@@ -22,12 +22,12 @@ struct PlayAudioIntent: AudioPlaybackIntent {
     )
     static let description = IntentDescription(
         LocalizedStringResource(
-            "Plays a song, album, artist or playlist from your Cosmos library.",
+            "Plays a song, album, artist or playlist from your Cadence library.",
             comment: "Description of the Play Music intent shown in the Shortcuts gallery."
         ),
         categoryName: LocalizedStringResource(
             "Playback",
-            comment: "Shortcuts gallery category name for Cosmos playback intents."
+            comment: "Shortcuts gallery category name for Cadence playback intents."
         )
     )
 
@@ -110,7 +110,7 @@ extension AudioIntentError: CustomLocalizedStringResourceConvertible {
         switch self {
         case .noAudioEntity:
             LocalizedStringResource(
-                "I couldn't find that song in your Cosmos library.",
+                "I couldn't find that song in your Cadence library.",
                 comment: "Spoken when Siri couldn't resolve any matching audio for a play request."
             )
         case .unsupportedTarget:

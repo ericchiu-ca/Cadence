@@ -1,0 +1,45 @@
+# Releasing Cadence on TestFlight / the App Store
+
+Signing and submission need your Apple Developer account, so these steps happen in Xcode and App Store Connect, not in this repository.
+
+## 1. Developer account
+
+- Join the Apple Developer Program (USD 99/year) with the Apple ID that should appear as the publisher.
+- In *Certificates, Identifiers & Profiles*, register these identifiers (or let Xcode create them on first signing):
+
+| Identifier | Type |
+|:--|:--|
+| `io.github.ericchiuca.cadence` | App ID (main app) |
+| `io.github.ericchiuca.cadence.PlayerWidget` | App ID (widget extension) |
+| `io.github.ericchiuca.cadence.Share` | App ID (share extension) |
+| `io.github.ericchiuca.cadence.SiriIntentsExtension` | App ID (Siri extension) |
+| `group.io.github.ericchiuca.cadence` | App Group |
+| `iCloud.io.github.ericchiuca.cadence` | iCloud container |
+
+- Enable the capabilities each target uses: App Groups, iCloud (iCloud Documents), Siri, and the CarPlay audio entitlement (`com.apple.developer.carplay-audio`). CarPlay audio has to be **requested from Apple** before it can be used in a distributed build; until it is granted, remove that entitlement from the release build.
+
+## 2. Project settings
+
+- Set your Team on all four targets (the project ships with no team).
+- Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` for every upload.
+- Optional: add Spotify / Discogs keys through a `.env` file bundled at build time. Note that any key shipped inside an app can be extracted from it; prefer leaving online artist info disabled, or proxying it through your own server.
+
+## 3. App Store Connect
+
+- Create the app record with the name **Cadence** (the LICENSE forbids using the name "Cosmos Music Player" or its branding).
+- Privacy: the app works offline and collects no data. If you enable online artist lookups, declare that artist names are sent to Spotify/Discogs, and that lyric lookups send title, artist, album and duration to lrclib.net.
+- Provide a **link to the source code** (this GitHub repository) in the description or support URL. The GPL requires recipients to be able to get the corresponding source.
+- Attribution: mention "Based on Cosmos Music Player" in the description. Nominative references like this are explicitly allowed by the license exception.
+
+## 4. Upload
+
+1. Xcode → *Product › Archive* (scheme "Cosmos Music Player", any iOS device).
+2. *Distribute App › App Store Connect*.
+3. Test through TestFlight, then submit for review.
+
+## Licence checklist for every release
+
+- [ ] LICENSE (GPLv3 + App Store exception) unchanged in the repository
+- [ ] Source for the exact released version pushed and tagged (`git tag v<version>`)
+- [ ] App name and icon are Cadence's own, not Cosmos'
+- [ ] Original copyright notices kept

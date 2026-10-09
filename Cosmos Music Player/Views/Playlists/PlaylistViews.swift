@@ -52,7 +52,8 @@ struct PlaylistsScreen: View {
 
     var body: some View {
         ZStack {
-            ScreenSpecificBackgroundView(screen: .playlists)
+            Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
 
             VStack {
                 if visiblePlaylists.isEmpty {
@@ -639,7 +640,7 @@ struct PlaylistCardView: View {
 
         // Load image from shared container
         guard let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+            forSecurityApplicationGroupIdentifier: AppGroup.identifier
         ) else { return }
 
         let fileURL = containerURL.appendingPathComponent(customPath)
@@ -657,7 +658,7 @@ struct PlaylistCardView: View {
 
         // Get shared container
         guard let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+            forSecurityApplicationGroupIdentifier: AppGroup.identifier
         ) else {
             print("❌ Failed to get shared container URL")
             return
@@ -826,7 +827,8 @@ struct PlaylistDetailScreen: View {
 
     var body: some View {
         ZStack {
-            ScreenSpecificBackgroundView(screen: .playlistDetail)
+            Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
 
             List {
                 // Header section with artwork and buttons
@@ -1268,7 +1270,7 @@ struct PlaylistDetailScreen: View {
 
         // Load image from shared container
         guard let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+            forSecurityApplicationGroupIdentifier: AppGroup.identifier
         ) else {
             print("❌ Failed to get shared container URL")
             return
@@ -1288,7 +1290,7 @@ struct PlaylistDetailScreen: View {
 
         // Get shared container
         guard let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+            forSecurityApplicationGroupIdentifier: AppGroup.identifier
         ) else {
             print("❌ Failed to get shared container URL")
             return
@@ -1342,7 +1344,7 @@ struct PlaylistDetailScreen: View {
             if let customPath = playlist.customCoverImagePath,
                !customPath.isEmpty,
                let containerURL = FileManager.default.containerURL(
-                forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+                forSecurityApplicationGroupIdentifier: AppGroup.identifier
                ) {
                 let fileURL = containerURL.appendingPathComponent(customPath)
                 try? FileManager.default.removeItem(at: fileURL)

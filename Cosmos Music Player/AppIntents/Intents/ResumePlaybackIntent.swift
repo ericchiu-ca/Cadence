@@ -45,7 +45,7 @@ enum ResumePlaybackError: Error, CustomLocalizedStringResourceConvertible {
     var localizedStringResource: LocalizedStringResource {
         switch self {
         case .emptyLibrary:
-            return "There's no music in your Cosmos library yet."
+            return "There's no music in your Cadence library yet."
         }
     }
 }

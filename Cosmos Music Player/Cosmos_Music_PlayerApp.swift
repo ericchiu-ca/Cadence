@@ -252,7 +252,7 @@ struct Cosmos_Music_PlayerApp: App {
             return
         }
 
-        guard url.scheme == "cosmos-music" else {
+        guard url.scheme == "cadence-music" else {
             print("❌ Unknown URL scheme: \(url.scheme ?? "nil")")
             return
         }
@@ -360,7 +360,7 @@ struct Cosmos_Music_PlayerApp: App {
             
             // Create placeholder file if it doesn't exist
             if !FileManager.default.fileExists(atPath: placeholderURL.path) {
-                let placeholderText = "This folder contains music files for Cosmos Music Player.\nPlace your FLAC files here to add them to your library."
+                let placeholderText = "This folder contains music files for Cadence.\nPlace your FLAC files here to add them to your library."
                 try placeholderText.write(to: placeholderURL, atomically: true, encoding: .utf8)
                 print("✅ Created iCloud Drive placeholder file to ensure folder visibility")
             }

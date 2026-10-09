@@ -979,7 +979,7 @@ actor LyricsManager {
 
         var request = URLRequest(url: url)
         request.setValue(
-            "Cosmos Music Player/1.0 (https://github.com/clquwu/Cosmos-Music-Player)",
+            "Cadence/1.0 (https://github.com/ericchiu-ca/Cadence)",
             forHTTPHeaderField: "User-Agent"
         )
         // Lyrics are cosmetic and the caller is a screen the user is looking at.

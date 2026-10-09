@@ -23,7 +23,7 @@
 "songs_count_plural" = "%d песен";
 "created_date" = "Создан %@";
 "no_songs_found" = "Песни не найдены";
-"your_music_will_appear_here" = "Чтобы добавить музыку:\n\n1. Откройте приложение «Файлы» (или нажмите «Добавить песни»)\n2. Выберите одно из мест:\n   • iCloud Drive → папка Cosmos Music Player\n   • На iPhone → Cosmos Music Player\n3. Перетащите музыкальные файлы в выбранную папку";
+"your_music_will_appear_here" = "Чтобы добавить музыку:\n\n1. Откройте приложение «Файлы» (или нажмите «Добавить песни»)\n2. Выберите одно из мест:\n   • iCloud Drive → папка Cadence\n   • На iPhone → Cadence\n3. Перетащите музыкальные файлы в выбранную папку";
 "create_first_playlist" = "Создайте свой первый плейлист, чтобы начать";
 
 /* General UI strings */
@@ -91,7 +91,7 @@
 "force_dark_mode" = "Принудительный тёмный режим";
 "version" = "Версия";
 "app_name" = "Название приложения";
-"cosmos_music_player" = "Cosmos Music Player";
+"cosmos_music_player" = "Cadence";
 "github_repository" = "Репозиторий GitHub";
 "use_simple_icons" = "Использовать простые иконки без цветного фона в разделах медиатеки.";
 "override_system_appearance" = "Игнорировать системную тему и всегда использовать тёмный режим.";
@@ -127,7 +127,7 @@
 "icloud_connection_required" = "Требуется подключение к iCloud";
 
 /* Tutorial/Onboarding */
-"welcome_to_cosmos" = "Добро пожаловать в Cosmos";
+"welcome_to_cosmos" = "Добро пожаловать в Cadence";
 "sign_in_to_apple_id" = "Войдите в Apple ID";
 "sign_in_message" = "Чтобы синхронизировать музыку и избранное между устройствами, убедитесь, что вы вошли в свой Apple ID.";
 "if_signed_in_continue" = "Если вы уже вошли, можете продолжить";
@@ -138,7 +138,7 @@
 "how_to_add_music" = "Вы можете добавлять музыкальные файлы как в iCloud Drive (синхронизация между устройствами), так и локально (только на этом устройстве):";
 "open_files_app" = "Откройте приложение «Файлы»";
 "navigate_to_icloud_drive" = "Перейдите в iCloud Drive";
-"find_cosmos_player_folder" = "Найдите папку Cosmos Player";
+"find_cosmos_player_folder" = "Найдите папку Cadence";
 "add_your_music_instruction" = "Добавьте свою музыку";
 
 /* Tutorial Status Messages */
@@ -152,7 +152,7 @@
 /* Tutorial Instructions */
 "find_open_files_app" = "Найдите и откройте приложение «Файлы» на устройстве";
 "tap_icloud_drive_sidebar" = "Выберите «iCloud Drive» или «На iPhone» в боковом меню";
-"look_for_cosmos_folder" = "Найдите папку «Cosmos Music Player» и откройте её";
+"look_for_cosmos_folder" = "Найдите папку «Cadence» и откройте её";
 "copy_music_files" = "Скопируйте FLAC- или MP3-файлы в эту папку";
 
 /* Library Processing */
@@ -300,17 +300,17 @@
 "Resumes playing your music where you left off." = "Продолжает воспроизведение музыки с того места, где вы остановились.";
 "Audio" = "Аудио";
 "Play Music" = "Воспроизвести музыку";
-"Plays a song, album, artist or playlist from your Cosmos library." = "Воспроизводит песню, альбом, исполнителя или плейлист из медиатеки Cosmos.";
+"Plays a song, album, artist or playlist from your Cadence library." = "Воспроизводит песню, альбом, исполнителя или плейлист из медиатеки Cadence.";
 "Playback" = "Воспроизведение";
 "Add to Playlist" = "Добавить в плейлист";
 "Generate Mix" = "Создать микс";
-"Builds a mix from your Cosmos library matching a mood or description and starts playing it." = "Создаёт и воспроизводит микс из медиатеки Cosmos по настроению или описанию.";
+"Builds a mix from your Cadence library matching a mood or description and starts playing it." = "Создаёт и воспроизводит микс из медиатеки Cadence по настроению или описанию.";
 "Toggle Favorite" = "Изменить статус избранного";
 "Favorite Current Song" = "Добавить текущую песню в избранное";
-"Adds the currently playing Cosmos song to Liked Songs." = "Добавляет текущую песню Cosmos в любимые.";
+"Adds the currently playing Cadence song to Liked Songs." = "Добавляет текущую песню Cadence в любимые.";
 "%@ is already in your Liked Songs." = "%@ уже находится в любимых.";
 "Added %@ to your Liked Songs." = "%@ добавлена в любимые.";
-"There isn't a song playing in Cosmos right now." = "Сейчас в Cosmos ничего не воспроизводится.";
+"There isn't a song playing in Cadence right now." = "Сейчас в Cadence ничего не воспроизводится.";
 "Add to Queue" = "Добавить в очередь";
 "Play Playlist" = "Воспроизвести плейлист";
 "Save Mix as Playlist" = "Сохранить микс как плейлист";
@@ -334,7 +334,7 @@
 "Now playing" = "Сейчас играет";
 
 /* Errors */
-"There's no music in your Cosmos library yet." = "В медиатеке Cosmos пока нет музыки.";
+"There's no music in your Cadence library yet." = "В медиатеке Cadence пока нет музыки.";
 "No matching music was found in your library." = "В медиатеке не найдено подходящей музыки.";
 "You can only take that action on individual songs." = "Это действие доступно только для отдельных песен.";
 "That song is already in this playlist." = "Эта песня уже есть в плейлисте.";
@@ -392,7 +392,7 @@
 "album_artists" = "Исполнители альбомов";
 "all_artists" = "Все исполнители";
 "library_scan_frequency" = "Автоматическое сканирование";
-"library_scan_frequency_description" = "Как часто Cosmos пересканирует файлы при запуске. iOS часто закрывает приложение в фоне, поэтому короткий интервал означает полное сканирование почти при каждом открытии. Кнопка синхронизации всегда сканирует сразу.";
+"library_scan_frequency_description" = "Как часто Cadence пересканирует файлы при запуске. iOS часто закрывает приложение в фоне, поэтому короткий интервал означает полное сканирование почти при каждом открытии. Кнопка синхронизации всегда сканирует сразу.";
 "checking_library_formats" = "Проверка аудиоформатов…";
 "scan_every_launch" = "При каждом запуске";
 "scan_hourly" = "Не чаще раза в час";
@@ -424,7 +424,7 @@
 
 /* App appearance */
 "app_appearance" = "Оформление приложения";
-"app_appearance_description" = "Выберите оформление Cosmos или следуйте настройке устройства.";
+"app_appearance_description" = "Выберите оформление Cadence или следуйте настройке устройства.";
 "appearance_system" = "Системное";
 "appearance_light" = "Светлое";
 "appearance_dark" = "Тёмное";
@@ -467,3 +467,11 @@
 "sort_manual_order" = "Ручной порядок";
 "sort_artist_az" = "Исполнитель А–Я";
 "sort_artist_za" = "Исполнитель Я–А";
+
+/* Player controls */
+"pause" = "Пауза";
+"next_track" = "Следующий трек";
+"previous_track" = "Предыдущий трек";
+"sync_library" = "Синхронизировать медиатеку";
+"recently_added" = "Недавно добавленные";
+"based_on_cosmos" = "Основано на Cosmos Music Player";

@@ -150,8 +150,14 @@ class SpotifyAccessToken {
 class SpotifyAPIService: ObservableObject, @unchecked Sendable {
     @MainActor static let shared = SpotifyAPIService()
     
-    private let clientId = EnvironmentLoader.shared.spotifyClientId
-    private let clientSecret = EnvironmentLoader.shared.spotifyClientSecret
+    private let credentials: (id: String, secret: String)? = {
+        let env = EnvironmentLoader.shared
+        guard let id = env.spotifyClientId, let secret = env.spotifyClientSecret else { return nil }
+        return (id, secret)
+    }()
+
+    /// False without keys in `.env`; callers skip Spotify instead of failing.
+    var isConfigured: Bool { credentials != nil }
     private let baseURL = "https://api.spotify.com/v1"
     private let authURL = "https://accounts.spotify.com/api/token"
     
@@ -216,13 +222,14 @@ class SpotifyAPIService: ObservableObject, @unchecked Sendable {
     }
     
     private func getAccessToken() async throws -> SpotifyAccessToken {
+        guard let credentials else { throw SpotifyAPIError.notConfigured }
+
         guard let url = URL(string: authURL) else {
             throw SpotifyAPIError.invalidURL
         }
         
         // Create credentials string and encode it in base64
-        let credentials = "\(clientId):\(clientSecret)"
-        guard let credentialsData = credentials.data(using: .utf8) else {
+        guard let credentialsData = "\(credentials.id):\(credentials.secret)".data(using: .utf8) else {
             throw SpotifyAPIError.authenticationError
         }
         let base64Credentials = credentialsData.base64EncodedString()
@@ -370,9 +377,12 @@ enum SpotifyAPIError: Error, LocalizedError {
     case networkError(Error)
     case authenticationError
     case noAccessToken
+    case notConfigured
     
     var errorDescription: String? {
         switch self {
+        case .notConfigured:
+            return "Spotify keys are not configured"
         case .invalidURL:
             return "Invalid URL"
         case .httpError(let code):

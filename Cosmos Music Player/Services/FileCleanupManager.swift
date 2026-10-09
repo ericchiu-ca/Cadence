@@ -183,6 +183,40 @@ class FileCleanupManager: ObservableObject {
         }
     }
     
+    /// Moves rows saved under an earlier app-container path onto the current
+    /// Documents directory. iOS can change that path on an app update or a
+    /// restore, and this has to happen *before* a scan: once the scan has
+    /// inserted the files at their new paths, the repair collides with those
+    /// rows and the library is left with a broken copy of every song.
+    func relocateMovedContainerTracks() async {
+        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+
+        // Off the main actor: this runs at launch, before the first scan, and
+        // touches every row. Only paths that point into *some* app container
+        // other than the current one can need repair, so the string checks
+        // rule out almost every row before any file-system call.
+        let currentDocumentsPrefix = DatabaseManager.canonicalPath(documentsURL.path) + "/"
+        let candidates = await Task.detached(priority: .userInitiated) { () -> [Track] in
+            guard let tracks = try? DatabaseManager.shared.getAllTracks() else { return [] }
+            return tracks.filter { track in
+                !track.path.hasPrefix(currentDocumentsPrefix)
+                    && DatabaseManager.applicationContainerDocumentsRelativePath(forPath: track.path) != nil
+                    && !FileManager.default.fileExists(atPath: track.path)
+            }
+        }.value
+
+        var repaired = 0
+        for track in candidates {
+            if await rescueRelocatedApplicationFile(track, currentDocumentsURL: documentsURL) {
+                repaired += 1
+            }
+        }
+        if repaired > 0 {
+            print("🧹 🔁 Repaired \(repaired) track path(s) after an app-container move")
+            NotificationCenter.default.post(name: NSNotification.Name("LibraryNeedsRefresh"), object: nil)
+        }
+    }
+
     func checkForOrphanedFiles() async {
         print("🧹 Checking for library files that no longer exist...")
 

@@ -2,7 +2,7 @@
 //  FavoriteCurrentSongIntent.swift
 //  Cosmos Music Player
 //
-//  Explicit App Shortcut for phrases such as "Like this song in Cosmos".
+//  Explicit App Shortcut for phrases such as "Like this song in Cadence".
 //  The audio affinity schema can handle named SongEntity values on iOS 27,
 //  but Siri does not consistently bind "this song" to the current Cosmos
 //  track. This parameter-free intent makes that use case deterministic.
@@ -14,7 +14,7 @@ import AppIntents
 struct FavoriteCurrentSongIntent: AppIntent {
     static let title: LocalizedStringResource = "Favorite Current Song"
     static let description = IntentDescription(
-        "Adds the currently playing Cosmos song to Liked Songs.",
+        "Adds the currently playing Cadence song to Liked Songs.",
         categoryName: "Playback"
     )
     static let openAppWhenRun = false
@@ -49,7 +49,7 @@ enum FavoriteCurrentSongError: Error, CustomLocalizedStringResourceConvertible {
     var localizedStringResource: LocalizedStringResource {
         switch self {
         case .nothingPlaying:
-            "There isn't a song playing in Cosmos right now."
+            "There isn't a song playing in Cadence right now."
         }
     }
 }

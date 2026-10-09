@@ -102,34 +102,20 @@ class EnvironmentLoader: @unchecked Sendable {
 
 // MARK: - API Key Helpers
 
+// The keys are optional: without them the online artist info is skipped. A
+// missing key used to be a fatalError, which crashed every build made without
+// a .env file as soon as post-index maintenance touched the Discogs service.
 extension EnvironmentLoader {
+    private func optionalKey(_ key: String) -> String? {
+        guard let value = getValue(for: key), !value.isEmpty else { return nil }
+        return value
+    }
+
     // Spotify API Keys
-    var spotifyClientId: String {
-        guard let clientId = getValue(for: "SPOTIFY_CLIENT_ID"), !clientId.isEmpty else {
-            fatalError("❌ SPOTIFY_CLIENT_ID not found in environment variables. Please add it to your .env file.")
-        }
-        return clientId
-    }
-    
-    var spotifyClientSecret: String {
-        guard let clientSecret = getValue(for: "SPOTIFY_CLIENT_SECRET"), !clientSecret.isEmpty else {
-            fatalError("❌ SPOTIFY_CLIENT_SECRET not found in environment variables. Please add it to your .env file.")
-        }
-        return clientSecret
-    }
-    
+    var spotifyClientId: String? { optionalKey("SPOTIFY_CLIENT_ID") }
+    var spotifyClientSecret: String? { optionalKey("SPOTIFY_CLIENT_SECRET") }
+
     // Discogs API Keys
-    var discogsConsumerKey: String {
-        guard let consumerKey = getValue(for: "DISCOGS_CONSUMER_KEY"), !consumerKey.isEmpty else {
-            fatalError("❌ DISCOGS_CONSUMER_KEY not found in environment variables. Please add it to your .env file.")
-        }
-        return consumerKey
-    }
-    
-    var discogsConsumerSecret: String {
-        guard let consumerSecret = getValue(for: "DISCOGS_CONSUMER_SECRET"), !consumerSecret.isEmpty else {
-            fatalError("❌ DISCOGS_CONSUMER_SECRET not found in environment variables. Please add it to your .env file.")
-        }
-        return consumerSecret
-    }
+    var discogsConsumerKey: String? { optionalKey("DISCOGS_CONSUMER_KEY") }
+    var discogsConsumerSecret: String? { optionalKey("DISCOGS_CONSUMER_SECRET") }
 }

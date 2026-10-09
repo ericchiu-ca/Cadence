@@ -23,7 +23,7 @@
 "songs_count_plural" = "%d songs";
 "created_date" = "Created %@";
 "no_songs_found" = "No songs found";
-"your_music_will_appear_here" = "To add your music:\n\n1. Open the Files app (or tap 'Add Songs')\n2. Choose either:\n   • iCloud Drive → Cosmos Music Player folder\n   • On My iPhone → Cosmos Music Player\n3. Drag your music files into either location";
+"your_music_will_appear_here" = "To add your music:\n\n1. Open the Files app (or tap 'Add Songs')\n2. Choose either:\n   • iCloud Drive → Cadence folder\n   • On My iPhone → Cadence\n3. Drag your music files into either location";
 "create_first_playlist" = "Create your first playlist to get started";
 
 /* General UI strings */
@@ -91,7 +91,7 @@
 "force_dark_mode" = "Force Dark Mode";
 "version" = "Version";
 "app_name" = "App Name";
-"cosmos_music_player" = "Cosmos Music Player";
+"cosmos_music_player" = "Cadence";
 "github_repository" = "GitHub Repository";
 "use_simple_icons" = "Use simple icons without colored backgrounds in the library sections.";
 "override_system_appearance" = "Override system appearance and force the app to use dark mode.";
@@ -127,7 +127,7 @@
 "icloud_connection_required" = "iCloud Connection Required";
 
 /* Tutorial/Onboarding */
-"welcome_to_cosmos" = "Welcome to Cosmos";
+"welcome_to_cosmos" = "Welcome to Cadence";
 "sign_in_to_apple_id" = "Sign in to Apple ID";
 "sign_in_message" = "To sync your music and favorites across devices, please make sure you're signed in to your Apple ID.";
 "if_signed_in_continue" = "If you're signed in, you can continue";
@@ -138,7 +138,7 @@
 "how_to_add_music" = "You can add music files to either iCloud Drive (syncs across devices) or locally (this device only):";
 "open_files_app" = "Open Files App";
 "navigate_to_icloud_drive" = "Navigate to iCloud Drive";
-"find_cosmos_player_folder" = "Find Cosmos Player Folder";
+"find_cosmos_player_folder" = "Find Cadence Folder";
 "add_your_music_instruction" = "Add Your Music";
 
 /* Tutorial Status Messages */
@@ -152,7 +152,7 @@
 /* Tutorial Instructions */
 "find_open_files_app" = "Find and open the Files app on your device";
 "tap_icloud_drive_sidebar" = "Choose 'iCloud Drive' or 'On My iPhone' in the sidebar";
-"look_for_cosmos_folder" = "Find the 'Cosmos Music Player' folder and open it";
+"look_for_cosmos_folder" = "Find the 'Cadence' folder and open it";
 "copy_music_files" = "Copy your FLAC or MP3 files into this folder";
 
 /* Library Processing */
@@ -303,17 +303,17 @@
 "Resumes playing your music where you left off." = "Resumes playing your music where you left off.";
 "Audio" = "Audio";
 "Play Music" = "Play Music";
-"Plays a song, album, artist or playlist from your Cosmos library." = "Plays a song, album, artist or playlist from your Cosmos library.";
+"Plays a song, album, artist or playlist from your Cadence library." = "Plays a song, album, artist or playlist from your Cadence library.";
 "Playback" = "Playback";
 "Add to Playlist" = "Add to Playlist";
 "Generate Mix" = "Generate Mix";
-"Builds a mix from your Cosmos library matching a mood or description and starts playing it." = "Builds a mix from your Cosmos library matching a mood or description and starts playing it.";
+"Builds a mix from your Cadence library matching a mood or description and starts playing it." = "Builds a mix from your Cadence library matching a mood or description and starts playing it.";
 "Toggle Favorite" = "Toggle Favorite";
 "Favorite Current Song" = "Favorite Current Song";
-"Adds the currently playing Cosmos song to Liked Songs." = "Adds the currently playing Cosmos song to Liked Songs.";
+"Adds the currently playing Cadence song to Liked Songs." = "Adds the currently playing Cadence song to Liked Songs.";
 "%@ is already in your Liked Songs." = "%@ is already in your Liked Songs.";
 "Added %@ to your Liked Songs." = "Added %@ to your Liked Songs.";
-"There isn't a song playing in Cosmos right now." = "There isn't a song playing in Cosmos right now.";
+"There isn't a song playing in Cadence right now." = "There isn't a song playing in Cadence right now.";
 "Add to Queue" = "Add to Queue";
 "Play Playlist" = "Play Playlist";
 "Save Mix as Playlist" = "Save Mix as Playlist";
@@ -337,7 +337,7 @@
 "Now playing" = "Now playing";
 
 /* Errors */
-"There's no music in your Cosmos library yet." = "There's no music in your Cosmos library yet.";
+"There's no music in your Cadence library yet." = "There's no music in your Cadence library yet.";
 "No matching music was found in your library." = "No matching music was found in your library.";
 "You can only take that action on individual songs." = "You can only take that action on individual songs.";
 "That song is already in this playlist." = "That song is already in this playlist.";
@@ -395,7 +395,7 @@
 "album_artists" = "Album Artists";
 "all_artists" = "All Artists";
 "library_scan_frequency" = "Automatic Scan";
-"library_scan_frequency_description" = "How often Cosmos rescans your files when it starts. iOS often closes the app in the background, so a short interval means a full scan on nearly every launch. The sync button always rescans immediately.";
+"library_scan_frequency_description" = "How often Cadence rescans your files when it starts. iOS often closes the app in the background, so a short interval means a full scan on nearly every launch. The sync button always rescans immediately.";
 "checking_library_formats" = "Checking audio formats…";
 "scan_every_launch" = "Every launch";
 "scan_hourly" = "At most hourly";
@@ -427,7 +427,7 @@
 
 /* App appearance */
 "app_appearance" = "App Appearance";
-"app_appearance_description" = "Choose how Cosmos looks, or follow your device setting.";
+"app_appearance_description" = "Choose how Cadence looks, or follow your device setting.";
 "appearance_system" = "System";
 "appearance_light" = "Light";
 "appearance_dark" = "Dark";
@@ -470,3 +470,11 @@
 "sort_manual_order" = "Manual Order";
 "sort_artist_az" = "Artist A–Z";
 "sort_artist_za" = "Artist Z–A";
+
+/* Player controls */
+"pause" = "Pause";
+"next_track" = "Next Track";
+"previous_track" = "Previous Track";
+"sync_library" = "Sync Library";
+"recently_added" = "Recently Added";
+"based_on_cosmos" = "Based on Cosmos Music Player";

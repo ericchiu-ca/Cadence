@@ -1,6 +1,6 @@
 /*
   AppShortcuts.strings (Russian)
-  Cosmos Music Player
+  Cadence
 */
 
 "Resume playback in ${applicationName}" = "Продолжить воспроизведение в ${applicationName}";

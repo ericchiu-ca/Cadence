@@ -26,7 +26,8 @@ struct QueueManagementView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                ScreenSpecificBackgroundView(screen: .player)
+                Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
 
                 VStack(spacing: 20) {
                     // Header

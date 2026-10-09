@@ -9,8 +9,8 @@
 			<string>INPlayMediaIntent</string>
 			<key>IntentExamples</key>
 			<array>
-				<string>Play my music on Cosmos</string>
-				<string>Play my favorites on Cosmos</string>
+				<string>Play my music on Cadence</string>
+				<string>Play my favorites on Cadence</string>
 			</array>
 		</dict>
 		<dict>
@@ -18,8 +18,8 @@
 			<string>INAddMediaIntent</string>
 			<key>IntentExamples</key>
 			<array>
-				<string>Add this song to my favorites on Cosmos</string>
-				<string>Add this song to my playlist on Cosmos</string>
+				<string>Add this song to my favorites on Cadence</string>
+				<string>Add this song to my playlist on Cadence</string>
 			</array>
 		</dict>
 	</array>

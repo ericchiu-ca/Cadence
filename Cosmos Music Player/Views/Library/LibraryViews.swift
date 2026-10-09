@@ -3,23 +3,6 @@ import GRDB
 import UniformTypeIdentifiers
 import Combine
 
-// MARK: - Responsive Font Helper
-extension View {
-    func responsiveLibraryTitleFont() -> some View {
-        self.font(.title)
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-            .fontWeight(.bold)
-    }
-
-    func responsiveSectionTitleFont() -> some View {
-        self.font(.title2)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
-            .fontWeight(.semibold)
-    }
-}
-
 struct LibraryView: View {
     let tracks: [Track]
     @Binding var showTutorial: Bool
@@ -49,6 +32,42 @@ struct LibraryView: View {
     @State private var newTracksFoundCount = 0
     @State private var syncCompleted = false
     @State private var showMusicPicker = false
+    @State private var recentlyAdded: [RecentlyAddedItem] = []
+
+    @ViewBuilder
+    private var indexingStatus: some View {
+        if libraryIndexer.isIndexing && !libraryIndexer.currentlyProcessing.isEmpty {
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("\(Localized.processing): \(libraryIndexer.currentlyProcessing)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 8)
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+    }
+
+    /// Shared by the toolbar button and pull-to-refresh: wait out any scan in
+    /// progress, sync (or just refresh), then report what changed.
+    private func performSync() async {
+        guard !isRefreshing else { return }
+        withAnimation(.smooth(duration: 0.2)) { isRefreshing = true }
+        while libraryIndexer.isIndexing {
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        }
+        let result = if let onManualSync {
+            await onManualSync()
+        } else {
+            await onRefresh()
+        }
+        withAnimation(.smooth(duration: 0.2)) { isRefreshing = false }
+        showSyncFeedback(trackCountBefore: result.before, trackCountAfter: result.after)
+    }
 
     // Helper function to show sync feedback
     private func showSyncFeedback(trackCountBefore: Int, trackCountAfter: Int) {
@@ -212,6 +231,10 @@ struct LibraryView: View {
         }
     }
 
+    private var sectionTint: Color {
+        settings.minimalistIcons ? .primary : settings.backgroundColorChoice.color
+    }
+
     @ViewBuilder
     private func homeSectionView(for sectionId: HomeSectionId) -> some View {
         switch sectionId {
@@ -221,9 +244,8 @@ struct LibraryView: View {
             } label: {
                 LibrarySectionRowView(
                     title: Localized.allSongs,
-                    subtitle: Localized.songsCountOnly(tracks.count),
                     icon: "music.note",
-                    color: settings.backgroundColorChoice.color
+                    tint: sectionTint
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -234,9 +256,8 @@ struct LibraryView: View {
             } label: {
                 LibrarySectionRowView(
                     title: Localized.likedSongs,
-                    subtitle: Localized.yourFavorites,
-                    icon: "heart.fill",
-                    color: .red
+                    icon: "heart",
+                    tint: sectionTint
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -247,9 +268,8 @@ struct LibraryView: View {
             } label: {
                 LibrarySectionRowView(
                     title: Localized.playlists,
-                    subtitle: Localized.yourPlaylists,
                     icon: "music.note.list",
-                    color: .green
+                    tint: sectionTint
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -260,9 +280,8 @@ struct LibraryView: View {
             } label: {
                 LibrarySectionRowView(
                     title: Localized.artists,
-                    subtitle: Localized.browseByArtist,
-                    icon: "person.2.fill",
-                    color: .purple
+                    icon: "music.microphone",
+                    tint: sectionTint
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -273,9 +292,8 @@ struct LibraryView: View {
             } label: {
                 LibrarySectionRowView(
                     title: Localized.albums,
-                    subtitle: Localized.browseByAlbum,
-                    icon: "opticaldisc.fill",
-                    color: .orange
+                    icon: "square.stack",
+                    tint: sectionTint
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -286,9 +304,8 @@ struct LibraryView: View {
             }) {
                 LibrarySectionRowView(
                     title: Localized.addSongs,
-                    subtitle: Localized.importMusicFiles,
-                    icon: "plus.circle.fill",
-                    color: .blue
+                    icon: "plus.circle",
+                    tint: sectionTint
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -298,149 +315,74 @@ struct LibraryView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                ScreenSpecificBackgroundView(screen: .library)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        indexingStatus
 
-                VStack(spacing: 0) {
-
-                    // Compact processing status at the top of library
-                    if libraryIndexer.isIndexing && !libraryIndexer.currentlyProcessing.isEmpty {
-                        HStack(spacing: 8) {
-                            ProgressView()
-                                .scaleEffect(0.6)
-                                .frame(width: 12, height: 12)
-
-                            Text("\(Localized.processing): \(libraryIndexer.currentlyProcessing)")
-                                .font(.caption2)
-                                .foregroundColor(settings.backgroundColorChoice.color)
-                                .lineLimit(1)
-
-                            Spacer()
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                        .background(settings.backgroundColorChoice.color.opacity(0.05))
-                    }
-
-                    // Large section rows
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            // Library title with icons that scrolls with content
-                            HStack(alignment: .center) {
-                                HStack(spacing: 10) {
-                                    Image("AppLogo")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 32, height: 32)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                                    Text(Localized.library)
-                                        .responsiveLibraryTitleFont()
-                                        .foregroundColor(.primary)
-                                }
-
-                                Spacer()
-
-                                HStack(spacing: 20) {
-                                    // Sync button (if available)
-                                    if let onManualSync = onManualSync {
-                                        Button(action: {
-                                            guard !isRefreshing else { return }
-
-                                            // Provide immediate haptic feedback
-                                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                                            impactFeedback.impactOccurred()
-
-                                            withAnimation(.easeInOut(duration: 0.1)) {
-                                                isRefreshing = true
-                                            }
-
-                                            Task {
-                                                // Wait for any ongoing indexing to complete first
-                                                while libraryIndexer.isIndexing {
-                                                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-                                                }
-
-                                                let result = await onManualSync()
-
-                                                await MainActor.run {
-                                                    isRefreshing = false
-                                                    showSyncFeedback(trackCountBefore: result.before, trackCountAfter: result.after)
-                                                }
-                                            }
-                                        }) {
-                                            ZStack {
-                                                if isRefreshing {
-                                                    ProgressView()
-                                                        .scaleEffect(0.8)
-                                                        .progressViewStyle(CircularProgressViewStyle(tint: settings.backgroundColorChoice.color))
-                                                } else {
-                                                    Image(systemName: "arrow.clockwise")
-                                                        .font(.system(size: 26, weight: .medium))
-                                                        .foregroundColor(settings.backgroundColorChoice.color)
-                                                }
-                                            }
-                                            .padding(.bottom, 4)
-                                            .scaleEffect(isRefreshing ? 0.9 : 1.0)
-                                            .animation(.easeInOut(duration: 0.2), value: isRefreshing)
-                                        }
-                                        .disabled(isRefreshing)
-                                    }
-
-                                    // Search button (center)
-                                    Button(action: {
-                                        showSearch = true
-                                    }) {
-                                        Image(systemName: "magnifyingglass")
-                                            .font(.system(size: 26, weight: .medium))
-                                            .foregroundColor(settings.backgroundColorChoice.color)
-                                    }
-
-                                    // Settings button
-                                    Button(action: {
-                                        showSettings = true
-                                    }) {
-                                        Image(systemName: "gearshape")
-                                            .font(.system(size: 26, weight: .medium))
-                                            .foregroundColor(settings.backgroundColorChoice.color)
-                                    }
-                                }
-                            }
-                            .padding(.leading, 4)
-                            .padding(.trailing, 4)
-                            ForEach(settings.homeSections.filter(\.isVisible)) { section in
+                        let sections = settings.homeSections.filter(\.isVisible)
+                        VStack(spacing: 0) {
+                            ForEach(sections) { section in
                                 homeSectionView(for: section.id)
+                                if section.id != sections.last?.id {
+                                    Divider().padding(.leading, 46)
+                                }
                             }
                         }
-                        .padding(16)
-                        .padding(.bottom, 100) // Add padding for mini player
+                        .padding(.horizontal, 20)
+
+                        if !recentlyAdded.isEmpty {
+                            Text(Localized.recentlyAdded)
+                                .font(.title2.weight(.bold))
+                                .padding(.horizontal, 20)
+                                .padding(.top, 28)
+                                .padding(.bottom, 12)
+
+                            RecentlyAddedGrid(items: recentlyAdded, allTracks: tracks)
+                                .padding(.horizontal, 20)
+                        }
+                    }
+                    .padding(.bottom, 120) // Room for the mini player
+                    .animation(.smooth(duration: 0.3), value: libraryIndexer.isIndexing)
+                }
+                .navigationTitle(Localized.library)
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        if onManualSync != nil {
+                            Button {
+                                Task { await performSync() }
+                            } label: {
+                                if isRefreshing {
+                                    ProgressView()
+                                } else {
+                                    Image(systemName: "arrow.clockwise")
+                                }
+                            }
+                            .disabled(isRefreshing)
+                            .accessibilityLabel(Localized.sync)
+                        }
+
+                        Button {
+                            showSearch = true
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                        }
+                        .accessibilityLabel(Localized.search)
+
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
+                        .accessibilityLabel(Localized.settings)
                     }
                 }
-                .navigationTitle("")
-                .navigationBarTitleDisplayMode(.large)
+                .sensoryFeedback(.impact(weight: .medium), trigger: isRefreshing) { _, new in new }
+                .task(id: tracks.count) {
+                    recentlyAdded = RecentlyAddedItem.make(from: tracks)
+                }
                 .refreshable {
-                    // Prevent multiple concurrent refreshes
-                    guard !isRefreshing else { return }
-
-                    // Provide haptic feedback for pull-to-refresh
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                    impactFeedback.impactOccurred()
-
-                    // Wait for any ongoing indexing to complete before starting sync
-                    while libraryIndexer.isIndexing {
-                        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-                    }
-
-                    // For pull-to-refresh, use manual sync if available, otherwise just refresh
-                    let result = if let onManualSync = onManualSync {
-                        await onManualSync() // Full sync + refresh
-                    } else {
-                        await onRefresh()    // Just refresh
-                    }
-
-                    // Show feedback after sync/refresh is complete
-                    await MainActor.run {
-                        showSyncFeedback(trackCountBefore: result.before, trackCountAfter: result.after)
-                    }
+                    await performSync()
                 }
 
                 // Hidden NavigationLink for programmatic navigation from player
@@ -506,9 +448,6 @@ struct LibraryView: View {
                 }
             }
         }
-        .background(.clear)
-        .toolbarBackground(.clear, for: .navigationBar)
-        .toolbarBackground(.clear, for: .automatic)
         .onReceive(NotificationCenter.default.publisher(for: .cosmosSettingsDidChange)) { _ in
             settings = DeleteSettings.load()
         }
@@ -596,67 +535,135 @@ struct LibraryView: View {
     }
 }
 
+/// One entry in the Library list, in the Apple Music style: a tinted
+/// symbol, the name, and a chevron. No card - the list itself is the surface.
 struct LibrarySectionRowView: View {
     let title: String
-    let subtitle: String
     let icon: String
-    let color: Color
-    @State private var settings = DeleteSettings.load()
+    let tint: Color
 
     var body: some View {
         HStack(spacing: 16) {
-            // Icon
-            if settings.minimalistIcons {
-                Image(systemName: icon)
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(.primary)
-                    .frame(width: 60, height: 60)
-            } else {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(color.opacity(0.2))
-                        .frame(width: 60, height: 60)
+            Image(systemName: icon)
+                .font(.system(size: 21, weight: .regular))
+                .foregroundStyle(tint)
+                .frame(width: 30)
 
-                    Image(systemName: icon)
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(color)
+            Text(title)
+                .font(.title3)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+
+            Spacer(minLength: 8)
+
+            Image(systemName: "chevron.right")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .frame(minHeight: 52)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Newest additions as a two-column artwork grid, one tile per album.
+struct RecentlyAddedGrid: View {
+    let items: [RecentlyAddedItem]
+    let allTracks: [Track]
+
+    private let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
+
+    var body: some View {
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
+            ForEach(items) { item in
+                if let album = item.album {
+                    NavigationLink {
+                        AlbumDetailScreen(album: album, allTracks: allTracks)
+                    } label: {
+                        RecentlyAddedTile(item: item)
+                    }
+                    .buttonStyle(PressableButtonStyle(pressedScale: 0.96))
+                } else {
+                    Button {
+                        Task { await PlayerEngine.shared.playTrack(item.track, queue: [item.track]) }
+                    } label: {
+                        RecentlyAddedTile(item: item)
+                    }
+                    .buttonStyle(PressableButtonStyle(pressedScale: 0.96))
                 }
             }
+        }
+    }
+}
 
-            // Text content
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .responsiveSectionTitleFont()
-                    .foregroundColor(.primary)
+struct RecentlyAddedItem: Identifiable {
+    let id: String
+    let album: Album?
+    let track: Track
+    let subtitle: String?
 
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+    var title: String { album?.title ?? track.title }
+
+    /// Newest first, one per album.
+    static func make(from tracks: [Track], limit: Int = 6) -> [RecentlyAddedItem] {
+        var seenAlbums = Set<Int64>()
+        var items: [RecentlyAddedItem] = []
+        // `getAllTracks()` already returns newest first (ORDER BY id DESC).
+        for track in tracks {
+            if let albumId = track.albumId {
+                guard seenAlbums.insert(albumId).inserted else { continue }
             }
+            let album = track.albumId.flatMap { albumId in
+                try? DatabaseManager.shared.read { db in try Album.fetchOne(db, key: albumId) }
+            }
+            let artist = album?.albumArtist ?? (try? DatabaseManager.shared.getArtistDisplayName(
+                forTrackStableId: track.stableId,
+                fallbackArtistId: track.artistId
+            ))
+            items.append(RecentlyAddedItem(
+                id: track.albumId.map { "album-\($0)" } ?? track.stableId,
+                album: album,
+                track: track,
+                subtitle: artist
+            ))
+            if items.count == limit { break }
+        }
+        return items
+    }
+}
 
-            Spacer()
+private struct RecentlyAddedTile: View {
+    let item: RecentlyAddedItem
+    @State private var artwork: UIImage?
 
-            // Chevron
-            Image(systemName: "chevron.right")
-                .font(.body)
-                .foregroundColor(.secondary)
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ArtworkTile(image: artwork, cornerRadius: 10, placeholderFont: .largeTitle)
+                .aspectRatio(1, contentMode: .fit)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(item.title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                if let subtitle = item.subtitle {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .background(
-            // Glassy background that reflects gradient
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.ultraThinMaterial)
-                .opacity(0.8)
-        )
-        .cornerRadius(12)
-        .shadow(color: settings.backgroundColorChoice.color.opacity(0.15), radius: 4, x: 0, y: 2)
-        .onReceive(NotificationCenter.default.publisher(for: .cosmosSettingsDidChange)) { _ in
-            settings = DeleteSettings.load()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BackgroundColorChanged"))) { _ in
-            settings = DeleteSettings.load()
-        }
+        .task(id: item.track.stableId) { await loadArtwork() }
+        // Recently added tracks are exactly the ones whose covers are still
+        // being extracted; pick the cover up when it lands.
+        .reloadsArtwork(for: item.track.stableId) { Task { await loadArtwork() } }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func loadArtwork() async {
+        let image = await ArtworkManager.shared.getThumbnail(for: item.track, maxPixelSize: 480)
+        withAnimation(.easeOut(duration: 0.2)) { artwork = image }
     }
 }
 
@@ -668,7 +675,7 @@ struct AllSongsScreen: View {
         // screen - with a search active, shuffling the whole library instead
         // would ignore what the user just narrowed down to.
         TrackListView(tracks: tracks, listIdentifier: "all_songs", showsShuffleButton: true)
-            .background(ScreenSpecificBackgroundView(screen: .allSongs))
+            .background(Color(uiColor: .systemBackground))
             .navigationTitle(Localized.allSongs)
             .navigationBarTitleDisplayMode(.inline)
     }
@@ -686,7 +693,7 @@ struct LikedSongsScreen: View {
             isLikedSongsScreen: true,
             showsShuffleButton: true
         )
-            .background(ScreenSpecificBackgroundView(screen: .likedSongs))
+            .background(Color(uiColor: .systemBackground))
             .navigationTitle(Localized.likedSongs)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
@@ -1250,9 +1257,13 @@ struct TrackListContentView: View {
                             .tint(.blue)
                     }
                 }
-                .background(RoundedRectangle(cornerRadius: 12).fill(.ultraThinMaterial).opacity(0.7))
-                .padding(.horizontal, 8).padding(.vertical, 4)
-                .listRowSeparator(.hidden).listRowInsets(EdgeInsets())
+                // Plain rows with hairline separators that start at the
+                // title, as in Apple Music, instead of a card per song.
+                .alignmentGuide(.listRowSeparatorLeading) { _ in isBulkMode ? 104 : 60 }
+                // Rows share separators, so only the first row's top edge is
+                // hidden; hiding every top edge removed the lines between rows.
+                .listRowSeparator(track.stableId == tracks.first?.stableId ? .hidden : .automatic, edges: .top)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 8))
                 .listRowBackground(Color.clear)
             }
             }
@@ -1547,7 +1558,8 @@ struct SearchView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                ScreenSpecificBackgroundView(screen: .library)
+                Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // Search bar

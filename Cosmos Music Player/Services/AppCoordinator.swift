@@ -91,6 +91,16 @@ class AppCoordinator: ObservableObject {
         // Notify CloudDownloadManager about status change
         NotificationCenter.default.post(name: NSNotification.Name("iCloudAuthStatusChanged"), object: nil)
 
+        // Repair paths left behind by an app-container move before any scan
+        // can index the same files a second time under their new paths.
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path
+        let lastDocumentsPathKey = "LastKnownDocumentsPath"
+        if let documentsPath,
+           UserDefaults.standard.string(forKey: lastDocumentsPathKey) != documentsPath {
+            await fileCleanupManager.relocateMovedContainerTracks()
+            UserDefaults.standard.set(documentsPath, forKey: lastDocumentsPathKey)
+        }
+
         // Check if we should auto-scan based on last scan date
         let settings = DeleteSettings.load()
         print("📅 Current lastLibraryScanDate: \(settings.lastLibraryScanDate?.description ?? "nil")")
@@ -223,7 +233,7 @@ class AppCoordinator: ObservableObject {
         
         // Try to create the app folder
         do {
-            let appFolderURL = containerURL.appendingPathComponent("Cosmos Player", isDirectory: true)
+            let appFolderURL = containerURL.appendingPathComponent("Cadence", isDirectory: true)
             
             if !FileManager.default.fileExists(atPath: appFolderURL.path) {
                 try FileManager.default.createDirectory(at: appFolderURL, 
@@ -938,7 +948,7 @@ class AppCoordinator: ObservableObject {
 
     private func updateWidgetPlaylists(playlists: [Playlist]) async {
         guard let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+            forSecurityApplicationGroupIdentifier: AppGroup.identifier
         ) else {
             print("⚠️ Widget: Failed to get shared container URL")
             return

@@ -19,6 +19,18 @@ struct SettingsView: View {
         }
     }
 
+    private func aboutLinkRow(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(.primary)
+            Spacer()
+            Image(systemName: "arrow.up.right.square")
+                .foregroundStyle(.secondary)
+                .font(.system(size: 16))
+        }
+        .contentShape(Rectangle())
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -255,26 +267,14 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    Button(action: {
-                        print("🔗 GitHub repository button tapped")
-                        if let url = URL(string: "https://github.com/clquwu/Cosmos-Music-Player") {
-                            print("🔗 Opening URL: \(url)")
-                            UIApplication.shared.open(url)
-                        } else {
-                            print("❌ Invalid GitHub URL")
-                        }
-                    }) {
-                        HStack {
-                            Text(Localized.githubRepository)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Image(systemName: "arrow.up.right.square")
-                                .foregroundColor(.secondary)
-                                .font(.system(size: 16))
-                        }
-                        .contentShape(Rectangle()) // Make entire area tappable
+                    // This app's source (GPLv3 requires it to be available)
+                    // and the project it is based on.
+                    Link(destination: URL(string: "https://github.com/ericchiu-ca/Cadence")!) {
+                        aboutLinkRow(Localized.githubRepository)
                     }
-                    .buttonStyle(PlainButtonStyle()) // Remove default button styling that might interfere
+                    Link(destination: URL(string: "https://github.com/clquwu/Cosmos-Music-Player")!) {
+                        aboutLinkRow(Localized.basedOnCosmos)
+                    }
                 }
             }
             .safeAreaInset(edge: .bottom) {

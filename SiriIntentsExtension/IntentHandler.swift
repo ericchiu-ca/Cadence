@@ -115,7 +115,7 @@ struct RankedSimpleTrack: Sendable {
 enum SiriDiag {
     static func log(_ message: String) {
         guard let container = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+            forSecurityApplicationGroupIdentifier: "group.io.github.ericchiuca.cadence"
         ) else { return }
         let dir = container.appendingPathComponent("Library", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -143,7 +143,7 @@ class ExtensionDatabaseAccess {
     }
 
     private func setupDatabase() {
-        guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player") else {
+        guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.io.github.ericchiuca.cadence") else {
             print("❌ Unable to get app group container")
             return
         }

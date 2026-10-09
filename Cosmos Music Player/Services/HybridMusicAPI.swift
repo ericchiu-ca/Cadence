@@ -167,7 +167,7 @@ class HybridMusicAPIService: ObservableObject, @unchecked Sendable {
         // Prefer Spotify so artist pages can expose Spotify artwork/links when available.
         print("🎯 Hybrid: Trying Spotify for: \(name)")
         do {
-            if let spotifyArtist = try await spotifyAPI.searchArtist(name: name) {
+            if spotifyAPI.isConfigured, let spotifyArtist = try await spotifyAPI.searchArtist(name: name) {
                 print("✅ Hybrid: Found on Spotify: \(spotifyArtist.name)")
                 let unifiedArtist = UnifiedArtist(from: spotifyArtist)
                 cacheArtist(name: name, artist: unifiedArtist)
@@ -185,7 +185,7 @@ class HybridMusicAPIService: ObservableObject, @unchecked Sendable {
         // Fallback to Discogs for bios and artists unavailable on Spotify.
         print("🎯 Hybrid: Falling back to Discogs for: \(name)")
         do {
-            if let discogsArtist = try await discogsAPI.searchArtist(name: name) {
+            if discogsAPI.isConfigured, let discogsArtist = try await discogsAPI.searchArtist(name: name) {
                 print("✅ Hybrid: Found on Discogs: \(discogsArtist.name)")
                 let unifiedArtist = UnifiedArtist(from: discogsArtist)
                 cacheArtist(name: name, artist: unifiedArtist)
@@ -207,7 +207,7 @@ class HybridMusicAPIService: ObservableObject, @unchecked Sendable {
         if currentSource == .discogs {
             print("🎯 Hybrid: Trying Spotify as alternative for: \(name)")
             do {
-                if let spotifyArtist = try await spotifyAPI.searchArtist(name: name) {
+                if spotifyAPI.isConfigured, let spotifyArtist = try await spotifyAPI.searchArtist(name: name) {
                     print("✅ Hybrid: Found alternative on Spotify: \(spotifyArtist.name)")
                     let unifiedArtist = UnifiedArtist(from: spotifyArtist)
                     cacheArtist(name: name, artist: unifiedArtist)
@@ -222,7 +222,7 @@ class HybridMusicAPIService: ObservableObject, @unchecked Sendable {
         if currentSource == .spotify {
             print("🎯 Hybrid: Trying Discogs as alternative for: \(name)")
             do {
-                if let discogsArtist = try await discogsAPI.searchArtist(name: name) {
+                if discogsAPI.isConfigured, let discogsArtist = try await discogsAPI.searchArtist(name: name) {
                     print("✅ Hybrid: Found alternative on Discogs: \(discogsArtist.name)")
                     let unifiedArtist = UnifiedArtist(from: discogsArtist)
                     cacheArtist(name: name, artist: unifiedArtist)

@@ -86,6 +86,8 @@ struct Localized {
     
     // MARK: - Library and Navigation
     static let library = "library".localized
+    static let sync = "sync_library".localized
+    static let recentlyAdded = "recently_added".localized
     static let artists = "artists".localized
     static let albumArtists = "album_artists".localized
     static let allArtists = "all_artists".localized
@@ -116,6 +118,10 @@ struct Localized {
     static let album = "album".localized
     static let play = "play".localized
     static let shuffle = "shuffle".localized
+    static let pause = "pause".localized
+    static let nextTrack = "next_track".localized
+    static let previousTrack = "previous_track".localized
+    static let repeatMode = "Repeat".localized
     static let wrongArtist = "wrong_artist".localized
     static let openSpotify = "open_spotify".localized
     static let loadingArtist = "loading_artist".localized
@@ -154,6 +160,7 @@ struct Localized {
     static let appName = "app_name".localized
     static let cosmosMusicPlayer = "cosmos_music_player".localized
     static let githubRepository = "github_repository".localized
+    static let basedOnCosmos = "based_on_cosmos".localized
     static let useSimpleIcons = "use_simple_icons".localized
     static let overrideSystemAppearance = "override_system_appearance".localized
     static let backgroundColor = "background_color".localized

@@ -12,7 +12,7 @@
 import Foundation
 
 enum SiriDiag {
-    static let appGroupId = "group.dev.clq.Cosmos-Music-Player"
+    static let appGroupId = AppGroup.identifier
     nonisolated(unsafe) private static var migrated = false
 
     static func log(_ message: String) {

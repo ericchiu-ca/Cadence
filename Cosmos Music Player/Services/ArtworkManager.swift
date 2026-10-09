@@ -32,6 +32,7 @@ class ArtworkManager: ObservableObject {
 
     // In-memory mapping cache
     private var artworkMapping: [String: String] = [:]
+    private var mappingSaveTask: Task<Void, Never>?
 
     private let maxMemoryCacheItems = 250
     private let maxMemoryCacheCost = 40 * 1024 * 1024
@@ -91,6 +92,7 @@ class ArtworkManager: ObservableObject {
                 queue: .main
             ) { [weak self] _ in
                 Task { @MainActor [weak self] in
+                    self?.flushMappingSave()
                     self?.clearCache()
                 }
             }
@@ -115,10 +117,40 @@ class ArtworkManager: ObservableObject {
         }
     }
 
+    /// Coalesces mapping writes. Covers are extracted one by one as rows
+    /// scroll past, and writing the whole mapping (as XML, on the main actor)
+    /// for each one was quadratic I/O on a fresh library. Now a burst of
+    /// changes produces one binary write, off the main actor.
     private func saveMapping() {
+        mappingSaveTask?.cancel()
+        mappingSaveTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled, let self else { return }
+            self.mappingSaveTask = nil
+            await Self.writeMapping(self.artworkMapping, to: self.mappingFileURL)
+        }
+    }
+
+    /// Writes a pending save now; the app may be suspended before the
+    /// debounce fires.
+    private func flushMappingSave() {
+        guard let pending = mappingSaveTask else { return }
+        pending.cancel()
+        mappingSaveTask = nil
+        let snapshot = artworkMapping
+        let url = mappingFileURL
+        // Ask for time to finish: the app can be suspended right after this.
+        let backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "ArtworkMappingSave")
+        Task.detached(priority: .userInitiated) {
+            await Self.writeMapping(snapshot, to: url)
+            await MainActor.run { UIApplication.shared.endBackgroundTask(backgroundTask) }
+        }
+    }
+
+    private nonisolated static func writeMapping(_ mapping: [String: String], to url: URL) async {
         do {
-            let data = try PropertyListSerialization.data(fromPropertyList: artworkMapping, format: .xml, options: 0)
-            try data.write(to: mappingFileURL, options: .atomic)
+            let data = try PropertyListSerialization.data(fromPropertyList: mapping, format: .binary, options: 0)
+            try data.write(to: url, options: .atomic)
         } catch {
             print("⚠️ Failed to save artwork mapping: \(error)")
         }

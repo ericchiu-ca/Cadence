@@ -4860,11 +4860,15 @@ class PlayerEngine: NSObject, ObservableObject {
         // Four UI updates per second are smooth enough for elapsed-time labels
         // and avoid flooding SwiftUI's list/layout pipeline. Audio timing comes
         // from the render timeline, not from this timer.
-        playbackTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.updatePlaybackTime()
             }
         }
+        // Common modes keep the position ticking while a list or the lyrics
+        // are being scrolled; the default mode pauses timers during tracking.
+        RunLoop.main.add(timer, forMode: .common)
+        playbackTimer = timer
     }
 
     private var lastControlCenterUpdate: TimeInterval = 0
@@ -5094,11 +5098,7 @@ class PlayerEngine: NSObject, ObservableObject {
         // Always try ArtworkManager cache first — avoids re-parsing large files
         if let uiImage = await ArtworkManager.shared.getArtwork(for: track) {
             await MainActor.run {
-                let artwork = self.convertUIImageToMPMediaItemArtwork(uiImage)
-                self.cachedArtwork = artwork
-                self.cachedArtworkTrackId = track.stableId
-                self.updateNowPlayingInfoWithCachedArtwork()
-                print("🎨 Cached artwork from ArtworkManager for: \(track.title)")
+                self.commitNowPlayingArtwork(self.convertUIImageToMPMediaItemArtwork(uiImage), for: track)
             }
             return
         }
@@ -5107,7 +5107,7 @@ class PlayerEngine: NSObject, ObservableObject {
         guard track.hasEmbeddedArt else {
             // Mark this track so we don't keep retrying
             await MainActor.run {
-                self.cachedArtworkTrackId = track.stableId
+                self.commitNowPlayingArtwork(nil, for: track)
             }
             return
         }
@@ -5142,24 +5142,32 @@ class PlayerEngine: NSObject, ObservableObject {
             }
 
             await MainActor.run {
-                if let artwork = artwork {
-                    self.cachedArtwork = artwork
-                    self.cachedArtworkTrackId = track.stableId
-                    self.updateNowPlayingInfoWithCachedArtwork()
-                    print("🎨 Cached artwork from file for: \(track.title)")
-                } else {
-                    // Mark as attempted so we don't retry
-                    self.cachedArtworkTrackId = track.stableId
-                    print("🎨 No artwork found for: \(track.title)")
-                }
+                self.commitNowPlayingArtwork(artwork, for: track)
             }
 
         } catch {
             print("❌ Failed to load artwork for caching: \(error)")
             // Mark as attempted so we don't keep retrying and crashing on large files
             await MainActor.run {
-                self.cachedArtworkTrackId = track.stableId
+                self.commitNowPlayingArtwork(nil, for: track)
             }
+        }
+    }
+
+    /// The one place a loaded cover becomes the Now Playing artwork.
+    ///
+    /// Loads for consecutive tracks overlap when skipping quickly, and the
+    /// slower one used to win: track A's cover landed after B's, was cached
+    /// under A's id, and B - whose load had already finished - never reloaded,
+    /// so the lock screen and CarPlay showed no cover for the rest of B.
+    /// A result is only kept while its load is still current. `nil` records
+    /// "tried, nothing found" so the file is not parsed again.
+    private func commitNowPlayingArtwork(_ artwork: MPMediaItemArtwork?, for track: Track) {
+        guard !Task.isCancelled, currentTrack?.stableId == track.stableId else { return }
+        cachedArtworkTrackId = track.stableId
+        cachedArtwork = artwork
+        if artwork != nil {
+            updateNowPlayingInfoWithCachedArtwork()
         }
     }
 
@@ -5667,6 +5675,9 @@ class PlayerEngine: NSObject, ObservableObject {
         savePlayerState()
     }
 
+    /// UserDefaults key for the saved queue and position.
+    nonisolated static let playerStateKey = "CosmosPlayerState"
+
     func savePlayerState() {
         guard let currentTrack = currentTrack else {
             print("🚫 No current track to save state for")
@@ -5703,9 +5714,30 @@ class PlayerEngine: NSObject, ObservableObject {
             "lastSavedAt": Date()
         ]
 
-        UserDefaults.standard.set(playerState, forKey: "CosmosPlayerState")
+        UserDefaults.standard.set(playerState, forKey: Self.playerStateKey)
         UserDefaults.standard.synchronize()
         print("✅ Player state saved to UserDefaults (offline, per-device)")
+    }
+
+    /// Rewrites re-keyed track ids inside the saved player state. Stable ids
+    /// are derived from paths, so any re-key (a path repaired after an
+    /// app-container move, a file moved during a scan) changes them; without
+    /// this the restored queue no longer matches any track and "resume where I
+    /// left off" is silently lost. Called from the database's single re-key
+    /// hook alongside the lyrics and artwork caches.
+    nonisolated static func migratePersistedStableIds(_ remapping: [String: String]) {
+        guard !remapping.isEmpty,
+              var state = UserDefaults.standard.dictionary(forKey: Self.playerStateKey) else { return }
+        let remap = { (id: String) in remapping[id] ?? id }
+        if let current = state["currentTrackStableId"] as? String {
+            state["currentTrackStableId"] = remap(current)
+        }
+        for key in ["queueTrackIds", "originalQueueTrackIds"] {
+            if let ids = state[key] as? [String] {
+                state[key] = ids.map(remap)
+            }
+        }
+        UserDefaults.standard.set(state, forKey: Self.playerStateKey)
     }
 
     private func cappedTrackIdsForPersistence(_ trackIds: [String], currentIndex: Int) -> ([String], Int) {
@@ -5751,7 +5783,7 @@ class PlayerEngine: NSObject, ObservableObject {
         }
         let expectedPlaybackIntentGeneration = playbackIntentGeneration
 
-        guard let playerStateDict = UserDefaults.standard.dictionary(forKey: "CosmosPlayerState") else {
+        guard let playerStateDict = UserDefaults.standard.dictionary(forKey: Self.playerStateKey) else {
             print("📭 No saved player state found in UserDefaults")
             return
         }
@@ -5867,7 +5899,7 @@ class PlayerEngine: NSObject, ObservableObject {
     }
 
     func restorePlayerState() async {
-        guard let playerStateDict = UserDefaults.standard.dictionary(forKey: "CosmosPlayerState") else {
+        guard let playerStateDict = UserDefaults.standard.dictionary(forKey: Self.playerStateKey) else {
             print("📭 No saved player state found in UserDefaults")
             return
         }

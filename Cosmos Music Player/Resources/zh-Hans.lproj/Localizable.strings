@@ -23,7 +23,7 @@
 "songs_count_plural" = "%d 首歌曲";
 "created_date" = "创建于 %@";
 "no_songs_found" = "未找到歌曲";
-"your_music_will_appear_here" = "如何添加你的无损音乐：\n\n1. 打开 iOS 自带的「文件」App（或点击下方“打开文件”按钮）\n2. 找到以下任意路径：\n   • iCloud 云盘 → Cosmos Music Player 文件夹\n   • 我的 iPhone → Cosmos Music Player\n3. 将你的音乐文件移动或拷贝到上述文件夹中即可";
+"your_music_will_appear_here" = "如何添加你的无损音乐：\n\n1. 打开 iOS 自带的「文件」App（或点击下方“打开文件”按钮）\n2. 找到以下任意路径：\n   • iCloud 云盘 → Cadence 文件夹\n   • 我的 iPhone → Cadence\n3. 将你的音乐文件移动或拷贝到上述文件夹中即可";
 "create_first_playlist" = "创建你的第一个播放列表开始听歌吧";
 
 /* General UI strings */
@@ -91,7 +91,7 @@
 "force_dark_mode" = "强制深色模式";
 "version" = "版本";
 "app_name" = "应用名称";
-"cosmos_music_player" = "Cosmos Music Player";
+"cosmos_music_player" = "Cadence";
 "github_repository" = "GitHub 开源仓库";
 "use_simple_icons" = "在媒体库界面中移除图标的彩色背景，使用极简风格。";
 "override_system_appearance" = "无视 iOS 系统外观设置，强制让应用保持深色模式。";
@@ -121,7 +121,7 @@
 "icloud_connection_required" = "需要连接 iCloud";
 
 /* Tutorial/Onboarding */
-"welcome_to_cosmos" = "欢迎使用 Cosmos";
+"welcome_to_cosmos" = "欢迎使用 Cadence";
 "sign_in_to_apple_id" = "登录 Apple ID";
 "sign_in_message" = "为了在多台设备间同步你的无损音乐和收藏夹，请确保已登录 Apple ID。";
 "if_signed_in_continue" = "如果你已登录，请点击继续";
@@ -132,7 +132,7 @@
 "how_to_add_music" = "你可以将音乐文件放入 iCloud 云盘 (多端同步)，或者仅存入本机 (纯本地播放)：";
 "open_files_app" = "打开「文件」App";
 "navigate_to_icloud_drive" = "进入「iCloud 云盘」";
-"find_cosmos_player_folder" = "找到「Cosmos Music Player」文件夹";
+"find_cosmos_player_folder" = "找到「Cadence」文件夹";
 "add_your_music_instruction" = "导入你的音乐";
 
 /* Tutorial Status Messages */
@@ -146,7 +146,7 @@
 /* Tutorial Instructions */
 "find_open_files_app" = "在手机桌面上找到并打开蓝色的「文件」App";
 "tap_icloud_drive_sidebar" = "在浏览页面选择「iCloud 云盘」或「我的 iPhone」";
-"look_for_cosmos_folder" = "找到名为「Cosmos Music Player」的文件夹并点开";
+"look_for_cosmos_folder" = "找到名为「Cadence」的文件夹并点开";
 "copy_music_files" = "将你的 DSD、FLAC、WAV 等无损文件拷贝进这个文件夹";
 
 /* Library Processing */
@@ -316,14 +316,14 @@
 "Resumes playing your music where you left off." = "从上次停止的位置继续播放音乐。";
 "Audio" = "音频";
 "Play Music" = "播放音乐";
-"Plays a song, album, artist or playlist from your Cosmos library." = "播放 Cosmos 音乐库中的歌曲、专辑、艺术家或播放列表。";
+"Plays a song, album, artist or playlist from your Cadence library." = "播放 Cadence 音乐库中的歌曲、专辑、艺术家或播放列表。";
 "Playback" = "播放";
 "Add to Playlist" = "添加到播放列表";
 "Generate Mix" = "生成合集";
-"Builds a mix from your Cosmos library matching a mood or description and starts playing it." = "根据心情或描述，从 Cosmos 音乐库生成合集并开始播放。";
+"Builds a mix from your Cadence library matching a mood or description and starts playing it." = "根据心情或描述，从 Cadence 音乐库生成合集并开始播放。";
 "Toggle Favorite" = "切换收藏";
 "Favorite Current Song" = "收藏当前歌曲";
-"Adds the currently playing Cosmos song to Liked Songs." = "将 Cosmos 中正在播放的歌曲添加到“我喜欢的音乐”。";
+"Adds the currently playing Cadence song to Liked Songs." = "将 Cadence 中正在播放的歌曲添加到“我喜欢的音乐”。";
 "Add to Queue" = "添加到播放队列";
 "Play Playlist" = "播放播放列表";
 "Save Mix as Playlist" = "将合集保存为播放列表";
@@ -341,7 +341,7 @@
 /* Dialogs */
 "%@ is already in your Liked Songs." = "%@ 已在“我喜欢的音乐”中。";
 "Added %@ to your Liked Songs." = "已将 %@ 添加到“我喜欢的音乐”。";
-"There isn't a song playing in Cosmos right now." = "Cosmos 当前没有正在播放的歌曲。";
+"There isn't a song playing in Cadence right now." = "Cadence 当前没有正在播放的歌曲。";
 "Added %@ to your favorites." = "已将 %@ 添加到收藏。";
 "Removed %@ from your favorites." = "已将 %@ 从收藏中移除。";
 "Added %@ to %@." = "已将 %1$@ 添加到 %2$@。";
@@ -350,7 +350,7 @@
 "Now playing" = "正在播放";
 
 /* Errors */
-"There's no music in your Cosmos library yet." = "Cosmos 音乐库中还没有音乐。";
+"There's no music in your Cadence library yet." = "Cadence 音乐库中还没有音乐。";
 "No matching music was found in your library." = "在你的音乐库中未找到匹配的音乐。";
 "You can only take that action on individual songs." = "该操作仅适用于单首歌曲。";
 "That song is already in this playlist." = "该歌曲已在此播放列表中。";
@@ -396,7 +396,7 @@
 "album_artists" = "专辑艺术家";
 "all_artists" = "所有艺术家";
 "library_scan_frequency" = "自动扫描";
-"library_scan_frequency_description" = "Cosmos 启动时重新扫描文件的频率。iOS 经常在后台关闭应用，因此间隔过短意味着几乎每次启动都会完整扫描一次。同步按钮始终会立即重新扫描。";
+"library_scan_frequency_description" = "Cadence 启动时重新扫描文件的频率。iOS 经常在后台关闭应用，因此间隔过短意味着几乎每次启动都会完整扫描一次。同步按钮始终会立即重新扫描。";
 "checking_library_formats" = "正在检查音频格式…";
 "scan_every_launch" = "每次启动";
 "scan_hourly" = "最多每小时一次";
@@ -428,7 +428,7 @@
 
 /* App appearance */
 "app_appearance" = "应用外观";
-"app_appearance_description" = "选择 Cosmos 的外观，或跟随设备设置。";
+"app_appearance_description" = "选择 Cadence 的外观，或跟随设备设置。";
 "appearance_system" = "跟随系统";
 "appearance_light" = "浅色";
 "appearance_dark" = "深色";
@@ -471,3 +471,11 @@
 "sort_manual_order" = "手动顺序";
 "sort_artist_az" = "艺人 A–Z";
 "sort_artist_za" = "艺人 Z–A";
+
+/* Player controls */
+"pause" = "暂停";
+"next_track" = "下一首";
+"previous_track" = "上一首";
+"sync_library" = "同步资料库";
+"recently_added" = "最近添加";
+"based_on_cosmos" = "基于 Cosmos Music Player";

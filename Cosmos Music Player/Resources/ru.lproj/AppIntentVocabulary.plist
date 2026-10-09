@@ -9,8 +9,8 @@
 			<string>INPlayMediaIntent</string>
 			<key>IntentExamples</key>
 			<array>
-				<string>Включи мою музыку в Cosmos</string>
-				<string>Включи мои любимые треки в Cosmos</string>
+				<string>Включи мою музыку в Cadence</string>
+				<string>Включи мои любимые треки в Cadence</string>
 			</array>
 		</dict>
 		<dict>
@@ -18,8 +18,8 @@
 			<string>INAddMediaIntent</string>
 			<key>IntentExamples</key>
 			<array>
-				<string>Добавь эту песню в избранное в Cosmos</string>
-				<string>Добавь эту песню в плейлист в Cosmos</string>
+				<string>Добавь эту песню в избранное в Cadence</string>
+				<string>Добавь эту песню в плейлист в Cadence</string>
 			</array>
 		</dict>
 	</array>

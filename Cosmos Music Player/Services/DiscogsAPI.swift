@@ -138,8 +138,14 @@ class CachedArtistInfo: NSObject, Codable {
 class DiscogsAPIService: ObservableObject, @unchecked Sendable {
     @MainActor static let shared = DiscogsAPIService()
     
-    private let consumerKey = EnvironmentLoader.shared.discogsConsumerKey
-    private let consumerSecret = EnvironmentLoader.shared.discogsConsumerSecret
+    private let credentials: (key: String, secret: String)? = {
+        let env = EnvironmentLoader.shared
+        guard let key = env.discogsConsumerKey, let secret = env.discogsConsumerSecret else { return nil }
+        return (key, secret)
+    }()
+
+    /// False without keys in `.env`; callers skip Discogs instead of failing.
+    var isConfigured: Bool { credentials != nil }
     private let baseURL = "https://api.discogs.com"
     
     private let cache = NSCache<NSString, CachedArtistInfo>()
@@ -191,6 +197,8 @@ class DiscogsAPIService: ObservableObject, @unchecked Sendable {
     // MARK: - Private Methods
     
     private func performSearch(query: String, type: String) async throws -> [DiscogsSearchResult] {
+        guard let credentials else { throw DiscogsAPIError.notConfigured }
+
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
         let urlString = "\(baseURL)/database/search?type=\(type)&q=\(encodedQuery)&per_page=5"
         
@@ -199,8 +207,8 @@ class DiscogsAPIService: ObservableObject, @unchecked Sendable {
         }
         
         var request = URLRequest(url: url)
-        request.setValue("Discogs key=\(consumerKey), secret=\(consumerSecret)", forHTTPHeaderField: "Authorization")
-        request.setValue("CosmosPlayer/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("Discogs key=\(credentials.key), secret=\(credentials.secret)", forHTTPHeaderField: "Authorization")
+        request.setValue("Cadence/1.0", forHTTPHeaderField: "User-Agent")
         
         print("🌐 Discogs: Making request to: \(urlString)")
         
@@ -243,13 +251,15 @@ class DiscogsAPIService: ObservableObject, @unchecked Sendable {
     }
     
     private func getArtistDetails(from resourceUrl: String) async throws -> DiscogsArtist {
+        guard let credentials else { throw DiscogsAPIError.notConfigured }
+
         guard let url = URL(string: resourceUrl) else {
             throw DiscogsAPIError.invalidURL
         }
         
         var request = URLRequest(url: url)
-        request.setValue("Discogs key=\(consumerKey), secret=\(consumerSecret)", forHTTPHeaderField: "Authorization")
-        request.setValue("CosmosPlayer/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("Discogs key=\(credentials.key), secret=\(credentials.secret)", forHTTPHeaderField: "Authorization")
+        request.setValue("Cadence/1.0", forHTTPHeaderField: "User-Agent")
         
         print("🌐 Discogs: Fetching artist details from: \(resourceUrl)")
         
@@ -360,11 +370,14 @@ enum DiscogsAPIError: Error, LocalizedError {
     case httpError(Int)
     case decodingError(Error)
     case networkError(Error)
+    case notConfigured
     
     var errorDescription: String? {
         switch self {
         case .invalidURL:
             return "Invalid URL"
+        case .notConfigured:
+            return "Discogs keys are not configured"
         case .httpError(let code):
             return "HTTP Error: \(code)"
         case .decodingError(let error):

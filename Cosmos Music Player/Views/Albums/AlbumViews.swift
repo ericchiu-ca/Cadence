@@ -22,7 +22,8 @@ struct AlbumsScreen: View {
 
     var body: some View {
         ZStack {
-            ScreenSpecificBackgroundView(screen: .albums)
+            Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
             
             VStack {
                 if visibleAlbums.isEmpty {
@@ -223,7 +224,8 @@ struct AlbumDetailScreen: View {
     
     var body: some View {
         ZStack {
-            ScreenSpecificBackgroundView(screen: .albumDetail)
+            Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 24) {
@@ -483,12 +485,13 @@ struct AlbumTrackRowView: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 8) {
-                // Track number
-                Text("\(trackNumber)")
-                    .font(.body)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondary)
-                    .frame(width: 22, alignment: .leading)
+                // Track number, or the now-playing bars
+                TrackNumberOrNowPlaying(
+                    trackStableId: track.stableId,
+                    number: trackNumber,
+                    tint: deleteSettings.backgroundColorChoice.color
+                )
+                .frame(width: 22, alignment: .leading)
                 
                 // Track info
                 VStack(alignment: .leading, spacing: 4) {

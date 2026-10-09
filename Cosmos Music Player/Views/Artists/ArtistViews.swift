@@ -16,7 +16,8 @@ struct ArtistsScreen: View {
 
     var body: some View {
         ZStack {
-            ScreenSpecificBackgroundView(screen: .artists)
+            Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
             
             VStack {
                 if visibleArtists.isEmpty {
@@ -255,7 +256,8 @@ struct ArtistDetailScreen: View {
     
     var body: some View {
         ZStack {
-            ScreenSpecificBackgroundView(screen: .artistDetail)
+            Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
             
             Group {
                 if let unifiedArtist = unifiedArtist, !isLoading {

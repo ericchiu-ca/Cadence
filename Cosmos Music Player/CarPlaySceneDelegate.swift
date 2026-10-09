@@ -4,6 +4,9 @@ import UIKit
 class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private var interfaceController: CPInterfaceController?
+    /// Row covers waiting to load, in the order the rows were built.
+    private var pendingArtwork: [(item: CPListItem, load: () async -> UIImage?)] = []
+    private var artworkDrainTask: Task<Void, Never>?
     private var allSongsTemplate: CPListTemplate?
     private var favoritesTemplate: CPListTemplate?
     private var playlistsTemplate: CPListTemplate?
@@ -668,25 +671,44 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         return allPlaylistTracks.filter(isCompatible)
     }
 
+    /// CarPlay list rows are small; a thumbnail is plenty and skips decoding
+    /// the 1024px cover for every row.
+    private static let listArtworkPixelSize: CGFloat = 240
+
     private func configureArtwork(for item: CPListItem, track: Track, index _: Int) {
         item.setImage(createPlaceholderImage())
-        Task { @MainActor in
-            if let artwork = await ArtworkManager.shared.getArtwork(for: track) {
-                item.setImage(resizeImageForCarPlay(artwork, rounded: true))
-            }
+        enqueueArtwork(for: item) {
+            await ArtworkManager.shared.getThumbnail(for: track, maxPixelSize: Self.listArtworkPixelSize)
         }
     }
 
     private func configureAlbumArtwork(for item: CPListItem, album: Album) {
         item.setImage(createPlaceholderImage(systemName: "opticaldisc.fill"))
-        Task { @MainActor in
-            guard let albumId = album.id,
-                  let firstTrack = ((try? DatabaseManager.shared.getTracksByAlbumId(albumId)) ?? []).first(where: isCompatible),
-                  let artwork = await ArtworkManager.shared.getArtwork(for: firstTrack) else {
-                return
-            }
+        guard let albumId = album.id else { return }
+        enqueueArtwork(for: item) { [weak self] in
+            let tracks = await Task.detached(priority: .utility) {
+                (try? DatabaseManager.shared.getTracksByAlbumId(albumId)) ?? []
+            }.value
+            guard let self, let firstTrack = tracks.first(where: { self.isCompatible(track: $0) }) else { return nil }
+            return await ArtworkManager.shared.getThumbnail(for: firstTrack, maxPixelSize: Self.listArtworkPixelSize)
+        }
+    }
 
-            item.setImage(resizeImageForCarPlay(artwork, rounded: true))
+    /// Every list's covers load through one queue, one at a time and in row
+    /// order. Building a long list used to start a main-actor task per row
+    /// at once - a thousand albums meant a thousand concurrent queries and
+    /// decodes while driving.
+    private func enqueueArtwork(for item: CPListItem, load: @escaping () async -> UIImage?) {
+        pendingArtwork.append((item, load))
+        guard artworkDrainTask == nil else { return }
+        artworkDrainTask = Task { @MainActor [weak self] in
+            while let self, !self.pendingArtwork.isEmpty {
+                let next = self.pendingArtwork.removeFirst()
+                if let image = await next.load() {
+                    next.item.setImage(resizeImageForCarPlay(image, rounded: true))
+                }
+            }
+            self?.artworkDrainTask = nil
         }
     }
 
@@ -784,7 +806,7 @@ private func loadCustomPlaylistCover(for playlist: Playlist) -> UIImage? {
     }
 
     guard let containerURL = FileManager.default.containerURL(
-        forSecurityApplicationGroupIdentifier: "group.dev.clq.Cosmos-Music-Player"
+        forSecurityApplicationGroupIdentifier: AppGroup.identifier
     ) else {
         return nil
     }
