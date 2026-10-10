@@ -684,9 +684,9 @@ enum ResponsiveTransport {
     }
 
     /// - Parameter pending: the caller's optimistic state; shown in place of
-    ///   `isPlaying` until the engine has caught up.
+    ///   `displaysPlaying` until the engine has caught up.
     static func toggle(_ engine: PlayerEngine, pending: Binding<Bool?>) {
-        let target = !(pending.wrappedValue ?? engine.isPlaying)
+        let target = !(pending.wrappedValue ?? engine.displaysPlaying)
         haptic.impactOccurred()
         haptic.prepare()
         pending.wrappedValue = target
@@ -696,7 +696,7 @@ enum ResponsiveTransport {
             // long pause, or one waiting on a load, lands later); letting go
             // early flipped the glyph back and forth.
             Task { @MainActor in
-                for _ in 0..<30 where engine.isPlaying != target {
+                for _ in 0..<30 where engine.displaysPlaying != target {
                     try? await Task.sleep(for: .milliseconds(50))
                 }
                 pending.wrappedValue = nil

@@ -139,7 +139,7 @@ struct PlayerView: View {
                 PlayerAmbientBackground(
                     palette: palette ?? .fallback(accent: settings.backgroundColorChoice.color),
                     // Still while covered by a sheet or in Low Power Mode.
-                    isAnimating: playerEngine.isPlaying
+                    isAnimating: playerEngine.displaysPlaying
                         && !showQueueSheet
                         && !showPlaylistDialog
                         && !ProcessInfo.processInfo.isLowPowerModeEnabled
@@ -353,7 +353,7 @@ struct PlayerView: View {
         .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: track.stableId)
     }
 
-    private var showsPlaying: Bool { pendingPlaying ?? playerEngine.isPlaying }
+    private var showsPlaying: Bool { pendingPlaying ?? playerEngine.displaysPlaying }
 
     private var lyricsToggleAnimation: Animation {
         reduceMotion ? .easeInOut(duration: 0.25) : .spring(response: 0.55, dampingFraction: 0.86)
@@ -1272,11 +1272,11 @@ struct MiniPlayerView: View {
                 Button {
                     ResponsiveTransport.toggle(playerEngine, pending: $pendingPlaying)
                 } label: {
-                    PlayPauseGlyph(isPlaying: pendingPlaying ?? playerEngine.isPlaying, size: 22)
+                    PlayPauseGlyph(isPlaying: pendingPlaying ?? playerEngine.displaysPlaying, size: 22)
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .accessibilityLabel((pendingPlaying ?? playerEngine.isPlaying) ? Localized.pause : Localized.play)
+                .accessibilityLabel((pendingPlaying ?? playerEngine.displaysPlaying) ? Localized.pause : Localized.play)
 
                 Button {
                     skipTrigger += 1

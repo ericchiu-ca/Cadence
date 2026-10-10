@@ -50,10 +50,40 @@ class PlayerEngine: NSObject, ObservableObject {
     @Published var isPlaying = false {
         didSet {
             DatabaseSuspensionCoordinator.shared.setPlaybackActivityActive(keepsDatabaseActive)
-            if NowPlayingStatus.shared.isPlaying != isPlaying {
-                NowPlayingStatus.shared.isPlaying = isPlaying
-            }
+            publishDisplaysPlaying()
         }
+    }
+    /// Set while a track change that will keep playing loads its track; see
+    /// `displaysPlaying`.
+    @Published private(set) var isHoldingPlayingThroughTrackChange = false {
+        didSet { publishDisplaysPlaying() }
+    }
+    private var trackChangeHoldGeneration: UInt64?
+
+    /// What the transport shows. `isPlaying` drops to false while a skip
+    /// loads the next track (the old node is stopped first), and the
+    /// controls followed it: on every skip the glyph flickered to play, the
+    /// artwork shrank to its paused size and back, and the backdrop stopped.
+    var displaysPlaying: Bool {
+        isPlaying || isHoldingPlayingThroughTrackChange
+    }
+
+    private func publishDisplaysPlaying() {
+        if NowPlayingStatus.shared.isPlaying != displaysPlaying {
+            NowPlayingStatus.shared.isPlaying = displaysPlaying
+        }
+    }
+
+    private func holdPlayingDisplay(through intentGeneration: UInt64) {
+        trackChangeHoldGeneration = intentGeneration
+        if !isHoldingPlayingThroughTrackChange { isHoldingPlayingThroughTrackChange = true }
+    }
+
+    /// A no-op once a newer intent (another skip, a pause) owns the display.
+    private func releasePlayingDisplay(after intentGeneration: UInt64) {
+        guard trackChangeHoldGeneration == intentGeneration else { return }
+        trackChangeHoldGeneration = nil
+        if isHoldingPlayingThroughTrackChange { isHoldingPlayingThroughTrackChange = false }
     }
     let progress = PlaybackProgress()
     var playbackTime: TimeInterval {
@@ -1270,7 +1300,7 @@ class PlayerEngine: NSObject, ObservableObject {
                 // there is nothing to reapply the rate for: play() configures
                 // the route itself before it schedules anything.
                 print("🎧 Reapplying native sample rate for the settled output route")
-                await self.configureAudioSession(for: file.processingFormat)
+                await self.configureAudioSession(for: file.processingFormat, reapplyForNewRoute: true)
             }
         }
     }
@@ -2066,6 +2096,9 @@ class PlayerEngine: NSObject, ObservableObject {
     @discardableResult
     private func beginPlaybackIntent(cancelActiveLoad: Bool = false) -> UInt64 {
         playbackIntentGeneration &+= 1
+        // A new intent owns the transport display from here; a skip that
+        // keeps playing takes the hold again straight after.
+        if let held = trackChangeHoldGeneration { releasePlayingDisplay(after: held) }
         // Migrations only need to bridge asynchronous work owned by the
         // previous intent. Dropping them here prevents a future file imported
         // at the old path-derived ID from being mistaken for the moved track.
@@ -3528,8 +3561,16 @@ class PlayerEngine: NSObject, ObservableObject {
             sfbAudioManager.stop()
         } else if hasSetupAudioEngine,
                   audioEngine.attachedNodes.contains(playerNode) {
-            // Stop player node
+            // Fade out first: cutting a node off mid-waveform is the crackle
+            // that every skip made. The mixer goes back to full volume once
+            // the node is silent, so nothing after this starts out muted.
+            if playerNode.isPlaying, audioEngine.isRunning {
+                transportFadeTask?.cancel()
+                transportFadeTask = nil
+                await rampOutputVolume(to: 0, duration: 0.06)
+            }
             playerNode.stop()
+            audioEngine.mainMixerNode.outputVolume = 1
         }
 
         // NEVER deactivate session during cleanup - this causes 30-second suspension on iOS 18
@@ -4586,6 +4627,9 @@ class PlayerEngine: NSObject, ObservableObject {
         outputDeviceBecameUnavailable = false
         cancelOutputRouteSettleResume()
         let intentGeneration = beginPlaybackIntent()
+        // Choosing a song means play: show it from the tap, not after the load.
+        holdPlayingDisplay(through: intentGeneration)
+        defer { releasePlayingDisplay(after: intentGeneration) }
 
         // An explicit selection replaces the restored queue, so loading the old
         // restored track first only adds latency (and used to audibly start an
@@ -4653,6 +4697,8 @@ class PlayerEngine: NSObject, ObservableObject {
         outputDeviceBecameUnavailable = false
         cancelOutputRouteSettleResume()
         let intentGeneration = beginPlaybackIntent()
+        holdPlayingDisplay(through: intentGeneration)
+        defer { releasePlayingDisplay(after: intentGeneration) }
 
         currentIndex = index
         let track = playbackQueue[index]
@@ -4675,9 +4721,14 @@ class PlayerEngine: NSObject, ObservableObject {
 
     func nextTrack(autoplay: Bool? = nil) async {
         guard !playbackQueue.isEmpty else { return }
+        // Read before the new intent drops the hold: a second skip during the
+        // first one's load used to see isPlaying == false and stop playback.
+        let wasPlaying = displaysPlaying
         let intentGeneration = beginPlaybackIntent()
         normalizeIndexAndTrack()
-        let shouldAutoplay = autoplay ?? isPlaying
+        let shouldAutoplay = autoplay ?? wasPlaying
+        if shouldAutoplay { holdPlayingDisplay(through: intentGeneration) }
+        defer { releasePlayingDisplay(after: intentGeneration) }
 
         // Stop at the end of the queue unless queue loop is on, matching what
         // happens when a track finishes on its own. This used to wrap with an
@@ -4723,10 +4774,14 @@ class PlayerEngine: NSObject, ObservableObject {
 
     func previousTrack(autoplay: Bool? = nil) async {
         guard !playbackQueue.isEmpty else { return }
+        // Read before the new intent drops the hold; see nextTrack.
+        let wasDisplayingPlaying = displaysPlaying
         let intentGeneration = beginPlaybackIntent()
         normalizeIndexAndTrack()
 
-        let wasPlaying = autoplay ?? isPlaying
+        let wasPlaying = autoplay ?? wasDisplayingPlaying
+        if wasPlaying { holdPlayingDisplay(through: intentGeneration) }
+        defer { releasePlayingDisplay(after: intentGeneration) }
 
         if playbackTime > 3.0 {
             await seek(to: 0)
@@ -4997,7 +5052,10 @@ class PlayerEngine: NSObject, ObservableObject {
         }
     }
 
-    private func configureAudioSession(for format: AVAudioFormat) async {
+    /// - Parameter reapplyForNewRoute: ask again even if this rate was already
+    ///   requested, because the route changed and the new hardware may honour
+    ///   what the old one refused.
+    private func configureAudioSession(for format: AVAudioFormat, reapplyForNewRoute: Bool = false) async {
         // Prefer the rate the decoder actually produces. The database column is
         // only a fallback: it is nil on rows whose metadata parse never yielded
         // one - so nothing was configured at all and the hardware silently kept
@@ -5021,9 +5079,16 @@ class PlayerEngine: NSObject, ObservableObject {
                     // Only touch the session when the rate actually changes -
                     // setPreferredSampleRate + setActive are blocking XPC calls
                     // and can force an audio hardware reconfiguration
+                    //
+                    // ...and only when this rate has not already been asked
+                    // for. The phone speaker and AirPods run at a fixed 48 kHz,
+                    // so a 44.1 kHz library never "matched" and every track
+                    // load re-requested it: a route reconfiguration on each
+                    // skip, heard as a crackle.
                     if !isCarPlayEnvironment,
                        let sampleRate = targetSampleRate,
-                       abs(session.sampleRate - sampleRate) > 1.0 {
+                       abs(session.sampleRate - sampleRate) > 1.0,
+                       reapplyForNewRoute || abs(session.preferredSampleRate - sampleRate) > 1.0 {
                         try session.setPreferredSampleRate(sampleRate)
                         // CRITICAL: Must activate session for sample rate change to take effect
                         try session.setActive(true)
