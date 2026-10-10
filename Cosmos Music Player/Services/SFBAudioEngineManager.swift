@@ -67,6 +67,10 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
     private var currentTrack: SFBTrack?
     private var updateTimer: Timer?
     private var eqAttachmentFailed = false
+    /// Bumped by every play, pause, load and stop, so a pause still waiting
+    /// out its fade never pauses a player that has since been resumed or
+    /// handed another track.
+    private var transportFadeGeneration: UInt64 = 0
 
     // MARK: - Gapless playback support
     //
@@ -568,6 +572,7 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
         }
 
         // Stop any current playback and cleanup
+        transportFadeGeneration &+= 1
         hasReportedEndOfAudio = true
         gaplessNext = nil
         audioPlayer?.stop()
@@ -941,8 +946,12 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
             ])
         }
 
+        // Any pause still waiting out its fade is superseded.
+        transportFadeGeneration &+= 1
+
         if let player = audioPlayer {
-            // Already rendering: adopt it and touch nothing.
+            // Already rendering: adopt it and touch nothing but the volume -
+            // a pause fading out right now left the mixer turned down.
             //
             // SFBAudioPlayer installs its own AVAudioSession interruption
             // observer and resumes itself on `.ended`. Our `.ended` handler
@@ -962,6 +971,7 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
             // side: never touch this player's engine behind its back.
             if player.isPlaying {
                 print("▶️ SFBAudioEngine had already resumed itself - adopting its state")
+                player.mainMixerNode.outputVolume = 1
                 isPlaying = true
                 hasReportedEndOfAudio = false
                 resetPlaybackStallDetection()
@@ -1036,6 +1046,9 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
             } else {
                 try player.play()
             }
+            // Ramps up in the render thread from where pause() left it, so a
+            // resume fades in rather than starting mid-waveform.
+            player.mainMixerNode.outputVolume = 1
             isPlaying = true
             hasReportedEndOfAudio = false
             resetPlaybackStallDetection()
@@ -1054,11 +1067,31 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
     func pause() {
         print("⏸️ SFBAudioEngineManager.pause() called")
 
-        // Pause the audio player
-        audioPlayer?.pause()
         isPlaying = false
         resetPlaybackStallDetection()
         updateTimer?.invalidate()
+
+        // SFBAudioPlayer's pause silences its source from the next render,
+        // mid-waveform, which clicks. Turn its mixer down first - the mixer
+        // ramps a volume change over about 27 ms in the render thread - and
+        // pause once the render clock shows that ramp has played out. The
+        // mixer stays down while paused, so play() ramps up from silence.
+        transportFadeGeneration &+= 1
+        if let player = audioPlayer {
+            player.mainMixerNode.outputVolume = 0
+            if player.isPlaying {
+                let generation = transportFadeGeneration
+                Task { @MainActor [weak self] in
+                    await Self.waitForMixerRamp(of: player)
+                    guard let self,
+                          self.transportFadeGeneration == generation,
+                          self.audioPlayer === player else { return }
+                    player.pause()
+                }
+            } else {
+                player.pause()
+            }
+        }
 
         // Do NOT deactivate the session here. PlayerEngine.pause() deliberately
         // keeps it active for the native backend, and deactivating with
@@ -1071,6 +1104,29 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
         print("✅ SFBAudioEngineManager paused")
     }
 
+    /// Returns once the player's mixer has rendered a full volume ramp past
+    /// the moment this was called, or after half a second if the engine
+    /// stopped rendering. A change lands at the start of the next render
+    /// cycle, so the wait is measured from the first cycle that starts after
+    /// the call.
+    private static func waitForMixerRamp(of player: AudioPlayer) async {
+        let ramp: TimeInterval = 0.03
+        let outputNode = player.outputNode
+        let deadline = ContinuousClock.now + .milliseconds(500)
+        let calledAt = outputNode.lastRenderTime?.sampleTime
+        var firstCycle: AVAudioTime?
+        while ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(5))
+            guard let now = outputNode.lastRenderTime, now.isSampleTimeValid else { return }
+            if let firstCycle {
+                let rendered = Double(now.sampleTime - firstCycle.sampleTime) / now.sampleRate
+                if rendered >= ramp { return }
+            } else if calledAt.map({ now.sampleTime > $0 }) ?? true {
+                firstCycle = now
+            }
+        }
+    }
+
     /// Pause playback for an audio session interruption (alarm, phone call).
     /// SFBAudioPlayer observes AVAudioSessionInterruptionNotification itself:
     /// it pauses on .began and restarts its engine on .ended. Never stop or
@@ -1079,6 +1135,7 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
     /// already stopped the engine by the time the notification arrives, so
     /// doing so aborts the app (App Store crash group on 1.2.2).
     func stopEngineForInterruption() {
+        transportFadeGeneration &+= 1
         resetPlaybackStallDetection()
 
         // `stop()`, not `pause()`.
@@ -1120,6 +1177,7 @@ class SFBAudioEngineManager: NSObject, ObservableObject, AudioPlayer.Delegate {
     var hasLoadedDecoder: Bool { loadedDecoder != nil }
 
     func stop() {
+        transportFadeGeneration &+= 1
         hasReportedEndOfAudio = true
         gaplessNext = nil
         audioPlayer?.stop()

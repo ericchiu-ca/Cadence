@@ -129,6 +129,7 @@ struct PlayerView: View {
     @State private var sleepTimerTask: Task<Void, Never>?
     @State private var sleepTimerEndDate: Date?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.appColorScheme) private var appColorScheme
     /// Ends the presentation without a transition; see `PlayerCard.onSlidAway`.
     private let closeWithoutTransition: () -> Void
 
@@ -233,6 +234,7 @@ struct PlayerView: View {
             }
             .sheet(isPresented: $showPlaylistDialog) {
                 playlistSheet
+                    .preferredColorScheme(appColorScheme)
             }
             .onChange(of: playerEngine.currentTrack) { oldValue, newValue in
                 // Clear current lyrics
@@ -1294,6 +1296,7 @@ struct MiniPlayerView: View {
     @State private var skipTrigger = 0
     @State private var pendingPlaying: Bool?
     @State private var settings = DeleteSettings.load()
+    @Environment(\.colorScheme) private var colorScheme
 
     private let cardShape = RoundedRectangle(cornerRadius: 22, style: .continuous)
 
@@ -1322,6 +1325,11 @@ struct MiniPlayerView: View {
             })
                 .accentColor(settings.backgroundColorChoice.color)
                 .presentationBackground(.clear)
+                // A dark presentation gives the player a white status bar, as
+                // over any dark backdrop; what should follow the app's own
+                // appearance reads `appColorScheme`.
+                .environment(\.appColorScheme, colorScheme)
+                .preferredColorScheme(.dark)
         }
         .task(id: playerEngine.currentTrack?.stableId) {
             guard let track = playerEngine.currentTrack else {

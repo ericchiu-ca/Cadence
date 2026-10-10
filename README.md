@@ -29,7 +29,8 @@
 **Fixes**
 - A missing `.env` file no longer crashes the app after the first library scan; online artist info is simply skipped.
 - Library entries survive an app update or device restore that moves the app container (previously every song was duplicated and the originals stopped playing), and so does the song you were last playing.
-- Play and pause answer on the tap. Pausing keeps the audio engine warm and fades out instead of clicking, the first Play after launch sets up the audio session off the main thread, and a pause no longer re-renders every song row behind the player.
+- Play and pause answer on the tap, and the button swaps glyphs in one frame instead of fading through a half-drawn state. Pausing keeps the audio engine warm, the first Play after launch sets up the audio session off the main thread, and a pause no longer re-renders every song row behind the player.
+- Pause and resume fade in the audio render thread, sample by sample, and the player stops only once the fade has reached silence (the crackle on every resume). Opus, Vorbis, APE and DSD tracks fade too; they used to click both ways.
 - Skipping fades the old track out instead of cutting it off (the crackle on every skip), keeps the controls in their playing state while the next track loads, and no longer asks the phone speaker or AirPods for a sample rate they cannot run at on every track.
 - Playback position, lyrics and the scrubber keep updating while a list is being scrolled.
 - The lock screen / CarPlay cover no longer gets stuck on the wrong track after quick skips.

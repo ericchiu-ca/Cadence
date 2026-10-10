@@ -325,8 +325,14 @@ class PlayerEngine: NSObject, ObservableObject {
     private var cachedArtwork: MPMediaItemArtwork?
     private var cachedArtworkTrackId: String?
     private var artworkLoadTask: Task<Void, Never>?
-    /// The short volume ramp around a native pause or resume.
+    /// The wait for a native pause's fade-out, or for the fade either side of
+    /// dropping a scheduled successor.
     private var transportFadeTask: Task<Void, Never>?
+    /// Fades the native output in the render thread; see TransportFader.
+    /// Replaced along with the engine in resetAudioEngineForNative().
+    private lazy var transportFader: TransportFader? = TransportFader.make()
+    private static let pauseFadeOut: TimeInterval = 0.1
+    private static let resumeFadeIn: TimeInterval = 0.12
     /// A native pause first only pauses the player node, keeping the engine's
     /// hardware running, so resuming is one `playerNode.play()` instead of
     /// re-activating the session, restarting the engine and rescheduling -
@@ -470,20 +476,22 @@ class PlayerEngine: NSObject, ObservableObject {
     /// the file never changed. Only the hardware did.
     ///
     /// - Returns: whether a segment is now scheduled on the player node.
+    /// - Parameter startMuted: leave the fader at silence for the caller to
+    ///   fade in (a resume); otherwise the node starts at full volume.
     private func startEngineAndScheduleSegment(
         from startFrame: AVAudioFramePosition,
         file: AVAudioFile,
-        context: String
+        context: String,
+        startMuted: Bool = false
     ) -> Bool {
-        // A pause fade still running would otherwise leave the next track
-        // quiet or pause it; every fresh start begins at full volume (the
-        // resume path then fades in from zero itself).
+        // A pause fade still running would otherwise pause the node under the
+        // new start. The node is stopped here, so the fader can jump.
         transportFadeTask?.cancel()
         transportFadeTask = nil
         hardwareReleaseTask?.cancel()
         hardwareReleaseTask = nil
         isNodeSoftPaused = false
-        audioEngine.mainMixerNode.outputVolume = 1
+        transportFader?.set(startMuted ? 0 : 1)
 
         let format = file.processingFormat
 
@@ -549,8 +557,10 @@ class PlayerEngine: NSObject, ObservableObject {
         // Disconnect all nodes to rebuild the graph
         audioEngine.disconnectNodeInput(audioEngine.mainMixerNode)
         audioEngine.disconnectNodeInput(playerNode)
-        // Reconnect with EQ: playerNode -> EQ -> mainMixerNode
-        eqManager.insertEQIntoAudioGraph(between: playerNode, and: audioEngine.mainMixerNode, format: format)
+        if let fader = transportFader {
+            audioEngine.disconnectNodeInput(fader.node)
+        }
+        connectNativeGraph(format: format)
         audioEngine.prepare()
         // Stamped before the restart below, so the notification that restart
         // provokes falls inside the window.
@@ -664,20 +674,45 @@ class PlayerEngine: NSObject, ObservableObject {
 
     private func setupAudioEngine(with format: AVAudioFormat? = nil) {
         audioEngine.attach(playerNode)
+        if let fader = transportFader {
+            audioEngine.attach(fader.node)
+        }
         // Set up EQ manager with the audio engine
         eqManager.setAudioEngine(audioEngine)
-        // Connect playerNode -> EQ -> mainMixerNode. AVAudioEngine owns the
-        // mainMixerNode -> outputNode connection and negotiates that format
-        // with the current hardware route. Supplying the mixer's format to the
-        // output node can raise an Objective-C exception when CarPlay is fixed
-        // at a different sample rate from the source file.
-        eqManager.insertEQIntoAudioGraph(between: playerNode, and: audioEngine.mainMixerNode, format: format)
+        // AVAudioEngine owns the mainMixerNode -> outputNode connection and
+        // negotiates that format with the current hardware route. Supplying
+        // the mixer's format to the output node can raise an Objective-C
+        // exception when CarPlay is fixed at a different sample rate from the
+        // source file.
+        connectNativeGraph(format: format)
         // CRITICAL: Prepare the engine to guarantee render loop activity
         audioEngine.prepare()
         // Building the graph is a configuration change of our own making too.
         lastSelfInducedGraphRebuildAt = Date()
         // Don't start the engine here - wait until we actually need to play
         print("✅ Audio engine configured and prepared with EQ integration, format: \(format?.description ?? "auto")")
+    }
+
+    /// playerNode -> fader -> EQ -> mainMixerNode, or straight to the EQ if
+    /// the fader could not be created.
+    private func connectNativeGraph(format: AVAudioFormat?) {
+        if let fader = transportFader {
+            audioEngine.connect(playerNode, to: fader.node, format: format)
+            eqManager.insertEQIntoAudioGraph(between: fader.node, and: audioEngine.mainMixerNode, format: format)
+        } else {
+            eqManager.insertEQIntoAudioGraph(between: playerNode, and: audioEngine.mainMixerNode, format: format)
+        }
+    }
+
+    /// Fades the native output to silence and returns once the render thread
+    /// has got there, so a node stopped afterwards stops on silence.
+    private func fadeOutNativeOutput(over duration: TimeInterval) async {
+        guard let fader = transportFader else { return }
+        guard audioEngine.isRunning, playerNode.isPlaying else {
+            fader.set(0)
+            return
+        }
+        await fader.fade(to: 0, over: duration)
     }
 
 
@@ -2823,15 +2858,15 @@ class PlayerEngine: NSObject, ObservableObject {
         transportFadeTask?.cancel()
         transportFadeTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            await self.rampOutputVolume(to: 0, duration: 0.03)
+            await self.fadeOutNativeOutput(over: 0.03)
             // A skip, seek or new track meanwhile scheduled afresh, with the
             // current queue and loop settings, and set its own volume.
             guard self.scheduleGeneration == generation else { return }
             self.invalidateGaplessSchedule()
             self.preloadAndScheduleNextIfNeeded()
-            // Cancelled by a pause, which fades and restores volume itself.
+            // Cancelled by a pause, which owns the fader from here.
             guard !Task.isCancelled else { return }
-            await self.rampOutputVolume(to: 1, duration: 0.05)
+            self.transportFader?.ramp(to: 1, over: 0.05)
         }
     }
 
@@ -3180,7 +3215,8 @@ class PlayerEngine: NSObject, ObservableObject {
             guard startEngineAndScheduleSegment(
                 from: framePosition,
                 file: audioFile,
-                context: "resume"
+                context: "resume",
+                startMuted: true
             ) else {
                 // `.paused`, not `.stopped`. The decoder is loaded and the
                 // position is preserved, so this is recoverable - and `.ended`
@@ -3198,16 +3234,12 @@ class PlayerEngine: NSObject, ObservableObject {
                 return
             }
 
-            // Start silent and fade in, so resuming doesn't click either.
-            transportFadeTask?.cancel()
-            audioEngine.mainMixerNode.outputVolume = 0
+            // Start from silence and fade in, so resuming doesn't click either.
             playerNode.play()
+            transportFader?.ramp(to: 1, over: Self.resumeFadeIn)
             isPlaying = true
             playbackState = .playing
             startPlaybackTimer()
-            transportFadeTask = Task { @MainActor [weak self] in
-                await self?.rampOutputVolume(to: 1, duration: 0.15)
-            }
 
             // End paused state monitoring and start regular playing monitoring
             stopSilentPlaybackForPause()
@@ -3358,16 +3390,18 @@ class PlayerEngine: NSObject, ObservableObject {
         isNodeSoftPaused = true
         softPauseGeneration = scheduleGeneration
 
-        // Stopping mid-waveform is an audible click. Ramp the output down
-        // first, then pause the node; a resume during the ramp cancels it.
+        // Stopping mid-waveform is an audible click. Fade to silence in the
+        // render thread first, then pause the node; a resume during the fade
+        // cancels this and turns the fade around.
         let intent = playbackIntentGeneration
         transportFadeTask?.cancel()
         transportFadeTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            await self.rampOutputVolume(to: 0, duration: 0.12)
+            await self.fadeOutNativeOutput(over: Self.pauseFadeOut)
             guard !Task.isCancelled, self.playbackIntentGeneration == intent, !self.isPlaying else { return }
+            // The fader stays at silence while paused: a resume fades in from
+            // zero, wherever the node restarts.
             self.playerNode.pause()
-            self.audioEngine.mainMixerNode.outputVolume = 1
             if self.audioFile != nil {
                 self.playbackTime = self.currentTimeForCurrentNativeFile()
             }
@@ -3413,21 +3447,20 @@ class PlayerEngine: NSObject, ObservableObject {
         }
 
         transportFadeTask?.cancel()
+        transportFadeTask = nil
+        // Fully paused, the fader is at silence and the fade-in starts with
+        // the node. Mid-fade-out, the node is still playing and the ramp
+        // simply turns around.
         if !playerNode.isPlaying {
-            // Fully paused: start silent and fade in. Mid-fade, the node is
-            // still playing and the ramp simply turns around.
-            audioEngine.mainMixerNode.outputVolume = 0
             playerNode.play()
         }
+        transportFader?.ramp(to: 1, over: Self.resumeFadeIn)
         isPlaying = true
         playbackState = .playing
         startPlaybackTimer()
         stopSilentPlaybackForPause()
         endBackgroundMonitoring()
         startBackgroundMonitoring()
-        transportFadeTask = Task { @MainActor [weak self] in
-            await self?.rampOutputVolume(to: 1, duration: 0.15)
-        }
         updateNowPlayingInfoEnhanced()
         deferTransportSideEffects()
         // The successor's wait ends early if the pause came first.
@@ -3436,10 +3469,16 @@ class PlayerEngine: NSObject, ObservableObject {
         return true
     }
 
+    /// Foreground only: backgrounding releases at once
+    /// (suspendUITimersForBackground). Two minutes rather than twenty seconds
+    /// because the resume after a release takes the full path, and its
+    /// reschedule - a synchronous seek into the file, ~100 ms for a FLAC on
+    /// the main thread - landed in the middle of the tap's animation. A
+    /// paused player in front of the user costs little to keep warm.
     private func scheduleHardwareRelease() {
         hardwareReleaseTask?.cancel()
         hardwareReleaseTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(20))
+            try? await Task.sleep(for: .seconds(120))
             guard !Task.isCancelled else { return }
             self?.releaseHardwareIfPaused()
         }
@@ -3461,7 +3500,6 @@ class PlayerEngine: NSObject, ObservableObject {
         }
         isNodeSoftPaused = false
         audioEngine.pause()
-        audioEngine.mainMixerNode.outputVolume = 1
         print("🔄 Released audio hardware while paused - stored position: \(playbackTime)s")
     }
 
@@ -3474,20 +3512,6 @@ class PlayerEngine: NSObject, ObservableObject {
             guard let self else { return }
             self.updateWidgetData()
             self.savePlayerState()
-        }
-    }
-
-    /// Ramps the native engine's output volume. Cancelling leaves it wherever
-    /// it got to; the next pause or resume ramps from there.
-    private func rampOutputVolume(to target: Float, duration: TimeInterval) async {
-        let mixer = audioEngine.mainMixerNode
-        let start = mixer.outputVolume
-        let steps = 12
-        for step in 1...steps {
-            guard !Task.isCancelled else { return }
-            try? await Task.sleep(nanoseconds: UInt64(duration / Double(steps) * 1_000_000_000))
-            let t = Float(step) / Float(steps)
-            mixer.outputVolume = start + (target - start) * t
         }
     }
 
@@ -3597,15 +3621,14 @@ class PlayerEngine: NSObject, ObservableObject {
         } else if hasSetupAudioEngine,
                   audioEngine.attachedNodes.contains(playerNode) {
             // Fade out first: cutting a node off mid-waveform is the crackle
-            // that every skip made. The mixer goes back to full volume once
-            // the node is silent, so nothing after this starts out muted.
+            // that every skip made. The next start sets the fader back to
+            // full volume itself (startEngineAndScheduleSegment).
             if playerNode.isPlaying, audioEngine.isRunning {
                 transportFadeTask?.cancel()
                 transportFadeTask = nil
-                await rampOutputVolume(to: 0, duration: 0.06)
+                await fadeOutNativeOutput(over: 0.06)
             }
             playerNode.stop()
-            audioEngine.mainMixerNode.outputVolume = 1
         }
 
         // NEVER deactivate session during cleanup - this causes 30-second suspension on iOS 18
@@ -5081,6 +5104,7 @@ class PlayerEngine: NSObject, ObservableObject {
         eqManager.setAudioEngine(nil)
         audioEngine = AVAudioEngine()
         playerNode = AVAudioPlayerNode()
+        transportFader = TransportFader.make()
 
         // Reset setup flag to force proper reconnection
         hasSetupAudioEngine = false

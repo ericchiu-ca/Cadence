@@ -378,6 +378,7 @@ struct LyricsView: View {
 
     @State private var settings = DeleteSettings.load()
     @State private var showVersionPicker = false
+    @Environment(\.appColorScheme) private var appColorScheme
 
     @ScaledMetric(relativeTo: .body) private var plainFontSize: CGFloat = 26
     /// See `LyricsWidthScale`.
@@ -404,6 +405,7 @@ struct LyricsView: View {
                             onSelectAlternative?(id)
                         }
                     )
+                    .preferredColorScheme(appColorScheme)
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BackgroundColorChanged"))) { _ in

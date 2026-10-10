@@ -104,6 +104,14 @@ private extension UIColor {
     }
 }
 
+extension EnvironmentValues {
+    /// The app's own appearance, set on the full player. The player's
+    /// presentation is always dark, which is what turns the status bar white;
+    /// the backdrop's wash and the sheets the player opens follow this
+    /// instead. Nil outside the player.
+    @Entry var appColorScheme: ColorScheme?
+}
+
 // MARK: - Ambient background
 
 /// Slowly drifting mesh built from the artwork palette. Crossfades between
@@ -112,7 +120,10 @@ struct PlayerAmbientBackground: View {
     let palette: ArtworkPalette
     let isAnimating: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorScheme) private var presentationColorScheme
+    @Environment(\.appColorScheme) private var appColorScheme
+
+    private var colorScheme: ColorScheme { appColorScheme ?? presentationColorScheme }
 
     var body: some View {
         ZStack {
@@ -235,12 +246,18 @@ struct PressableButtonStyle: ButtonStyle {
 }
 
 /// The system route picker, which presents the AirPlay menu itself.
+///
+/// Fixed colours, matching the tool glyphs beside it: dimmed white, and full
+/// white once audio goes to headphones or AirPlay. The player is always dark,
+/// but `.label` was resolved against the app's appearance for the active
+/// state, so with headphones connected in Light Mode the button turned black.
 struct AirPlayRouteButton: UIViewRepresentable {
     func makeUIView(context: Context) -> AVRoutePickerView {
         let picker = AVRoutePickerView()
         picker.prioritizesVideoDevices = false
-        picker.tintColor = .label
-        picker.activeTintColor = .label
+        picker.overrideUserInterfaceStyle = .dark
+        picker.tintColor = .white.withAlphaComponent(0.6)
+        picker.activeTintColor = .white
         picker.backgroundColor = .clear
         return picker
     }
@@ -809,29 +826,42 @@ private struct ScreenCard: Shape {
 
 // MARK: - Play/pause glyph
 
-/// Play and pause drawn together, the hidden one faded and shrunk, so a toggle
-/// only animates opacity and scale. Swapping the symbol instead
-/// (`.contentTransition(.symbolEffect(.replace))`) built the incoming glyph's
-/// render surface on the tap - a GPU pipeline compile the first time - and
-/// any main-thread work landing in that window froze the morph between the
-/// two glyphs, so the button blinked out.
+/// Play and pause, both always drawn so neither is rendered for the first
+/// time on a tap. The toggle swaps them in a single frame and gives the
+/// incoming glyph a small scale pop; there is no frame in which the button is
+/// faint.
+///
+/// Both earlier versions had one. The SF Symbol morph
+/// (`.contentTransition(.symbolEffect(.replace))`) and then a cross-fade
+/// passed through a state where neither glyph was solid - half-faded, shrunk,
+/// and dimmed again by the pressed style - and SwiftUI drives these
+/// animations from the main thread. Any work landing on it during the tap
+/// froze that state on screen, and the button seemed to vanish.
 struct PlayPauseGlyph: View {
     let isPlaying: Bool
     let size: CGFloat
 
     var body: some View {
         ZStack {
-            glyph("pause.fill", isShown: isPlaying)
-            glyph("play.fill", isShown: !isPlaying)
+            glyph("pause.fill").opacity(isPlaying ? 1 : 0)
+            glyph("play.fill").opacity(isPlaying ? 0 : 1)
         }
-        .animation(.spring(response: 0.24, dampingFraction: 0.78), value: isPlaying)
+        // The swap itself is never animated, whatever transaction the toggle
+        // arrives in.
+        .transaction { $0.animation = nil }
+        .keyframeAnimator(initialValue: CGFloat(1), trigger: isPlaying) { content, scale in
+            content.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(0.9, duration: 0.05)
+                SpringKeyframe(1, duration: 0.3, spring: .snappy(extraBounce: 0.12))
+            }
+        }
     }
 
-    private func glyph(_ systemName: String, isShown: Bool) -> some View {
+    private func glyph(_ systemName: String) -> some View {
         Image(systemName: systemName)
             .font(.system(size: size, weight: .regular))
-            .scaleEffect(isShown ? 1 : 0.4)
-            .opacity(isShown ? 1 : 0)
     }
 }
 
