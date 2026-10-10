@@ -1371,7 +1371,6 @@ struct PlaylistTrackRowView: View {
     let artistName: String?
     let onTap: () -> Void
     @EnvironmentObject private var appCoordinator: AppCoordinator
-    @StateObject private var playerEngine = PlayerEngine.shared
     @State private var isFavorite = false
     @State private var showPlaylistDialog = false
     @State private var showDeleteConfirmation = false
@@ -1381,7 +1380,7 @@ struct PlaylistTrackRowView: View {
 
     // Check if this track is currently playing
     private var isCurrentlyPlaying: Bool {
-        playerEngine.currentTrack?.stableId == track.stableId
+        NowPlayingStatus.shared.currentStableId == track.stableId
     }
 
     var body: some View {
@@ -1436,11 +1435,11 @@ struct PlaylistTrackRowView: View {
                 if isCurrentlyPlaying {
                     EqualizerBarsExact(
                         color: deleteSettings.backgroundColorChoice.color,
-                        isActive: playerEngine.isPlaying && isCurrentlyPlaying,
+                        isActive: NowPlayingStatus.shared.isPlaying,
                         isLarge: true,
-                        trackId: playerEngine.currentTrack?.stableId
+                        trackId: track.stableId
                     )
-                    .id("\(playerEngine.isPlaying && isCurrentlyPlaying)-\(playerEngine.currentTrack?.stableId ?? "")")
+                    .id("\(NowPlayingStatus.shared.isPlaying)-\(track.stableId)")
                     .padding(.trailing, 8)
                 }
             }

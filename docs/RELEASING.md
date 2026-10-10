@@ -16,7 +16,7 @@ Signing and submission need your Apple Developer account, so these steps happen 
 | `group.io.github.ericchiuca.cadence` | App Group |
 | `iCloud.io.github.ericchiuca.cadence` | iCloud container |
 
-- Enable the capabilities each target uses: App Groups, iCloud (iCloud Documents), Siri and Live Activities.
+- Enable the capabilities each target uses: App Groups, iCloud (iCloud Documents) and Siri.
 - **CarPlay**: the CarPlay audio entitlement has to be [requested from Apple](https://developer.apple.com/contact/carplay/). The project ships without it so it can be signed by any team; once granted, add `com.apple.developer.carplay-audio = YES` back to `Cosmos Music Player.entitlements`. The CarPlay scene code is already in the app.
 
 ## 2. Project settings

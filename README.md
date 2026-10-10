@@ -24,11 +24,11 @@
 - The mini player is a glass card that zooms into the full player; pull down anywhere to close it again. Swipe the card to skip.
 - In-place synced lyrics: the artwork shrinks into the header, lines fill word by word at the display's refresh rate with a feathered edge, and the list advances with a staggered spring. Tap a line to seek.
 - Library, song and album screens on the plain system background with native large titles, glass toolbars, hairline separators and a Recently Added grid.
-- Optional live lyrics in the Dynamic Island and on the Lock Screen (*Settings › Player Controls*). Off by default, so the island shows the system Now Playing just as it does for Apple Music.
 
 **Fixes**
 - A missing `.env` file no longer crashes the app after the first library scan; online artist info is simply skipped.
-- Library entries survive an app update or device restore that moves the app container (previously every song was duplicated and the originals stopped playing).
+- Library entries survive an app update or device restore that moves the app container (previously every song was duplicated and the originals stopped playing), and so does the song you were last playing.
+- Play and pause answer on the tap. Pausing keeps the audio engine warm and fades out instead of clicking, the first Play after launch sets up the audio session off the main thread, and a pause no longer re-renders every song row behind the player.
 - Playback position, lyrics and the scrubber keep updating while a list is being scrolled.
 - The lock screen / CarPlay cover no longer gets stuck on the wrong track after quick skips.
 - Artwork mapping writes are batched off the main thread; CarPlay album covers load as thumbnails, one at a time.

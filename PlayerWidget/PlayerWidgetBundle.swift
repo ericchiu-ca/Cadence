@@ -13,6 +13,5 @@ struct PlayerWidgetBundle: WidgetBundle {
     var body: some Widget {
         PlayerWidget()
         PlaylistWidget()
-        LyricsLiveActivity()
     }
 }

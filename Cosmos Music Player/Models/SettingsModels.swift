@@ -205,10 +205,6 @@ struct DeleteSettings: Codable {
     var lastLibraryScanDate: Date? = nil
     var autoCreateFolderPlaylists: Bool = true
     var showLyricsButton: Bool = true
-    /// The current lyric line as a Live Activity in the Dynamic Island and on
-    /// the Lock Screen. Off by default: out of the box the island shows the
-    /// system's own Now Playing, as with Apple Music.
-    var showLyricsInDynamicIsland: Bool = false
     var showSleepTimerButton: Bool = false
     var libraryScanInterval: LibraryScanInterval = .daily
     var artistListMode: ArtistListMode = .albumArtists
@@ -248,7 +244,6 @@ struct DeleteSettings: Codable {
         lastLibraryScanDate = try container.decodeIfPresent(Date.self, forKey: .lastLibraryScanDate)
         autoCreateFolderPlaylists = try container.decodeIfPresent(Bool.self, forKey: .autoCreateFolderPlaylists) ?? true
         showLyricsButton = try container.decodeIfPresent(Bool.self, forKey: .showLyricsButton) ?? true
-        showLyricsInDynamicIsland = try container.decodeIfPresent(Bool.self, forKey: .showLyricsInDynamicIsland) ?? false
         showSleepTimerButton = try container.decodeIfPresent(Bool.self, forKey: .showSleepTimerButton) ?? false
         // Both default to the tidier behaviour rather than the historical one:
         // rescanning a large library on nearly every launch, and listing every
@@ -269,11 +264,25 @@ struct DeleteSettings: Codable {
         homeSections = decoded
     }
 
+    /// Decoded once and kept, then replaced by `save()` - the only writer.
+    /// Dozens of views read settings as a `@State` initial value, which SwiftUI
+    /// evaluates every time it rebuilds the view, so every list row decoded
+    /// this JSON again on each playback state change.
+    nonisolated(unsafe) private static var cached: DeleteSettings?
+    private static let cacheLock = NSLock()
+
     static func load() -> DeleteSettings {
-        guard let data = UserDefaults.standard.data(forKey: "DeleteSettings"),
-              let settings = try? JSONDecoder().decode(DeleteSettings.self, from: data) else {
-            return DeleteSettings()
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        if let cached { return cached }
+        let settings: DeleteSettings
+        if let data = UserDefaults.standard.data(forKey: "DeleteSettings"),
+           let decoded = try? JSONDecoder().decode(DeleteSettings.self, from: data) {
+            settings = decoded
+        } else {
+            settings = DeleteSettings()
         }
+        cached = settings
         return settings
     }
 
@@ -282,6 +291,9 @@ struct DeleteSettings: Codable {
         settings.forceDarkMode = (settings.appearance == .dark)
 
         if let data = try? JSONEncoder().encode(settings) {
+            Self.cacheLock.lock()
+            Self.cached = settings
+            Self.cacheLock.unlock()
             UserDefaults.standard.set(data, forKey: "DeleteSettings")
             let notify = {
                 NotificationCenter.default.post(name: .cosmosSettingsDidChange, object: nil)

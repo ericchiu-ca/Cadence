@@ -178,7 +178,6 @@ struct Localized {
     static let keepFolderPlaylists = "keep_folder_playlists".localized
     static let playerControls = "player_controls".localized
     static let showLyricsButton = "show_lyrics_button".localized
-    static let lyricsInDynamicIsland = "lyrics_in_dynamic_island".localized
     static let showSleepTimerButton = "show_sleep_timer_button".localized
     static let queueFullListFromSearch = "queue_full_list_from_search".localized
     static let queueFullListFromSearchDescription = "queue_full_list_from_search_description".localized

@@ -96,33 +96,44 @@ struct PlayerView: View {
     @State private var trackContext = PlayerTrackContext()
     @State private var skipForwardTrigger = 0
     @State private var skipBackwardTrigger = 0
-    /// Set by `PullToDismiss` while a pull is in progress; controls are
-    /// disabled meanwhile so a pull that began on a button doesn't fire it.
-    @State private var isDismissDragging = false
+    /// Shown in place of `isPlaying` from the tap until the engine catches up.
+    @State private var pendingPlaying: Bool?
     @State private var currentArtwork: UIImage?
     @State private var nextArtwork: UIImage?
     @State private var previousArtwork: UIImage?
     @State private var dragOffset: CGFloat = 0
     @State private var isAnimating = false
-    @State private var allTracks: [Track] = []
     @State private var isFavorite = false
     @State private var showPlaylistDialog = false
     @State private var showQueueSheet = false
     @State private var showLyrics = false
-    @Namespace private var artworkNamespace
+    /// Where the two layouts want the artwork, in the content's coordinates.
+    /// Kept in state so the toggle animates between known frames.
+    @State private var largeArtworkSlot: CGRect = .zero
+    @State private var compactArtworkSlot = CGRect(x: 0, y: 12, width: 64, height: 64)
+    /// 0 = full-size artwork, 1 = lyrics header. The only value animated by
+    /// the toggle; the artwork interpolates between the slots from it.
+    @State private var lyricsProgress: CGFloat = 0
     @State private var currentLyrics: Lyrics? = nil
     @State private var isLoadingLyrics = false
     @State private var settings = DeleteSettings.load()
     @State private var sleepTimerTask: Task<Void, Never>?
     @State private var sleepTimerEndDate: Date?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Ends the presentation without a transition; see
+    /// `PullToDismiss.onPulledAway`.
+    private let closeWithoutTransition: () -> Void
+
+    init(closeWithoutTransition: @escaping () -> Void) {
+        self.closeWithoutTransition = closeWithoutTransition
+    }
     
     var body: some View {
         PullToDismiss(
             isEnabled: !showLyrics,
             canBegin: dragOffset == 0,
-            isDragging: $isDismissDragging,
-            onDismiss: { dismiss() }
+            onDismiss: { dismiss() },
+            onPulledAway: closeWithoutTransition
         ) {
             ZStack {
                 PlayerAmbientBackground(
@@ -138,6 +149,9 @@ struct PlayerView: View {
         }
         // Cap Dynamic Type so large accessibility sizes don't overflow the player layout
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .accessibilityAction(.escape) { dismiss() }
+        .onAppear { ResponsiveTransport.prepare() }
+
         .task(id: playerEngine.currentTrack?.stableId) {
             await refreshTrackContext()
         }
@@ -149,7 +163,6 @@ struct PlayerView: View {
             // the player's own content renders with the dark appearance.
             // Sheets attach below and keep the app's appearance.
             .environment(\.colorScheme, .dark)
-            .disabled(isDismissDragging)
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
             .onChange(of: playerEngine.currentTrack) { _, _ in
@@ -166,7 +179,6 @@ struct PlayerView: View {
             .onAppear {
                 Task {
                     await loadAllArtworks()
-                    await loadTracks()
                     checkFavoriteStatus()
                 }
             }
@@ -200,14 +212,13 @@ struct PlayerView: View {
 
     private var contentView: some View {
         VStack(spacing: 0) {
-            grabber
-
             if let currentTrack = playerEngine.currentTrack {
                 if showLyrics {
                     // Apple Music's lyrics mode: the artwork shrinks into the
                     // header, lyrics take the stage, the controls stay put.
                     compactHeader(track: currentTrack)
-                        .padding(.top, 4)
+                        .padding(.top, 12)
+                        .transition(.opacity)
                     lyricsPanel
                         .frame(maxHeight: .infinity)
                         .padding(.top, 4)
@@ -216,8 +227,10 @@ struct PlayerView: View {
                             removal: .opacity
                         ))
                 } else {
-                    Spacer(minLength: 8)
+                    Spacer(minLength: 20)
                     artworkSection
+                        // Leaves at once: only the floating artwork moves.
+                        .transition(.identity)
                     Spacer(minLength: 16)
                     titleAndArtistSection(track: currentTrack)
                         .transition(.opacity)
@@ -232,23 +245,49 @@ struct PlayerView: View {
                 Spacer()
             }
         }
+        .coordinateSpace(.named(Self.contentSpace))
+        // One artwork for both layouts. Each layout only leaves a slot and
+        // records its frame; this single view moves between the two frames
+        // inside the toggle's own animation, so it is one continuous flight
+        // instead of two views cross-matching while their containers change.
+        .overlay(alignment: .topLeading) {
+            if playerEngine.currentTrack != nil {
+                floatingArtwork
+                    .allowsHitTesting(false)
+            }
+        }
     }
 
-    /// Drag-to-dismiss comes from the zoom transition; the grabber shows it
-    /// and doubles as a tap target for people who don't discover the drag.
-    private var grabber: some View {
-        Button {
-            dismiss()
-        } label: {
-            Capsule()
-                .fill(.primary.opacity(0.35))
-                .frame(width: 38, height: 5)
-                .frame(maxWidth: .infinity, minHeight: 28)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Localized.close)
+    private static let contentSpace = "playerContent"
+
+    /// Apple Music style: the artwork sits back while paused. The swipe's
+    /// neighbours share it, so the incoming cover lands at the size the
+    /// floating artwork then takes over at, instead of shrinking after.
+    private var artworkRestingScale: CGFloat {
+        (showLyrics || showsPlaying) ? 1 : 0.84
     }
+
+    private var floatingArtwork: some View {
+        let pageDistance = largeArtworkSlot.width + 24
+        let swipeProgress = showLyrics ? 0 : min(abs(dragOffset) / max(pageDistance, 1), 1)
+        let isLarge = !showLyrics && showsPlaying
+
+        return FlyingArtwork(
+            image: currentArtwork,
+            from: largeArtworkSlot,
+            to: compactArtworkSlot,
+            progress: lyricsProgress,
+            scale: artworkRestingScale * (1 - (0.04 * swipeProgress)),
+            shadowStrength: isLarge ? 1 : 0.35
+        )
+        .animation(
+            reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.38, dampingFraction: 0.72),
+            value: showsPlaying
+        )
+        .offset(x: showLyrics ? 0 : dragOffset)
+        .opacity(1 - Double(swipeProgress) * 0.35)
+    }
+
 
     private var playlistSheet: some View {
         Group {
@@ -282,15 +321,17 @@ struct PlayerView: View {
     /// the full-size one, title and artist, and the same glass actions.
     private func compactHeader(track: Track) -> some View {
         HStack(spacing: 12) {
-            Button {
-                toggleLyrics()
-            } label: {
-                artworkTile(artwork: currentArtwork, size: 64, cornerRadius: 10)
-                    .matchedGeometryEffect(id: "artwork", in: artworkNamespace)
-                    .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
-            }
-            .buttonStyle(PressableButtonStyle(pressedScale: 0.94))
-            .accessibilityLabel(Localized.lyrics)
+            // Slot for the floating artwork; tapping it leaves lyrics.
+            Color.clear
+                .frame(width: 64, height: 64)
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.contentSpace)) } action: {
+                    compactArtworkSlot = $0
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { toggleLyrics() }
+                .accessibilityElement()
+                .accessibilityLabel(Localized.lyrics)
+                .accessibilityAddTraits(.isButton)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(track.title)
@@ -312,12 +353,16 @@ struct PlayerView: View {
         .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: track.stableId)
     }
 
+    private var showsPlaying: Bool { pendingPlaying ?? playerEngine.isPlaying }
+
+    private var lyricsToggleAnimation: Animation {
+        reduceMotion ? .easeInOut(duration: 0.25) : .spring(response: 0.55, dampingFraction: 0.86)
+    }
+
     private func toggleLyrics() {
-        let animation: Animation = reduceMotion
-            ? .easeInOut(duration: 0.25)
-            : .spring(response: 0.55, dampingFraction: 0.86)
-        withAnimation(animation) {
+        withAnimation(lyricsToggleAnimation) {
             showLyrics.toggle()
+            lyricsProgress = showLyrics ? 1 : 0
         }
         if showLyrics, currentLyrics == nil, !isLoadingLyrics {
             loadLyrics()
@@ -331,11 +376,8 @@ struct PlayerView: View {
             let artworkSize = min(geometry.size.width, geometry.size.height, 420)
             let gestureWidth = max(geometry.size.width, 1)
             let pageDistance = artworkSize + 24
-            let swipeProgress = min(abs(dragOffset) / pageDistance, 1)
             let signedProgress = max(-1, min(1, dragOffset / pageDistance))
             let canNavigate = playerEngine.playbackQueue.count > 1
-            // Apple Music style: the artwork sits back while paused.
-            let restingScale: CGFloat = playerEngine.isPlaying ? 1 : 0.84
 
             ZStack {
                 // Neighbours stay invisible at rest - peeking slivers at the
@@ -344,35 +386,28 @@ struct PlayerView: View {
                 if canNavigate {
                     artworkTile(artwork: previousArtwork, size: artworkSize)
                         .offset(x: dragOffset - pageDistance)
-                        .scaleEffect(0.92 + (0.08 * max(0, signedProgress)))
+                        .scaleEffect(artworkRestingScale * (0.92 + (0.08 * max(0, signedProgress))))
                         .opacity(Double(max(0, signedProgress)))
                         .zIndex(0)
                 }
 
-                artworkTile(artwork: currentArtwork, size: artworkSize)
-                    .matchedGeometryEffect(id: "artwork", in: artworkNamespace)
-                    .scaleEffect(restingScale * (1 - (0.04 * swipeProgress)))
-                    .shadow(
-                        color: .black.opacity(playerEngine.isPlaying ? 0.4 : 0.22),
-                        radius: playerEngine.isPlaying ? 28 : 14,
-                        x: 0,
-                        y: playerEngine.isPlaying ? 18 : 8
-                    )
-                    .animation(
-                        reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.55, dampingFraction: 0.68),
-                        value: playerEngine.isPlaying
-                    )
-                    .offset(x: dragOffset)
-                    .opacity(1 - Double(swipeProgress) * 0.35)
-                    .zIndex(1)
+                // Slot for the floating artwork, which is drawn above the
+                // whole player; the swipe still moves it through dragOffset.
+                Color.clear
+                    .frame(width: artworkSize, height: artworkSize)
+                    .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.contentSpace)) } action: {
+                        largeArtworkSlot = $0
+                    }
+                    .contentShape(Rectangle())
                     .onTapGesture {
                         dismiss()
                     }
+                    .zIndex(1)
 
                 if canNavigate {
                     artworkTile(artwork: nextArtwork, size: artworkSize)
                         .offset(x: dragOffset + pageDistance)
-                        .scaleEffect(0.92 + (0.08 * max(0, -signedProgress)))
+                        .scaleEffect(artworkRestingScale * (0.92 + (0.08 * max(0, -signedProgress))))
                         .opacity(Double(max(0, -signedProgress)))
                         .zIndex(0)
                 }
@@ -380,7 +415,7 @@ struct PlayerView: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
             .contentShape(Rectangle())
             .gesture(
-                artworkDragGesture(
+                artworkSwipe(
                     gestureWidth: gestureWidth,
                     pageDistance: pageDistance
                 )
@@ -395,32 +430,35 @@ struct PlayerView: View {
             .frame(width: size, height: size)
     }
 
-    private func artworkDragGesture(gestureWidth: CGFloat, pageDistance: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 8)
-            .onChanged { value in
+    /// Horizontal only (see `DirectionalPan`), so a downward drag that starts
+    /// on the artwork closes the player instead.
+    private func artworkSwipe(gestureWidth: CGFloat, pageDistance: CGFloat) -> DirectionalPan {
+        DirectionalPan(
+            direction: .horizontal,
+            canBegin: !isAnimating,
+            onChanged: { translation in
                 guard !isAnimating else { return }
-                guard abs(value.translation.width) > abs(value.translation.height) else { return }
 
                 let canNavigate = playerEngine.playbackQueue.count > 1
                 let proposedOffset = canNavigate
-                    ? value.translation.width
-                    : value.translation.width * 0.16
+                    ? translation.x
+                    : translation.x * 0.16
                 let limit = pageDistance
                 var transaction = Transaction()
                 transaction.isContinuous = true
                 withTransaction(transaction) {
                     dragOffset = max(-limit, min(limit, proposedOffset))
                 }
-            }
-            .onEnded { value in
+            },
+            onEnded: { translationPoint, velocity in
                 guard !isAnimating else { return }
                 guard playerEngine.playbackQueue.count > 1 else {
                     resetArtworkDrag()
                     return
                 }
 
-                let translation = value.translation.width
-                let projectedTranslation = value.predictedEndTranslation.width
+                let translation = translationPoint.x
+                let projectedTranslation = translation + velocity.x * 0.25
                 let distanceThreshold = gestureWidth * 0.22
                 let projectionThreshold = gestureWidth * 0.34
                 let shouldCommit = abs(translation) > distanceThreshold ||
@@ -441,6 +479,7 @@ struct PlayerView: View {
                     completeArtworkSwipe(.next, pageDistance: pageDistance)
                 }
             }
+        )
     }
 
     private func resetArtworkDrag() {
@@ -543,7 +582,7 @@ struct PlayerView: View {
     private func titleButton(track: Track) -> some View {
         Button {
             guard let album = trackContext.album else { return }
-            let userInfo = ["album": album, "allTracks": allTracks] as [String: Any]
+            let userInfo = ["album": album, "allTracks": libraryTracks()] as [String: Any]
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToAlbumFromPlayer"), object: nil, userInfo: userInfo)
         } label: {
             Text(track.title)
@@ -562,7 +601,7 @@ struct PlayerView: View {
         if let artistName = displayArtistName {
             Button {
                 guard let artist = trackContext.artist else { return }
-                let userInfo = ["artist": artist, "allTracks": allTracks] as [String: Any]
+                let userInfo = ["artist": artist, "allTracks": libraryTracks()] as [String: Any]
                 NotificationCenter.default.post(name: NSNotification.Name("NavigateToArtistFromPlayer"), object: nil, userInfo: userInfo)
             } label: {
                 Text(artistName)
@@ -642,7 +681,7 @@ struct PlayerView: View {
     }
 
     /// Bare glyphs, no container - the Apple Music layout. Previous and next
-    /// bounce on tap; play and pause morph into each other.
+    /// bounce on tap; play and pause cross-fade (see `PlayPauseGlyph`).
     private var playbackControlsView: some View {
         HStack(spacing: 0) {
             Button {
@@ -658,19 +697,13 @@ struct PlayerView: View {
             .accessibilityLabel(Localized.previousTrack)
 
             Button {
-                if playerEngine.isPlaying {
-                    playerEngine.pause()
-                } else {
-                    playerEngine.play()
-                }
+                ResponsiveTransport.toggle(playerEngine, pending: $pendingPlaying)
             } label: {
-                Image(systemName: playerEngine.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 50, weight: .regular))
-                    .contentTransition(.symbolEffect(.replace.downUp.byLayer))
+                PlayPauseGlyph(isPlaying: showsPlaying, size: 50)
                     .frame(maxWidth: .infinity, minHeight: 64)
                     .contentShape(Rectangle())
             }
-            .accessibilityLabel(playerEngine.isPlaying ? Localized.pause : Localized.play)
+            .accessibilityLabel(showsPlaying ? Localized.pause : Localized.play)
 
             Button {
                 skipForwardTrigger += 1
@@ -687,7 +720,6 @@ struct PlayerView: View {
         .buttonStyle(PressableButtonStyle())
         .foregroundStyle(.primary)
         .padding(.horizontal, 12)
-        .sensoryFeedback(.impact(weight: .medium), trigger: playerEngine.isPlaying)
         .sensoryFeedback(.impact(weight: .light), trigger: skipForwardTrigger)
         .sensoryFeedback(.impact(weight: .light), trigger: skipBackwardTrigger)
     }
@@ -970,14 +1002,11 @@ struct PlayerView: View {
         }
     }
     
-    @MainActor
-    private func loadTracks() async {
-        do {
-            allTracks = try appCoordinator.getAllTracks()
-            print("✅ Loaded \(allTracks.count) tracks for artist navigation")
-        } catch {
-            print("❌ Failed to load tracks: \(error)")
-        }
+    /// The library the album and artist screens are built from, fetched when
+    /// the user navigates. It used to load on every open of the player, on
+    /// the main thread, for a tap that rarely comes.
+    private func libraryTracks() -> [Track] {
+        (try? appCoordinator.getAllTracks()) ?? []
     }
     
     private func checkFavoriteStatus() {
@@ -1039,6 +1068,55 @@ struct PlayerView: View {
             return
         }
         palette = newPalette
+    }
+}
+
+/// The player's one artwork, placed by interpolating between the full-size
+/// slot and the lyrics-header slot. Only `progress` animates, so a slot that
+/// is measured or corrected mid-flight bends the path instead of snapping it.
+private struct FlyingArtwork: View, @MainActor Animatable {
+    let image: UIImage?
+    let from: CGRect
+    let to: CGRect
+    var progress: CGFloat
+    var scale: CGFloat
+    var shadowStrength: CGFloat
+
+    nonisolated var animatableData: AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>> {
+        get { AnimatablePair(progress, AnimatablePair(scale, shadowStrength)) }
+        set {
+            progress = newValue.first
+            scale = newValue.second.first
+            shadowStrength = newValue.second.second
+        }
+    }
+
+    var body: some View {
+        let t = min(max(progress, 0), 1)
+        func lerp(_ a: CGFloat, _ b: CGFloat) -> CGFloat { a + (b - a) * t }
+        let rect = CGRect(
+            x: lerp(from.minX, to.minX),
+            y: lerp(from.minY, to.minY),
+            width: lerp(from.width, to.width),
+            height: lerp(from.height, to.height)
+        )
+        return ArtworkTile(
+            image: image,
+            cornerRadius: lerp(18, 10),
+            placeholderFont: .system(size: min(80, max(rect.width, 1) * 0.2))
+        )
+        .frame(width: max(rect.width, 1), height: max(rect.height, 1))
+        // The shadow is drawn once at a fixed size by a plain shape behind
+        // the artwork; only its opacity follows play/pause. Animating the
+        // radius re-rendered the blurred artwork every frame of the spring.
+        .background {
+            RoundedRectangle(cornerRadius: lerp(18, 10), style: .continuous)
+                .fill(.black)
+                .shadow(color: .black.opacity(0.45), radius: 26, x: 0, y: 16)
+                .opacity(0.35 + 0.65 * shadowStrength)
+        }
+        .scaleEffect(scale)
+        .position(x: rect.midX, y: rect.midY)
     }
 }
 
@@ -1110,6 +1188,7 @@ struct MiniPlayerView: View {
     @State private var artistName: String?
     @State private var dragOffset: CGFloat = 0
     @State private var skipTrigger = 0
+    @State private var pendingPlaying: Bool?
     @State private var settings = DeleteSettings.load()
 
     private let cardShape = RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -1131,7 +1210,11 @@ struct MiniPlayerView: View {
         .animation(reduceMotion ? nil : .spring(response: 0.45, dampingFraction: 0.82), value: playerEngine.currentTrack == nil)
         .animation(.smooth(duration: 0.3), value: playerEngine.playbackErrorMessage)
         .fullScreenCover(isPresented: $isExpanded) {
-            PlayerView()
+            PlayerView(closeWithoutTransition: {
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) { isExpanded = false }
+            })
                 .accentColor(settings.backgroundColorChoice.color)
                 .presentationBackground(.clear)
                 .navigationTransition(.zoom(sourceID: "nowPlaying", in: playerTransition))
@@ -1187,19 +1270,13 @@ struct MiniPlayerView: View {
             // card's tap gesture (which expands the player) from taking these.
             HStack(spacing: 2) {
                 Button {
-                    if playerEngine.isPlaying {
-                        playerEngine.pause()
-                    } else {
-                        playerEngine.play()
-                    }
+                    ResponsiveTransport.toggle(playerEngine, pending: $pendingPlaying)
                 } label: {
-                    Image(systemName: playerEngine.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 22))
-                        .contentTransition(.symbolEffect(.replace.downUp))
+                    PlayPauseGlyph(isPlaying: pendingPlaying ?? playerEngine.isPlaying, size: 22)
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .accessibilityLabel(playerEngine.isPlaying ? Localized.pause : Localized.play)
+                .accessibilityLabel((pendingPlaying ?? playerEngine.isPlaying) ? Localized.pause : Localized.play)
 
                 Button {
                     skipTrigger += 1
@@ -1243,7 +1320,7 @@ struct MiniPlayerView: View {
         }
         .gesture(swipeToSkip)
         .sensoryFeedback(.impact(weight: .light), trigger: skipTrigger)
-        .sensoryFeedback(.impact(weight: .medium), trigger: playerEngine.isPlaying)
+        .onAppear { ResponsiveTransport.prepare() }
         .accessibilityAction(named: Localized.previousTrack) {
             Task { await playerEngine.previousTrack() }
         }
@@ -1341,10 +1418,7 @@ private struct MiniPlayerProgressBar: View {
 
 
 struct TrackRowView: View, @MainActor Equatable {
-    // 1. Pass these in instead of observing PlayerEngine
     let track: Track
-    let activeTrackId: String?
-    let isAudioPlaying: Bool
     let artistName: String?
     
     let onTap: () -> Void
@@ -1374,16 +1448,15 @@ struct TrackRowView: View, @MainActor Equatable {
     @State private var showDeleteConfirmation = false
     @State private var deleteSettings = DeleteSettings.load()
     
-    // 2. Computed property is now based on passed params
+    /// Read from `NowPlayingStatus` in `body`, so Observation re-renders
+    /// this row alone when the current song changes or pauses, and the list
+    /// around it does not re-render at all.
     private var isCurrentlyPlaying: Bool {
-        activeTrackId == track.stableId
+        NowPlayingStatus.shared.currentStableId == track.stableId
     }
     
-    // 3. Equatable Conformance: Prevents redraws when PlayerEngine updates time
     static func == (lhs: TrackRowView, rhs: TrackRowView) -> Bool {
         return lhs.track.stableId == rhs.track.stableId &&
-        lhs.activeTrackId == rhs.activeTrackId &&
-        lhs.isAudioPlaying == rhs.isAudioPlaying &&
         lhs.artistName == rhs.artistName &&
         lhs.playlist?.id == rhs.playlist?.id &&
         lhs.showDirectDeleteButton == rhs.showDirectDeleteButton &&
@@ -1424,17 +1497,16 @@ struct TrackRowView: View, @MainActor Equatable {
 
                 Spacer(minLength: 8)
 
-                // Equalizer uses passed params
                 if isCurrentlyPlaying {
-                    let eqKey = "\(isAudioPlaying && isCurrentlyPlaying)-\(activeTrackId ?? "")"
+                    let isAudioPlaying = NowPlayingStatus.shared.isPlaying
 
                     EqualizerBarsExact(
                         color: deleteSettings.backgroundColorChoice.color,
-                        isActive: isAudioPlaying && isCurrentlyPlaying,
+                        isActive: isAudioPlaying,
                         isLarge: true,
-                        trackId: activeTrackId
+                        trackId: track.stableId
                     )
-                    .id(eqKey)
+                    .id("\(isAudioPlaying)-\(track.stableId)")
                     .padding(.trailing, 4)
                     .transition(.scale.combined(with: .opacity))
                 }

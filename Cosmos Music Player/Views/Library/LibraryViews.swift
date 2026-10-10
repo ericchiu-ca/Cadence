@@ -1082,8 +1082,6 @@ struct TrackListContentView: View {
     @Binding var recentlyActedTracks: Set<String>
     let onEnterBulkMode: (String?) -> Void
 
-    // Only THIS view updates when the song progresses
-    @StateObject private var playerEngine = PlayerEngine.shared
     @EnvironmentObject private var appCoordinator: AppCoordinator
     @State private var settings = DeleteSettings.load()
     @State private var displayLimit = 50
@@ -1211,8 +1209,6 @@ struct TrackListContentView: View {
 
                         TrackRowView(
                             track: track,
-                            activeTrackId: playerEngine.currentTrack?.stableId,
-                            isAudioPlaying: playerEngine.isPlaying,
                             artistName: artistDisplayNameCache[track.stableId] ?? track.artistId.flatMap { artistNameCache[$0] },
                             onTap: {
                                 if isBulkMode {
@@ -1242,7 +1238,7 @@ struct TrackListContentView: View {
                 .swipeActions(edge: .leading, allowsFullSwipe: true) {
                     if !isBulkMode && !recentlyActedTracks.contains(track.stableId) {
                         Button {
-                            playerEngine.insertNext(track)
+                            PlayerEngine.shared.insertNext(track)
                             markAsActed(track.stableId)
                         } label: { Label(Localized.playNext, systemImage: "text.line.first.and.arrowtriangle.forward") }
                             .tint(settings.backgroundColorChoice.color)
@@ -1251,7 +1247,7 @@ struct TrackListContentView: View {
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     if !isBulkMode && !recentlyActedTracks.contains(track.stableId) {
                         Button {
-                            playerEngine.addToQueue(track)
+                            PlayerEngine.shared.addToQueue(track)
                             markAsActed(track.stableId)
                         } label: { Label(Localized.addToQueue, systemImage: "text.append") }
                             .tint(.blue)
@@ -1888,7 +1884,6 @@ struct SearchView: View {
         let artistName: String?
         let onDismiss: () -> Void
         @EnvironmentObject private var appCoordinator: AppCoordinator
-        @StateObject private var playerEngine = PlayerEngine.shared
         @State private var settings = DeleteSettings.load()
         @State private var artworkImage: UIImage?
         @State private var swipeOffset: CGFloat = 0
@@ -1903,7 +1898,7 @@ struct SearchView: View {
         }
 
         private var isCurrentlyPlaying: Bool {
-            playerEngine.currentTrack?.stableId == track.stableId
+            NowPlayingStatus.shared.currentStableId == track.stableId
         }
 
         var body: some View {
@@ -1985,13 +1980,13 @@ struct SearchView: View {
 
                     // Currently playing indicator
                     if isCurrentlyPlaying {
-                        let eqKey = "\(playerEngine.isPlaying && isCurrentlyPlaying)-\(playerEngine.currentTrack?.stableId ?? "")"
+                        let eqKey = "\(NowPlayingStatus.shared.isPlaying)-\(track.stableId)"
 
                         EqualizerBarsExact(
                             color: settings.backgroundColorChoice.color,
-                            isActive: playerEngine.isPlaying && isCurrentlyPlaying,
+                            isActive: NowPlayingStatus.shared.isPlaying,
                             isLarge: false,
-                            trackId: playerEngine.currentTrack?.stableId
+                            trackId: track.stableId
                         )
                         .id(eqKey)
                     }
@@ -2026,9 +2021,9 @@ struct SearchView: View {
                             withAnimation(.spring(response: 0.3)) {
                                 switch swipeAction {
                                 case .playNext:
-                                    playerEngine.insertNext(track)
+                                    PlayerEngine.shared.insertNext(track)
                                 case .addToQueue:
-                                    playerEngine.addToQueue(track)
+                                    PlayerEngine.shared.addToQueue(track)
                                 case .none:
                                     break
                                 }
@@ -2061,13 +2056,13 @@ struct SearchView: View {
                     }
 
                     Button(action: {
-                        playerEngine.insertNext(track)
+                        PlayerEngine.shared.insertNext(track)
                     }) {
                         Label(Localized.playNext, systemImage: "text.line.first.and.arrowtriangle.forward")
                     }
 
                     Button(action: {
-                        playerEngine.addToQueue(track)
+                        PlayerEngine.shared.addToQueue(track)
                     }) {
                         Label(Localized.addToQueue, systemImage: "text.append")
                     }

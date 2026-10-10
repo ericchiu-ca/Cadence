@@ -107,16 +107,22 @@ struct PlayerAmbientBackground: View {
     let palette: ArtworkPalette
     let isAnimating: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ZStack {
-            Color.black
+            // One mesh whose colours animate to the new palette. Swapping in
+            // a second mesh (`.id` + opacity transition) faded both over a
+            // black backdrop, which dipped the screen dark on every track
+            // change, and drew two meshes for the length of the fade.
             mesh
-                .id(palette.id)
-                .transition(.opacity)
             // A soft vignette keeps the controls area readable on bright art.
+            // In Dark Mode the whole wash sits much deeper, so the player
+            // matches the rest of a dark interface instead of glowing.
             LinearGradient(
-                colors: [.black.opacity(0.05), .black.opacity(0.15), .black.opacity(0.45)],
+                colors: colorScheme == .dark
+                    ? [.black.opacity(0.42), .black.opacity(0.5), .black.opacity(0.72)]
+                    : [.black.opacity(0.0), .black.opacity(0.08), .black.opacity(0.35)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -242,6 +248,13 @@ struct ElasticScrubber: View {
 
     @State private var dragProgress: Double?
     @State private var dragStart: Double = 0
+    /// True while a finger is down; resets on its own if the drag is
+    /// cancelled (e.g. it turned into a pull-down), which skips onEnded.
+    @GestureState private var isTouching = false
+    @State private var endedNormally = false
+    /// Set once a touch has moved mainly vertically: that is a pull on the
+    /// player, not a scrub, and must neither move nor seek the bar.
+    @State private var isVerticalTouch = false
 
     private var isDragging: Bool { dragProgress != nil }
     private var shown: Double { dragProgress ?? progress }
@@ -263,12 +276,28 @@ struct ElasticScrubber: View {
                 .contentShape(Rectangle())
                 .gesture(
                     DragGesture(minimumDistance: 0)
+                        .updating($isTouching) { _, touching, _ in touching = true }
                         .onChanged { value in
+                            endedNormally = false
+                            let dx = abs(value.translation.width)
+                            let dy = abs(value.translation.height)
+                            if isVerticalTouch || (dy > 8 && dy > dx * 1.2) {
+                                if !isVerticalTouch {
+                                    isVerticalTouch = true
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { dragProgress = nil }
+                                }
+                                return
+                            }
                             if dragProgress == nil { dragStart = shown }
                             let next = dragStart + Double(value.translation.width / width)
                             dragProgress = min(1, max(0, next))
                         }
                         .onEnded { value in
+                            endedNormally = true
+                            guard !isVerticalTouch else {
+                                isVerticalTouch = false
+                                return
+                            }
                             let moved = abs(value.translation.width) > 3
                             let target = moved
                                 ? (dragProgress ?? progress)
@@ -284,6 +313,12 @@ struct ElasticScrubber: View {
                 )
             }
             .frame(height: 22)
+            .onChange(of: isTouching) { _, touching in
+                guard !touching, !endedNormally else { return }
+                isVerticalTouch = false
+                guard dragProgress != nil else { return }
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) { dragProgress = nil }
+            }
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isDragging)
             .sensoryFeedback(.selection, trigger: isDragging) { _, new in new }
 
@@ -318,21 +353,21 @@ struct ElasticScrubber: View {
 // MARK: - Now playing marker
 
 /// The track number, swapped for animated bars on the song that is playing,
-/// as album track lists do in Apple Music. Observes only the engine's
-/// low-frequency state, never the playback position.
+/// as album track lists do in Apple Music. Reads `NowPlayingStatus`, so a
+/// pause re-renders only the row that is playing.
 struct TrackNumberOrNowPlaying: View {
     let trackStableId: String
     let number: Int
     let tint: Color
-    @ObservedObject private var engine = PlayerEngine.shared
 
     var body: some View {
-        let isCurrent = engine.currentTrack?.stableId == trackStableId
+        let status = NowPlayingStatus.shared
+        let isCurrent = status.currentStableId == trackStableId
         ZStack(alignment: .leading) {
             if isCurrent {
                 EqualizerBarsExact(
                     color: tint,
-                    isActive: engine.isPlaying,
+                    isActive: status.isPlaying,
                     isLarge: true,
                     trackId: trackStableId
                 )
@@ -388,52 +423,284 @@ struct PullToDismiss<Content: View>: View {
     var isEnabled: Bool
     /// Checked when a drag starts, e.g. not while the artwork is being swiped.
     var canBegin: Bool
-    /// True from the start of a pull until just after it ends. The page
-    /// follows the finger, so a pull that began on a button is still "inside"
-    /// it on release; the owner disables its controls while this is set.
-    @Binding var isDragging: Bool
+    /// The grabber's tap: an ordinary, animated close.
     let onDismiss: () -> Void
+    /// Called once a pull has carried the card off screen. It must close
+    /// without a transition: a zoom back into the mini player replays from
+    /// the presented view's frame, so a sliver of the card reappeared over
+    /// the mini player's spot after the card had already gone.
+    let onPulledAway: () -> Void
     @ViewBuilder var content: Content
 
     @State private var offset: CGFloat = 0
+    /// Shown while the player is touched and for a moment after, then out of
+    /// the way. Kept here, not in the player, so a touch re-renders only this.
+    @State private var isGrabberVisible = true
+    @State private var grabberHideTask: Task<Void, Never>?
+    @State private var insets = EdgeInsets()
+    @State private var height: CGFloat = 900
+
+    /// 0 at rest, 1 once the card has travelled far enough to look like one.
+    private var progress: CGFloat { min(max(offset, 0) / 120, 1) }
 
     var body: some View {
         content
-            // A mask that ignores the safe area, unlike clipShape, which would
-            // cut a full-bleed backdrop back to the safe-area rectangle.
-            .mask {
-                RoundedRectangle(cornerRadius: offset > 0 ? 44 : 0, style: .continuous)
-                    .ignoresSafeArea()
+            // Before the transforms below, so the grabber travels with the card.
+            .overlay(alignment: .top) {
+                grabber.padding(.top, -4)
             }
-            .scaleEffect(1 - min(offset, 400) / 4000, anchor: .top)
+            .onGeometryChange(for: EdgeInsets.self) { $0.safeAreaInsets } action: { insets = $0 }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
+            // Clipped to the whole screen, safe areas included: a mask laid
+            // out in the safe area cut a strip off the top and bottom of the
+            // full-bleed backdrop as soon as the card moved.
+            .clipShape(ScreenCard(cornerRadius: 52 * progress, insets: insets))
+            .scaleEffect(1 - 0.07 * progress, anchor: .top)
             .offset(y: offset)
-            .simultaneousGesture(pull, including: isEnabled ? .all : .subviews)
+            .gesture(
+                DirectionalPan(
+                    direction: .down,
+                    isEnabled: isEnabled,
+                    canBegin: canBegin,
+                    onChanged: { translation in
+                        revealGrabber()
+                        var transaction = Transaction()
+                        transaction.isContinuous = true
+                        withTransaction(transaction) { offset = max(translation.y, 0) }
+                    },
+                    onEnded: { translation, velocity in
+                        hideGrabber(after: 2.5)
+                        finishPull(translation: translation.y, velocity: velocity.y)
+                    }
+                )
+            )
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in revealGrabber() }
+                    .onEnded { _ in hideGrabber(after: 2.5) }
+            )
+            .onAppear { hideGrabber(after: 3) }
     }
 
-    /// Only vertical, downward drags count, so horizontal gestures in the
-    /// content (artwork swipe, scrubber) keep working.
-    private var pull: some Gesture {
-        DragGesture(minimumDistance: 14, coordinateSpace: .global)
-            .onChanged { value in
-                let dx = value.translation.width
-                let dy = value.translation.height
-                guard dy > 0, dy > abs(dx) * 1.2, canBegin || offset > 0 else { return }
-                if !isDragging { isDragging = true }
-                var transaction = Transaction()
-                transaction.isContinuous = true
-                withTransaction(transaction) { offset = dy }
+    private func finishPull(translation: CGFloat, velocity: CGFloat) {
+        guard offset > 0 else { return }
+        if offset > 140 || velocity > 900 || translation + velocity * 0.25 > 420 {
+            // Finish the move the finger started - slide the card off the
+            // bottom - and only then close (see `onPulledAway`). Aimed a
+            // third of a screen past the edge: a spring creeps through its
+            // last few percent, which left the card's top edge lingering over
+            // the mini player.
+            let screenHeight = height + insets.top + insets.bottom
+            withAnimation(.spring(response: 0.3, dampingFraction: 1)) {
+                offset = screenHeight * 1.35
+            } completion: {
+                onPulledAway()
             }
-            .onEnded { value in
-                // Re-enable the content after this touch's button actions ran.
-                DispatchQueue.main.async { isDragging = false }
-                guard offset > 0 else { return }
-                if offset > 140 || value.predictedEndTranslation.height > 420 {
-                    onDismiss()
-                } else {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                        offset = 0
-                    }
+        } else {
+            // Critically damped: any bounce carried the card past its resting
+            // place, lifting it off the bottom edge so the library showed
+            // through a strip below it for a few frames.
+            withAnimation(.spring(response: 0.35, dampingFraction: 1)) {
+                offset = 0
+            }
+        }
+    }
+
+    private var grabber: some View {
+        Button(action: onDismiss) {
+            Capsule()
+                .fill(.white.opacity(0.4))
+                .frame(width: 36, height: 5)
+                .frame(width: 120, height: 24)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .opacity(isGrabberVisible ? 1 : 0)
+        .allowsHitTesting(isGrabberVisible)
+        .accessibilityLabel(Localized.close)
+        .accessibilityHidden(!isGrabberVisible)
+    }
+
+    private func revealGrabber() {
+        if !isGrabberVisible {
+            withAnimation(.easeOut(duration: 0.2)) { isGrabberVisible = true }
+        }
+        // A fallback in case the touch is cancelled before it ends.
+        hideGrabber(after: 4)
+    }
+
+    private func hideGrabber(after seconds: Double) {
+        grabberHideTask?.cancel()
+        grabberHideTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.45)) { isGrabberVisible = false }
+        }
+    }
+}
+
+/// A one-finger UIKit pan that only begins in its own direction. Once it
+/// does, UIKit cancels the touch for everything underneath - the way a
+/// scroll view does - so a pull that starts on a button no longer fires it
+/// on release, and one that starts on the scrubber no longer seeks.
+///
+/// The player's pull-down and the artwork's sideways swipe both use it, so
+/// they never compete for a touch: a SwiftUI DragGesture claims a drag in
+/// any direction, and a child's claim beats its ancestor's, so a pull that
+/// started on the artwork used to nudge the artwork instead of closing the
+/// player.
+struct DirectionalPan: UIGestureRecognizerRepresentable {
+    enum Direction {
+        case down, horizontal
+    }
+
+    var direction: Direction
+    var isEnabled = true
+    var canBegin = true
+    var onChanged: (_ translation: CGPoint) -> Void
+    var onEnded: (_ translation: CGPoint, _ velocity: CGPoint) -> Void
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator {
+        Coordinator(direction: direction)
+    }
+
+    func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
+        let recognizer = UIPanGestureRecognizer()
+        recognizer.delegate = context.coordinator
+        recognizer.maximumNumberOfTouches = 1
+        return recognizer
+    }
+
+    func updateUIGestureRecognizer(_ recognizer: UIPanGestureRecognizer, context: Context) {
+        recognizer.isEnabled = isEnabled
+        context.coordinator.canBegin = canBegin
+    }
+
+    func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
+        let translation = recognizer.translation(in: nil)
+        switch recognizer.state {
+        case .began, .changed:
+            onChanged(translation)
+        case .ended:
+            onEnded(translation, recognizer.velocity(in: nil))
+        case .cancelled, .failed:
+            onEnded(translation, .zero)
+        default:
+            break
+        }
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        let direction: Direction
+        var canBegin = true
+
+        init(direction: Direction) {
+            self.direction = direction
+        }
+
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            guard canBegin, let pan = gestureRecognizer as? UIPanGestureRecognizer else { return false }
+            let velocity = pan.velocity(in: nil)
+            let translation = pan.translation(in: nil)
+            let dy = abs(velocity.y) > 1 ? velocity.y : translation.y
+            let dx = abs(velocity.x) > 1 ? velocity.x : translation.x
+            switch direction {
+            case .down: return dy > 0 && dy > abs(dx) * 1.2
+            case .horizontal: return abs(dx) > abs(dy) * 1.2
+            }
+        }
+    }
+}
+
+/// A rounded rectangle covering the view and its safe areas.
+private struct ScreenCard: Shape {
+    var cornerRadius: CGFloat
+    var insets: EdgeInsets
+
+    var animatableData: CGFloat {
+        get { cornerRadius }
+        set { cornerRadius = newValue }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        let full = CGRect(
+            x: rect.minX - insets.leading,
+            y: rect.minY - insets.top,
+            width: rect.width + insets.leading + insets.trailing,
+            height: rect.height + insets.top + insets.bottom
+        )
+        return Path(roundedRect: full, cornerRadius: cornerRadius, style: .continuous)
+    }
+}
+
+
+// MARK: - Play/pause glyph
+
+/// Play and pause drawn together, the hidden one faded and shrunk, so a toggle
+/// only animates opacity and scale. Swapping the symbol instead
+/// (`.contentTransition(.symbolEffect(.replace))`) built the incoming glyph's
+/// render surface on the tap - a GPU pipeline compile the first time - and
+/// any main-thread work landing in that window froze the morph between the
+/// two glyphs, so the button blinked out.
+struct PlayPauseGlyph: View {
+    let isPlaying: Bool
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            glyph("pause.fill", isShown: isPlaying)
+            glyph("play.fill", isShown: !isPlaying)
+        }
+        .animation(.spring(response: 0.24, dampingFraction: 0.78), value: isPlaying)
+    }
+
+    private func glyph(_ systemName: String, isShown: Bool) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: size, weight: .regular))
+            .scaleEffect(isShown ? 1 : 0.4)
+            .opacity(isShown ? 1 : 0)
+    }
+}
+
+// MARK: - Responsive transport
+
+/// Play/pause that answers the finger first. Starting the engine can take a
+/// couple of frames (audio session, scheduling), and the button used to wait
+/// for it: the haptic, the glyph and the artwork all changed only once
+/// `isPlaying` flipped. Now they change on the tap, and the engine starts a
+/// frame later, after that change is on screen.
+@MainActor
+enum ResponsiveTransport {
+    private static let haptic: UIImpactFeedbackGenerator = {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.prepare()
+        return generator
+    }()
+
+    /// Creates and spins up the haptic engine ahead of the first tap; doing
+    /// it on the tap itself cost the first pause a dropped frame or several.
+    static func prepare() {
+        haptic.prepare()
+    }
+
+    /// - Parameter pending: the caller's optimistic state; shown in place of
+    ///   `isPlaying` until the engine has caught up.
+    static func toggle(_ engine: PlayerEngine, pending: Binding<Bool?>) {
+        let target = !(pending.wrappedValue ?? engine.isPlaying)
+        haptic.impactOccurred()
+        haptic.prepare()
+        pending.wrappedValue = target
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.012) {
+            if target { engine.play() } else { engine.pause() }
+            // Hold the shown state until the engine agrees (a resume after a
+            // long pause, or one waiting on a load, lands later); letting go
+            // early flipped the glyph back and forth.
+            Task { @MainActor in
+                for _ in 0..<30 where engine.isPlaying != target {
+                    try? await Task.sleep(for: .milliseconds(50))
                 }
+                pending.wrappedValue = nil
             }
+        }
     }
 }

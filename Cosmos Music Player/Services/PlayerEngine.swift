@@ -20,14 +20,39 @@ final class PlaybackProgress: ObservableObject {
     @Published var playbackTime: TimeInterval = 0
 }
 
+/// The two engine facts a track row shows - which song is current and whether
+/// it is playing. Rows used to observe PlayerEngine itself, so every play,
+/// pause, queue edit or duration change re-rendered every visible row and
+/// the list around them; with Observation, a pause now touches only the row
+/// that reads `isPlaying`, which is the current one.
+@MainActor @Observable
+final class NowPlayingStatus {
+    static let shared = NowPlayingStatus()
+
+    fileprivate(set) var currentStableId: String?
+    fileprivate(set) var isPlaying = false
+
+    private init() {}
+}
+
 @MainActor
 class PlayerEngine: NSObject, ObservableObject {
     static let shared = PlayerEngine()
 
-    @Published var currentTrack: Track?
+    @Published var currentTrack: Track? {
+        didSet {
+            let stableId = currentTrack?.stableId
+            if NowPlayingStatus.shared.currentStableId != stableId {
+                NowPlayingStatus.shared.currentStableId = stableId
+            }
+        }
+    }
     @Published var isPlaying = false {
         didSet {
             DatabaseSuspensionCoordinator.shared.setPlaybackActivityActive(keepsDatabaseActive)
+            if NowPlayingStatus.shared.isPlaying != isPlaying {
+                NowPlayingStatus.shared.isPlaying = isPlaying
+            }
         }
     }
     let progress = PlaybackProgress()
@@ -265,6 +290,19 @@ class PlayerEngine: NSObject, ObservableObject {
     private var cachedArtwork: MPMediaItemArtwork?
     private var cachedArtworkTrackId: String?
     private var artworkLoadTask: Task<Void, Never>?
+    /// The short volume ramp around a native pause or resume.
+    private var transportFadeTask: Task<Void, Never>?
+    /// A native pause first only pauses the player node, keeping the engine's
+    /// hardware running, so resuming is one `playerNode.play()` instead of
+    /// re-activating the session, restarting the engine and rescheduling -
+    /// work that blocked the main thread mid-animation. Valid while
+    /// `softPauseGeneration` still matches `scheduleGeneration`: anything
+    /// that reschedules the node bumps it and sends resume down the full path.
+    private var isNodeSoftPaused = false
+    private var softPauseGeneration: UInt64 = 0
+    /// Releases the hardware a while after a pause (or on backgrounding), so
+    /// a paused player still lets the app suspend.
+    private var hardwareReleaseTask: Task<Void, Never>?
     private var artworkLoadTaskTrackId: String?
     private var cachedNowPlayingArtistTrackId: String?
     private var cachedNowPlayingArtistName: String?
@@ -402,6 +440,16 @@ class PlayerEngine: NSObject, ObservableObject {
         file: AVAudioFile,
         context: String
     ) -> Bool {
+        // A pause fade still running would otherwise leave the next track
+        // quiet or pause it; every fresh start begins at full volume (the
+        // resume path then fades in from zero itself).
+        transportFadeTask?.cancel()
+        transportFadeTask = nil
+        hardwareReleaseTask?.cancel()
+        hardwareReleaseTask = nil
+        isNodeSoftPaused = false
+        audioEngine.mainMixerNode.outputVolume = 1
+
         let format = file.processingFormat
 
         // A configuration change we could not act on when it arrived means the
@@ -603,7 +651,7 @@ class PlayerEngine: NSObject, ObservableObject {
         hasSetupAudioSession = true
 
         do {
-            try setupAudioSessionCategory()
+            try Self.setupAudioSessionCategory(carPlaySceneIsActive: sfbAudioManager.isCarPlayEnvironment)
         } catch {
             print("Failed to setup audio session category: \(error)")
             // Continue anyway - we'll try to handle this when actually playing
@@ -1815,9 +1863,11 @@ class PlayerEngine: NSObject, ObservableObject {
 
     // MARK: - Audio Session Management
 
-    private func setupAudioSessionCategory() throws {
+    /// Thread-safe (AVAudioSession is), so the off-main activation below can
+    /// share it.
+    private nonisolated static func setupAudioSessionCategory(carPlaySceneIsActive: Bool) throws {
         let s = AVAudioSession.sharedInstance()
-        let isCarPlayEnvironment = sfbAudioManager.isCarPlayEnvironment
+        let isCarPlayEnvironment = carPlaySceneIsActive
             || s.currentRoute.outputs.contains { $0.portType == .carAudio }
 
         // For background audio, avoid mixWithOthers - be the primary audio app.
@@ -1850,8 +1900,46 @@ class PlayerEngine: NSObject, ObservableObject {
     }
 
     private func activateAudioSession() throws {
+        try Self.configureAndActivateSession(
+            configureCategory: false,
+            carPlaySceneIsActive: sfbAudioManager.isCarPlayEnvironment
+        )
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+        print("🎧 Remote control events enabled")
+    }
+
+    /// `ensureAudioSessionSetup()` then `activateAudioSession()`, on a
+    /// background queue. setCategory, setPreferredIOBufferDuration and
+    /// setActive are synchronous calls into the media server; on the first
+    /// Play after launch they held the main thread for most of a second
+    /// (longer when the route was Bluetooth), freezing the transport mid-tap.
+    private func activateAudioSessionOffMain() async throws {
+        let configureCategory = !hasSetupAudioSession
+        hasSetupAudioSession = true
+        let carPlaySceneIsActive = sfbAudioManager.isCarPlayEnvironment
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    try Self.configureAndActivateSession(
+                        configureCategory: configureCategory,
+                        carPlaySceneIsActive: carPlaySceneIsActive
+                    )
+                    continuation.resume()
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+        print("🎧 Remote control events enabled")
+    }
+
+    private nonisolated static func configureAndActivateSession(
+        configureCategory: Bool,
+        carPlaySceneIsActive: Bool
+    ) throws {
         let s = AVAudioSession.sharedInstance()
-        let isCarPlayEnvironment = sfbAudioManager.isCarPlayEnvironment
+        let isCarPlayEnvironment = carPlaySceneIsActive
             || s.currentRoute.outputs.contains { $0.portType == .carAudio }
 
         print("🎧 Audio session state - Category: \(s.category), Other audio: \(s.isOtherAudioPlaying)")
@@ -1865,9 +1953,9 @@ class PlayerEngine: NSObject, ObservableObject {
         // usable. When this propagated, one paramErr meant `setActive` below
         // was never reached at all - so Play did nothing, silently, for every
         // track for the whole session, on both engines.
-        if s.category != .playback || (!isCarPlayEnvironment && s.mode != .default) {
+        if configureCategory || s.category != .playback || (!isCarPlayEnvironment && s.mode != .default) {
             do {
-                try setupAudioSessionCategory()
+                try setupAudioSessionCategory(carPlaySceneIsActive: carPlaySceneIsActive)
             } catch {
                 print("⚠️ Could not reconfigure audio session category: \(error)")
             }
@@ -1876,9 +1964,6 @@ class PlayerEngine: NSObject, ObservableObject {
         // Always try to activate (iOS manages the actual state)
         try s.setActive(true, options: [])
         print("🎧 Audio session activation attempted successfully")
-
-        UIApplication.shared.beginReceivingRemoteControlEvents()
-        print("🎧 Remote control events enabled")
     }
 
     // MARK: - iOS 18 Audio Engine Reset Management
@@ -2427,15 +2512,15 @@ class PlayerEngine: NSObject, ObservableObject {
                     // CarPlay launch, the inactive session can still report the
                     // phone speaker's format; constructing against that format and
                     // then activating CarPlay can crash AVAudioEngine.
-                    ensureAudioSessionSetup()
                     var routeIsActive = true
                     do {
-                        try activateAudioSession()
+                        try await activateAudioSessionOffMain()
                     } catch {
                         print("⚠️ Could not activate native audio session before graph setup: \(error)")
                         routeIsActive = false
                         hasSetupAudioSession = false
                     }
+                    guard isCurrentLoad(generation) else { return false }
 
                     if routeIsActive {
                         await configureAudioSession(for: audioFile!.processingFormat)
@@ -2781,6 +2866,11 @@ class PlayerEngine: NSObject, ObservableObject {
             reclaimSessionAfterMissedInterruptionEnd()
         }
 
+        // An in-app pause only paused the node; resume it directly.
+        if !isAudioSessionInterrupted, resumeSoftPausedNode() {
+            return
+        }
+
         guard !isAudioSessionInterrupted else {
             // A decoder may finish loading while a call, alarm, or Siri owns the
             // session. Remember the requested autoplay, but do not activate the
@@ -3042,10 +3132,16 @@ class PlayerEngine: NSObject, ObservableObject {
                 return
             }
 
+            // Start silent and fade in, so resuming doesn't click either.
+            transportFadeTask?.cancel()
+            audioEngine.mainMixerNode.outputVolume = 0
             playerNode.play()
             isPlaying = true
             playbackState = .playing
             startPlaybackTimer()
+            transportFadeTask = Task { @MainActor [weak self] in
+                await self?.rampOutputVolume(to: 1, duration: 0.15)
+            }
 
             // End paused state monitoring and start regular playing monitoring
             stopSilentPlaybackForPause()
@@ -3183,24 +3279,43 @@ class PlayerEngine: NSObject, ObservableObject {
 
             print("🔄 Pausing at position: \(currentPosition)s (from Control Center: \(fromControlCenter))")
 
-            // Store the exact pause position
+            // Store the exact pause position. seekTimeOffset is left alone:
+            // the soft pause keeps the node's timeline, and releasing the
+            // hardware later re-bases it (see releaseHardwareIfPaused).
             playbackTime = currentPosition
-            seekTimeOffset = currentPosition
         }
 
-        // Use AVAudioEngine.pause() instead of playerNode.pause()
-        audioEngine.pause()
-
-        // Update state
+        // Update state first so the button and artwork respond on the tap.
         isPlaying = false
         playbackState = .paused
         stopPlaybackTimer()
+        isNodeSoftPaused = true
+        softPauseGeneration = scheduleGeneration
 
-        print("🔄 Paused audio engine - stored position: \(playbackTime)s")
+        // Stopping mid-waveform is an audible click. Ramp the output down
+        // first, then pause the node; a resume during the ramp cancels it.
+        let intent = playbackIntentGeneration
+        transportFadeTask?.cancel()
+        transportFadeTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.rampOutputVolume(to: 0, duration: 0.12)
+            guard !Task.isCancelled, self.playbackIntentGeneration == intent, !self.isPlaying else { return }
+            self.playerNode.pause()
+            self.audioEngine.mainMixerNode.outputVolume = 1
+            if self.audioFile != nil {
+                self.playbackTime = self.currentTimeForCurrentNativeFile()
+            }
+            print("🔄 Soft-paused player node at \(self.playbackTime)s")
+            if UIApplication.shared.applicationState == .background {
+                self.releaseHardwareIfPaused()
+            } else {
+                self.scheduleHardwareRelease()
+            }
+        }
 
-        // Update Now Playing info with enhanced approach
+        // Lock screen now; widget and saved state follow off the tap.
         updateNowPlayingInfoEnhanced()
-        updateWidgetData()
+        deferTransportSideEffects()
 
         // Release everything that keeps the process awake. A paused player has
         // no reason to stay resident: the lock screen and Control Center are
@@ -3212,8 +3327,100 @@ class PlayerEngine: NSObject, ObservableObject {
         stopSilentPlaybackForPause()
         endBackgroundMonitoring()
 
-        // Save state when pausing
-        savePlayerState()
+    }
+
+    /// Resumes a soft-paused native node: no session activation, no engine
+    /// restart, no rescheduling. Returns false when the full path is needed.
+    private func resumeSoftPausedNode() -> Bool {
+        guard isNodeSoftPaused else { return false }
+        isNodeSoftPaused = false
+        hardwareReleaseTask?.cancel()
+        hardwareReleaseTask = nil
+        guard !usingSFBEngine,
+              audioFile != nil,
+              playbackState == .paused,
+              !isLoadInFlight,
+              softPauseGeneration == scheduleGeneration,
+              audioEngine.isRunning,
+              audioEngine.attachedNodes.contains(playerNode) else {
+            return false
+        }
+
+        transportFadeTask?.cancel()
+        if !playerNode.isPlaying {
+            // Fully paused: start silent and fade in. Mid-fade, the node is
+            // still playing and the ramp simply turns around.
+            audioEngine.mainMixerNode.outputVolume = 0
+            playerNode.play()
+        }
+        isPlaying = true
+        playbackState = .playing
+        startPlaybackTimer()
+        stopSilentPlaybackForPause()
+        endBackgroundMonitoring()
+        startBackgroundMonitoring()
+        transportFadeTask = Task { @MainActor [weak self] in
+            await self?.rampOutputVolume(to: 1, duration: 0.15)
+        }
+        updateNowPlayingInfoEnhanced()
+        deferTransportSideEffects()
+        print("⚡️ Resumed soft-paused node at \(playbackTime)s")
+        return true
+    }
+
+    private func scheduleHardwareRelease() {
+        hardwareReleaseTask?.cancel()
+        hardwareReleaseTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(20))
+            guard !Task.isCancelled else { return }
+            self?.releaseHardwareIfPaused()
+        }
+    }
+
+    /// The original full pause: re-base the timeline on the stored position
+    /// and pause the engine, so a paused app no longer keeps audio hardware
+    /// awake. Resume then takes the full path, as it always did.
+    func releaseHardwareIfPaused() {
+        hardwareReleaseTask?.cancel()
+        hardwareReleaseTask = nil
+        guard !isPlaying, !usingSFBEngine, audioEngine.isRunning else { return }
+        transportFadeTask?.cancel()
+        transportFadeTask = nil
+        if audioFile != nil {
+            let position = currentTimeForCurrentNativeFile()
+            playbackTime = position
+            seekTimeOffset = position
+        }
+        isNodeSoftPaused = false
+        audioEngine.pause()
+        audioEngine.mainMixerNode.outputVolume = 1
+        print("🔄 Released audio hardware while paused - stored position: \(playbackTime)s")
+    }
+
+    /// Widget refresh and state persistence after a transport change. They
+    /// read the database and write files and defaults; run them once the
+    /// tap's animation has had its frames.
+    private func deferTransportSideEffects() {
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(450))
+            guard let self else { return }
+            self.updateWidgetData()
+            self.savePlayerState()
+        }
+    }
+
+    /// Ramps the native engine's output volume. Cancelling leaves it wherever
+    /// it got to; the next pause or resume ramps from there.
+    private func rampOutputVolume(to target: Float, duration: TimeInterval) async {
+        let mixer = audioEngine.mainMixerNode
+        let start = mixer.outputVolume
+        let steps = 12
+        for step in 1...steps {
+            guard !Task.isCancelled else { return }
+            try? await Task.sleep(nanoseconds: UInt64(duration / Double(steps) * 1_000_000_000))
+            let t = Float(step) / Float(steps)
+            mixer.outputVolume = start + (target - start) * t
+        }
     }
 
     @inline(__always)
@@ -5010,6 +5217,7 @@ class PlayerEngine: NSObject, ObservableObject {
     func suspendUITimersForBackground() {
         isInBackground = true
         stopPlaybackTimer()
+        releaseHardwareIfPaused()
         print("⏸️ Suspended UI timers for background")
     }
 
@@ -5034,12 +5242,6 @@ class PlayerEngine: NSObject, ObservableObject {
         cachedNowPlayingArtistName = nil
         cachedNowPlayingAlbumTrackId = nil
         cachedNowPlayingAlbumName = nil
-    }
-
-    /// The live render position. Unlike `progress.playbackTime`, which only
-    /// moves with the UI timer, this is exact at any moment.
-    func currentPlaybackPosition() -> TimeInterval {
-        nowPlayingElapsedTime()
     }
 
     private func nowPlayingElapsedTime() -> TimeInterval {

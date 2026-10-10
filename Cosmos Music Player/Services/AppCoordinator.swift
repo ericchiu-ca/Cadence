@@ -166,7 +166,6 @@ class AppCoordinator: ObservableObject {
         // also guards this work with its playback-intent generation so an
         // already-arrived Siri or CarPlay selection still wins.
         await playerEngine.restoreUIStateOnly()
-        LyricsLiveActivityController.shared.start()
 
         isInitialized = true
     }

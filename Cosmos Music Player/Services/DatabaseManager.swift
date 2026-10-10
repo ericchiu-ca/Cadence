@@ -797,6 +797,10 @@ class DatabaseManager: @unchecked Sendable {
     private func migrateExternalFileBookmarkKeys(_ stableIdRemapping: [String: String]) {
         guard !stableIdRemapping.isEmpty else { return }
 
+        // Before launch restores the player state; see
+        // `migrateTrackStableIdAndPath`.
+        PlayerEngine.migratePersistedStableIds(stableIdRemapping)
+
         externalBookmarkMigrationTask = Task {
             do {
                 let updatedCount = try await ExternalBookmarkStore.shared.migrate(stableIdRemapping)
@@ -1103,6 +1107,11 @@ class DatabaseManager: @unchecked Sendable {
         // Outside the write block: mergeTrackReferences only reaches database
         // tables, and a genuinely moved file must keep its cover and lyrics.
         let remapping = [oldStableId: newStableId]
+        // Synchronously: launch restores the player state right after the
+        // container-move repair, and from inside the Task below this landed
+        // too late - the restore looked up the old ID and the mini player
+        // came up empty after an app update.
+        PlayerEngine.migratePersistedStableIds(remapping)
         Task { await Self.migrateStableIdKeyedCaches(remapping) }
     }
 
@@ -1112,7 +1121,6 @@ class DatabaseManager: @unchecked Sendable {
         guard !remapping.isEmpty else { return }
         await LyricsManager.shared.migrateStableIds(remapping)
         await ArtworkManager.shared.migrateStableIds(remapping)
-        PlayerEngine.migratePersistedStableIds(remapping)
     }
 
     enum AuthoritativeRelocationReferenceResult {

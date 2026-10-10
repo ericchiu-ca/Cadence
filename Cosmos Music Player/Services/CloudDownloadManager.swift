@@ -457,7 +457,11 @@ class CloudDownloadManager: NSObject, ObservableObject {
         }
         
         print("✅ File exists: \(url.lastPathComponent)")
-        let ubiquitous = isUbiquitous(url)
+        // Off the main actor: the first resource lookup goes through the file
+        // provider and held the first Play after launch for ~70 ms.
+        let ubiquitous = await Task.detached(priority: .userInitiated) {
+            Self.readIsUbiquitous(url)
+        }.value
         
         // Early check for iCloud authentication issues or systematic failures - prevent ANY iCloud operations
         if AppCoordinator.shared.iCloudStatus == .authenticationRequired || !AppCoordinator.shared.isiCloudAvailable || hasDetectedSystematicFailure {
@@ -861,6 +865,10 @@ class CloudDownloadManager: NSObject, ObservableObject {
     }
     
     func isUbiquitous(_ url: URL) -> Bool {
+        Self.readIsUbiquitous(url)
+    }
+
+    private nonisolated static func readIsUbiquitous(_ url: URL) -> Bool {
         do {
             let resourceValues = try url.resourceValues(forKeys: [.isUbiquitousItemKey])
             let isUbiquitous = resourceValues.isUbiquitousItem ?? false
