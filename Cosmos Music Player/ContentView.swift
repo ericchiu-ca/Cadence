@@ -15,7 +15,9 @@ struct ContentView: View {
     var body: some View {
         mainContent
             .background(.clear)
-            .preferredColorScheme(settings.appearance.colorScheme)
+            .onChange(of: settings.appearance, initial: true) { _, appearance in
+                appearance.apply()
+            }
             .accentColor(settings.backgroundColorChoice.color)
             .modifier(LifecycleModifier(
                 appCoordinator: appCoordinator,

@@ -136,12 +136,27 @@ enum AppearanceMode: String, CaseIterable, Codable {
         }
     }
 
-    /// nil hands the choice back to the system, which is what `.system` means.
-    var colorScheme: ColorScheme? {
+    /// `.unspecified` hands the choice back to the system.
+    var interfaceStyle: UIUserInterfaceStyle {
         switch self {
-        case .system: return nil
+        case .system: return .unspecified
         case .light: return .light
         case .dark: return .dark
+        }
+    }
+
+    /// Applied to the windows rather than through `preferredColorScheme`,
+    /// which could not hand the choice back: after Light or Dark, picking
+    /// System left every sheet - Settings itself included - in the old
+    /// appearance while the screen behind it followed the device. Sheets and
+    /// covers inherit from their window, so this changes everything at once.
+    @MainActor
+    func apply() {
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                window.overrideUserInterfaceStyle = interfaceStyle
+            }
         }
     }
 }

@@ -123,6 +123,11 @@ class PlayerEngine: NSObject, ObservableObject {
     private var nextTrackIndex: Int?
     private var isPreloadingNext = false
     private var gaplessScheduled = false
+    /// Waits for the last `gaplessLeadTime` seconds of the current track
+    /// before handing the preloaded successor to the node.
+    private var gaplessCommitTask: Task<Void, Never>?
+    /// How long before the end of a track its successor is scheduled.
+    private static let gaplessLeadTime: TimeInterval = 8
     private var preloadNextTask: Task<Void, Never>?
     /// The SFBAudioEngine equivalent of nextTrack/nextTrackIndex above. Kept
     /// separate because the successor lives inside SFBAudioPlayer's own decoder
@@ -2673,6 +2678,8 @@ class PlayerEngine: NSObject, ObservableObject {
         clearSFBGaplessNext()
         preloadNextTask?.cancel()
         preloadNextTask = nil
+        gaplessCommitTask?.cancel()
+        gaplessCommitTask = nil
         nextAudioFile = nil
         nextTrack = nil
         nextTrackIndex = nil
@@ -2807,10 +2814,10 @@ class PlayerEngine: NSObject, ObservableObject {
     }
 
     /// invalidateGaplessSchedule() then preloadAndScheduleNextIfNeeded(), for
-    /// a track that is playing. Taking back a successor that is already
-    /// scheduled means stopping the node, and stopping it mid-waveform was
-    /// the hiccup heard when switching to repeat-one (or reordering what plays
-    /// next). A 30 ms fade either side turns it into a dip too short to hear.
+    /// a track that is playing. Only reached in a track's last few seconds,
+    /// once its successor is in the node (see scheduleGaplessNextIfPossible):
+    /// taking it back then means stopping the node, and a 30 ms fade either
+    /// side keeps that from clicking.
     private func dropScheduledSuccessorSmoothly() {
         let generation = scheduleGeneration
         transportFadeTask?.cancel()
@@ -3423,6 +3430,8 @@ class PlayerEngine: NSObject, ObservableObject {
         }
         updateNowPlayingInfoEnhanced()
         deferTransportSideEffects()
+        // The successor's wait ends early if the pause came first.
+        scheduleGaplessNextIfPossible()
         print("⚡️ Resumed soft-paused node at \(playbackTime)s")
         return true
     }
@@ -4104,7 +4113,43 @@ class PlayerEngine: NSObject, ObservableObject {
         sfbNextTrackIndex = nil
     }
 
+    /// Hands the preloaded successor to the node, but only in the current
+    /// track's last `gaplessLeadTime` seconds; until then it waits.
+    ///
+    /// Scheduled the moment a track started, the successor sat inside the
+    /// node for the whole song, and the node cannot give back one segment:
+    /// switching to repeat-one, or reordering what plays next, meant stopping
+    /// the song that was playing and starting it again from where it was.
+    /// Now those only change which file is preloaded, and the playing track
+    /// is never touched; the file itself is still opened early.
     private func scheduleGaplessNextIfPossible() {
+        guard !gaplessScheduled,
+              !usingSFBEngine,
+              isPlaying,
+              audioFile != nil,
+              nextAudioFile != nil,
+              nextTrack != nil else {
+            return
+        }
+
+        let remaining = duration - currentTimeForCurrentNativeFile()
+        guard remaining > Self.gaplessLeadTime else {
+            commitGaplessNext()
+            return
+        }
+
+        gaplessCommitTask?.cancel()
+        let generation = scheduleGeneration
+        gaplessCommitTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(remaining - Self.gaplessLeadTime))
+            // A seek or a new track reschedules (and re-arms this) itself; a
+            // pause re-arms it on resume.
+            guard let self, !Task.isCancelled, self.scheduleGeneration == generation else { return }
+            self.scheduleGaplessNextIfPossible()
+        }
+    }
+
+    private func commitGaplessNext() {
         guard !gaplessScheduled,
               !usingSFBEngine,
               isPlaying,

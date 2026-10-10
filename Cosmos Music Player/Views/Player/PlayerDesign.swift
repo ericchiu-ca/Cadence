@@ -133,7 +133,13 @@ struct PlayerAmbientBackground: View {
             )
         }
         .animation(.easeInOut(duration: 0.9), value: palette.id)
-        .ignoresSafeArea()
+        // Out to the screen edges by the window's insets, explicitly.
+        // `ignoresSafeArea()` extended it by the view's own insets, which
+        // SwiftUI measures from where the view is drawn: as the player card
+        // moved, the top inset fell to zero, the backdrop stopped at the
+        // status bar, and the card's rounded top edge vanished - it showed
+        // as a flat cut that filled in with a jump once the card settled.
+        .padding(DisplayGeometry.outsets)
         .accessibilityHidden(true)
     }
 
@@ -447,8 +453,6 @@ struct PlayerCard<Content: View>: View {
     /// the way. Kept here, not in the player, so a touch re-renders only this.
     @State private var isGrabberVisible = true
     @State private var grabberHideTask: Task<Void, Never>?
-    @State private var insets = EdgeInsets()
-    @State private var height: CGFloat = DisplayGeometry.screenHeight
     /// Square corners only once the card has settled at the top; whenever it
     /// moves it has the display's radius. Deciding this from the offset
     /// failed mid-animation: SwiftUI animates the offset but applies the
@@ -463,9 +467,16 @@ struct PlayerCard<Content: View>: View {
             .overlay(alignment: .top) {
                 grabber.padding(.top, -4)
             }
-            .onGeometryChange(for: EdgeInsets.self) { $0.safeAreaInsets } action: { insets = $0 }
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
-            .modifier(CardTransform(offset: offset, isResting: isResting, insets: insets))
+            // The window's safe area, not the view's: SwiftUI reports a view's
+            // insets from where it is drawn, so as the card moved down its top
+            // inset fell to zero and only came back once the card had
+            // settled. The clip, sized from those insets, cut the card off at
+            // the status bar for a few frames on every return to the top.
+            .modifier(CardTransform(
+                offset: offset,
+                isResting: isResting,
+                insets: DisplayGeometry.safeAreaInsets
+            ))
             .gesture(
                 DirectionalPan(
                     direction: .down,
@@ -549,7 +560,7 @@ struct PlayerCard<Content: View>: View {
             onSlidAway()
             return
         }
-        let target = (height + insets.top + insets.bottom) * 1.35
+        let target = DisplayGeometry.screenHeight * 1.35
         withAnimation(.interpolatingSpring(
             duration: 0.4,
             bounce: 0,
@@ -606,12 +617,25 @@ struct PlayerCard<Content: View>: View {
 }
 
 /// The card's look for a given offset.
-private struct CardTransform: ViewModifier {
-    let offset: CGFloat
+///
+/// The move is a visual effect, not `.offset`: SwiftUI works out a view's
+/// safe area from where it is drawn, so an offset card lost its top inset
+/// on the way down. The backdrop, which runs into the safe area, then
+/// stopped short of the status bar - the card looked cut off there - and
+/// grew back over it in one jump once the card had settled at the top.
+/// A visual effect moves the drawing only, and the safe area stays put.
+private struct CardTransform: ViewModifier, @MainActor Animatable {
+    var offset: CGFloat
     let isResting: Bool
     let insets: EdgeInsets
 
+    nonisolated var animatableData: CGFloat {
+        get { offset }
+        set { offset = newValue }
+    }
+
     func body(content: Content) -> some View {
+        let offset = offset
         let progress = min(max(offset, 0) / 120, 1)
         content
             // The display's own radius whenever the card moves: its corners
@@ -621,14 +645,36 @@ private struct CardTransform: ViewModifier {
                 cornerRadius: isResting ? 0 : DisplayGeometry.cornerRadius,
                 insets: insets
             ))
-            .scaleEffect(1 - 0.07 * progress, anchor: .top)
-            .offset(y: offset)
+            .visualEffect { view, _ in
+                view
+                    .scaleEffect(1 - 0.07 * progress, anchor: .top)
+                    .offset(y: offset)
+            }
     }
 }
 
 /// Screen facts the card needs before it has been laid out.
 @MainActor
 enum DisplayGeometry {
+    private static var window: UIWindow? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow }
+    }
+
+    /// The window's, which unlike a view's do not change as the view moves.
+    static var safeAreaInsets: EdgeInsets {
+        let insets = window?.safeAreaInsets ?? .zero
+        return EdgeInsets(top: insets.top, leading: insets.left, bottom: insets.bottom, trailing: insets.right)
+    }
+
+    /// `safeAreaInsets` negated, to pad a full-bleed view out to the edges.
+    static var outsets: EdgeInsets {
+        let insets = safeAreaInsets
+        return EdgeInsets(top: -insets.top, leading: -insets.leading, bottom: -insets.bottom, trailing: -insets.trailing)
+    }
+
     static var screenHeight: CGFloat {
         let scene = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
@@ -728,7 +774,8 @@ struct DirectionalPan: UIGestureRecognizerRepresentable {
     }
 }
 
-/// A rounded rectangle covering the view and its safe areas.
+/// A rounded rectangle covering the view and its safe areas: the content
+/// is laid out inside the safe area, its backdrop runs to the screen edges.
 private struct ScreenCard: Shape {
     let cornerRadius: CGFloat
     let insets: EdgeInsets
@@ -749,7 +796,6 @@ private struct ScreenCard: Shape {
         return Path(roundedRect: full, cornerRadius: cornerRadius, style: .continuous)
     }
 }
-
 
 // MARK: - Play/pause glyph
 
