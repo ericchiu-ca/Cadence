@@ -113,4 +113,4 @@ Cadence plays audio files the user adds through the Files app, iCloud Drive or t
 
 ## Screenshots
 
-`docs/appstore/` — 6.9-inch iPhone (1320 × 2868) and 13-inch iPad (2064 × 2752), captured from the simulator with a demo library whose artwork, music and lyrics were generated for the purpose.
+`docs/appstore/` — 6.3-inch iPhone (1206 × 2622, the size App Store Connect asks for) and 13-inch iPad (2064 × 2752), captured from the simulator with a demo library whose artwork, music and lyrics were generated for the purpose.
