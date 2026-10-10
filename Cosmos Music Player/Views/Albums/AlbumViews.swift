@@ -30,11 +30,10 @@ struct AlbumsScreen: View {
                     EmptyAlbumsView(isSearching: !albums.isEmpty)
                 } else {
                     ScrollView {
+                        // As many columns as fit: two on a phone, more on iPad
+                        // and on the inner display of a foldable.
                         LazyVGrid(
-                            columns: [
-                                GridItem(.flexible(), spacing: 20),
-                                GridItem(.flexible())
-                            ],
+                            columns: [GridItem(.adaptive(minimum: 160), spacing: 20)],
                             spacing: 16
                         ) {
                             ForEach(visibleAlbums, id: \.id) { album in
@@ -312,6 +311,7 @@ struct AlbumDetailScreen: View {
                             }
                         }
                         .padding(.horizontal, 8)
+                        .frame(maxWidth: 520)
                     }
                     .padding(.horizontal)
                     

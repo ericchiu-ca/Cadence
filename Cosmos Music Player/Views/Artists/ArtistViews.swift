@@ -550,6 +550,7 @@ struct ArtistDetailScreen: View {
                     .cornerRadius(25)
             }
         }
+        .frame(maxWidth: 520)
     }
     
     private func songsSection(_ tracks: [Track]) -> some View {

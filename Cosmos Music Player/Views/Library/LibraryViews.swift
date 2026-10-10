@@ -566,12 +566,13 @@ struct LibrarySectionRowView: View {
     }
 }
 
-/// Newest additions as a two-column artwork grid, one tile per album.
+/// Newest additions as an artwork grid, one tile per album: two columns on
+/// a phone, as many as fit on wider screens.
 struct RecentlyAddedGrid: View {
     let items: [RecentlyAddedItem]
     let allTracks: [Track]
 
-    private let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
+    private let columns = [GridItem(.adaptive(minimum: 160), spacing: 14)]
 
     var body: some View {
         LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {

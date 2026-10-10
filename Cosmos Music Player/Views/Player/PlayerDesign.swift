@@ -675,30 +675,40 @@ enum DisplayGeometry {
         return EdgeInsets(top: -insets.top, leading: -insets.leading, bottom: -insets.bottom, trailing: -insets.trailing)
     }
 
+    /// The window's height: the card covers the window, which on iPad can be
+    /// smaller than the screen.
     static var screenHeight: CGFloat {
-        let scene = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }
-        return scene?.screen.bounds.height ?? 1000
+        window?.bounds.height ?? 1000
     }
 
-    /// The rounded corners of the panel, which no public API reports. Taken
-    /// from the screen size; erring small is safe, since a card radius
-    /// tighter than the glass only rounds a little less than the panel.
+    /// The rounded corners of the window the card fills, which no public API
+    /// reports. Erring small is safe: a card radius tighter than the glass
+    /// only rounds a little less than the panel, while a larger one would
+    /// let the library show through at the corners.
     static var cornerRadius: CGFloat {
-        guard UIDevice.current.userInterfaceIdiom == .phone else { return 18 }
-        switch screenHeight {
-        case ..<800: return 0          // Home button models
-        case 800..<830: return 39      // X, XS, 11 Pro, 12/13 mini
-        case 830..<850: return 47      // 12, 13, 14
-        case 850..<870: return 55      // 14 Pro, 15, 15 Pro, 16
-        case 870..<880: return 62      // 16 Pro and later Pro models
-        case 880..<900: return 39      // XR, XS Max, 11, 11 Pro Max
-        case 900..<930: return 53      // 12-13 Pro Max, 14 Plus, Air
-        case 930..<950: return 55      // 14 Pro Max, 15 Pro Max
-        default: return 62             // 16 Pro Max and larger
+        guard let window else { return 0 }
+        let screen = window.windowScene?.screen.bounds.size ?? window.bounds.size
+        // A window smaller than the screen (iPad multitasking, Stage
+        // Manager) has the system's window corners, not the panel's.
+        if abs(window.bounds.width - screen.width) > 1 || abs(window.bounds.height - screen.height) > 1 {
+            return 12
         }
+        guard UIDevice.current.userInterfaceIdiom == .phone else { return 18 }
+        let size = "\(Int(min(screen.width, screen.height)))x\(Int(max(screen.width, screen.height)))"
+        return phoneCornerRadii[size] ?? 32
     }
+
+    /// Display corner radius by portrait size in points.
+    private static let phoneCornerRadii: [String: CGFloat] = [
+        "375x667": 0, "414x736": 0,          // Home button models
+        "375x812": 39,                       // X, XS, 11 Pro, 12/13 mini
+        "414x896": 39,                       // XR, XS Max, 11, 11 Pro Max
+        "390x844": 47,                       // 12, 13, 14, 16e
+        "428x926": 53,                       // 12-13 Pro Max, 14 Plus
+        "393x852": 55, "430x932": 55,        // 14 Pro - 16 and their Max/Plus
+        "402x874": 62, "440x956": 62,        // 16 Pro and later, Pro Max
+        "420x912": 62,                       // Air
+    ]
 }
 
 /// A one-finger UIKit pan that only begins in its own direction. Once it

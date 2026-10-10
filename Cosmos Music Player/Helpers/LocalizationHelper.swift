@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 extension String {
     /// Returns the localized string for this key
@@ -72,7 +73,7 @@ struct Localized {
     static let addSongs = "add_songs".localized
     static let importMusicFiles = "import_music_files".localized
     static let noSongsFound = "no_songs_found".localized
-    static let yourMusicWillAppearHere = "your_music_will_appear_here".localized
+    static let yourMusicWillAppearHere = "your_music_will_appear_here".localized.namingThisDevice
     static let unknown = "unknown".localized
     static let ok = "ok".localized
     static let settings = "settings".localized
@@ -223,7 +224,7 @@ struct Localized {
     
     // MARK: - Tutorial Instructions
     static let findOpenFilesApp = "find_open_files_app".localized
-    static let tapIcloudDriveSidebar = "tap_icloud_drive_sidebar".localized
+    static let tapIcloudDriveSidebar = "tap_icloud_drive_sidebar".localized.namingThisDevice
     static let lookForCosmosFolder = "look_for_cosmos_folder".localized
     static let copyMusicFiles = "copy_music_files".localized
     
@@ -486,5 +487,12 @@ struct Localized {
 
     static func deleteFilesConfirmationMessage(_ count: Int) -> String {
         return "delete_files_confirmation_message".localized(with: count)
+    }
+}
+
+private extension String {
+    /// "On My iPhone" is "On My iPad" in Files on an iPad.
+    var namingThisDevice: String {
+        replacingOccurrences(of: "iPhone", with: UIDevice.current.model)
     }
 }

@@ -87,8 +87,7 @@ struct PlaylistsScreen: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [
-                            GridItem(.flexible(), spacing: 8),
-                            GridItem(.flexible(), spacing: 8)
+                            GridItem(.adaptive(minimum: 160), spacing: 8)
                         ], spacing: 16) {
                             ForEach(visiblePlaylists, id: \.id) { playlist in
                                 if isEditMode {
@@ -959,6 +958,7 @@ struct PlaylistDetailScreen: View {
                             }
                             .disabled(tracks.isEmpty)
                         }
+                        .frame(maxWidth: 520)
                         // This row sits in a list row with zeroed insets, so it
                         // needs its own horizontal margin. Without it the two
                         // pills ran edge to edge and single-word translations

@@ -6,6 +6,26 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Cadence</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Audio File</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.audio</string>
+				<string>public.mp3</string>
+				<string>public.mpeg-4-audio</string>
+				<string>org.xiph.flac</string>
+				<string>org.xiph.opus</string>
+				<string>org.xiph.ogg</string>
+				<string>com.sony.dsf</string>
+				<string>com.sony.dsdiff</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -17,7 +37,18 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2.5</string>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>io.github.ericchiuca.cadence</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cadence-music</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>INAlternativeAppNames</key>
@@ -29,6 +60,8 @@
 			<string>cadence player</string>
 		</dict>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
@@ -54,10 +87,10 @@
 			<key>CPTemplateApplicationSceneSessionRoleApplication</key>
 			<array>
 				<dict>
-					<key>UISceneConfigurationName</key>
-					<string>CarPlay</string>
 					<key>UISceneClassName</key>
 					<string>CPTemplateApplicationScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>CarPlay</string>
 					<key>UISceneDelegateClassName</key>
 					<string>$(PRODUCT_MODULE_NAME).CarPlaySceneDelegate</string>
 				</dict>
@@ -94,14 +127,14 @@
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.xiph.opus</string>
-			<key>UTTypeDescription</key>
-			<string>Opus Audio</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.audio</string>
 			</array>
+			<key>UTTypeDescription</key>
+			<string>Opus Audio</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.xiph.opus</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -115,14 +148,14 @@
 			</dict>
 		</dict>
 		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.xiph.ogg</string>
-			<key>UTTypeDescription</key>
-			<string>Ogg Audio</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.audio</string>
 			</array>
+			<key>UTTypeDescription</key>
+			<string>Ogg Audio</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.xiph.ogg</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -137,14 +170,14 @@
 			</dict>
 		</dict>
 		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.xiph.flac</string>
-			<key>UTTypeDescription</key>
-			<string>FLAC Audio</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.audio</string>
 			</array>
+			<key>UTTypeDescription</key>
+			<string>FLAC Audio</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.xiph.flac</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -158,14 +191,14 @@
 			</dict>
 		</dict>
 		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.sony.dsf</string>
-			<key>UTTypeDescription</key>
-			<string>DSD Stream File</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.audio</string>
 			</array>
+			<key>UTTypeDescription</key>
+			<string>DSD Stream File</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.sony.dsf</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -175,14 +208,14 @@
 			</dict>
 		</dict>
 		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.sony.dsdiff</string>
-			<key>UTTypeDescription</key>
-			<string>DSDIFF Audio</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.audio</string>
 			</array>
+			<key>UTTypeDescription</key>
+			<string>DSDIFF Audio</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.sony.dsdiff</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -190,37 +223,6 @@
 					<string>dff</string>
 				</array>
 			</dict>
-		</dict>
-	</array>
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeName</key>
-			<string>Audio File</string>
-			<key>LSHandlerRank</key>
-			<string>Alternate</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.audio</string>
-				<string>public.mp3</string>
-				<string>public.mpeg-4-audio</string>
-				<string>org.xiph.flac</string>
-				<string>org.xiph.opus</string>
-				<string>org.xiph.ogg</string>
-				<string>com.sony.dsf</string>
-				<string>com.sony.dsdiff</string>
-			</array>
-		</dict>
-	</array>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>io.github.ericchiuca.cadence</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>cadence-music</string>
-			</array>
 		</dict>
 	</array>
 </dict>

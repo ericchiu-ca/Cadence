@@ -147,6 +147,13 @@ struct PlayerView: View {
     private var showLyrics: Bool { panel == .lyrics }
     /// Lyrics or the queue: the artwork sits in the header.
     private var isCompact: Bool { panel != .artwork }
+    /// Landscape-shaped and roomy: iPad in landscape, a foldable's inner
+    /// display turned sideways. Artwork on the left, everything else on the
+    /// right, and lyrics or the queue open in the right column while the
+    /// artwork stays where it is.
+    @State private var isWide = false
+    /// Whether the artwork sits in the compact header. Never when wide.
+    private var artworkIsCompact: Bool { isCompact && !isWide }
 
     /// Slides the card away, like the end of a pull.
     private func close() {
@@ -187,8 +194,17 @@ struct PlayerView: View {
             // the player's own content renders with the dark appearance.
             // Sheets attach below and keep the app's appearance.
             .environment(\.colorScheme, .dark)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, isWide ? 48 : 20)
             .padding(.bottom, 8)
+            // One centred column on wide screens (iPad, a foldable's inner
+            // display): controls stretched edge to edge read as a mistake.
+            .frame(maxWidth: isWide ? Self.maxWideWidth : Self.maxColumnWidth)
+            .frame(maxWidth: .infinity)
+            .onGeometryChange(for: Bool.self) { proxy in
+                proxy.size.width > proxy.size.height * 1.15 && proxy.size.width >= 700
+            } action: { wide in
+                isWide = wide
+            }
             .onChange(of: playerEngine.currentTrack) { _, _ in
                 guard !isAnimating else { return }
                 var transaction = Transaction()
@@ -232,6 +248,64 @@ struct PlayerView: View {
     }
 
     private var contentView: some View {
+        Group {
+            if isWide {
+                wideLayout
+            } else {
+                tallLayout
+            }
+        }
+        .coordinateSpace(.named(Self.contentSpace))
+        // One artwork for both layouts. Each layout only leaves a slot and
+        // records its frame; this single view moves between the two frames
+        // inside the toggle's own animation, so it is one continuous flight
+        // instead of two views cross-matching while their containers change.
+        .overlay(alignment: .topLeading) {
+            if playerEngine.currentTrack != nil {
+                floatingArtwork
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+
+    /// Two columns: the artwork fills the left, the right holds the title
+    /// and controls, centred, or - with lyrics or the queue open - the
+    /// panel between the title and the controls.
+    private var wideLayout: some View {
+        HStack(spacing: 56) {
+            if let currentTrack = playerEngine.currentTrack {
+                artworkSection(wide: true)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: 0) {
+                    if isCompact {
+                        titleAndArtistSection(track: currentTrack)
+                            .padding(.top, 28)
+                        compactPanel
+                            .frame(maxHeight: .infinity)
+                            .padding(.top, 8)
+                            .transition(.opacity)
+                    } else {
+                        Spacer(minLength: 20)
+                        titleAndArtistSection(track: currentTrack)
+                    }
+                    progressBarSection
+                        .padding(.top, 18)
+                    controlsSection
+                        .padding(.top, 6)
+                    if !isCompact {
+                        Spacer(minLength: 20)
+                    }
+                }
+                .frame(maxWidth: 460)
+            } else {
+                Spacer()
+                emptyStateView
+                Spacer()
+            }
+        }
+    }
+
+    private var tallLayout: some View {
         VStack(spacing: 0) {
             if let currentTrack = playerEngine.currentTrack {
                 if isCompact {
@@ -250,7 +324,7 @@ struct PlayerView: View {
                         ))
                 } else {
                     Spacer(minLength: 20)
-                    artworkSection
+                    artworkSection(wide: false)
                         // Leaves at once: only the floating artwork moves.
                         .transition(.identity)
                     Spacer(minLength: 16)
@@ -267,38 +341,30 @@ struct PlayerView: View {
                 Spacer()
             }
         }
-        .coordinateSpace(.named(Self.contentSpace))
-        // One artwork for both layouts. Each layout only leaves a slot and
-        // records its frame; this single view moves between the two frames
-        // inside the toggle's own animation, so it is one continuous flight
-        // instead of two views cross-matching while their containers change.
-        .overlay(alignment: .topLeading) {
-            if playerEngine.currentTrack != nil {
-                floatingArtwork
-                    .allowsHitTesting(false)
-            }
-        }
     }
 
     private static let contentSpace = "playerContent"
+    private static let maxColumnWidth: CGFloat = 640
+    private static let maxWideWidth: CGFloat = 1180
+    private static let maxArtworkSize: CGFloat = 600
 
     /// Apple Music style: the artwork sits back while paused. The swipe's
     /// neighbours share it, so the incoming cover lands at the size the
     /// floating artwork then takes over at, instead of shrinking after.
     private var artworkRestingScale: CGFloat {
-        (isCompact || showsPlaying) ? 1 : 0.84
+        (artworkIsCompact || showsPlaying) ? 1 : 0.84
     }
 
     private var floatingArtwork: some View {
         let pageDistance = largeArtworkSlot.width + 24
-        let swipeProgress = isCompact ? 0 : min(abs(dragOffset) / max(pageDistance, 1), 1)
-        let isLarge = !isCompact && showsPlaying
+        let swipeProgress = artworkIsCompact ? 0 : min(abs(dragOffset) / max(pageDistance, 1), 1)
+        let isLarge = !artworkIsCompact && showsPlaying
 
         return FlyingArtwork(
             image: currentArtwork,
             from: largeArtworkSlot,
             to: compactArtworkSlot,
-            progress: compactProgress,
+            progress: isWide ? 0 : compactProgress,
             scale: artworkRestingScale * (1 - (0.04 * swipeProgress)),
             shadowStrength: isLarge ? 1 : 0.35
         )
@@ -306,7 +372,7 @@ struct PlayerView: View {
             reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.38, dampingFraction: 0.72),
             value: showsPlaying
         )
-        .offset(x: isCompact ? 0 : dragOffset)
+        .offset(x: artworkIsCompact ? 0 : dragOffset)
         .opacity(1 - Double(swipeProgress) * 0.35)
     }
 
@@ -407,9 +473,9 @@ struct PlayerView: View {
 
     // MARK: - Artwork Section
 
-    private var artworkSection: some View {
+    private func artworkSection(wide: Bool) -> some View {
         GeometryReader { geometry in
-            let artworkSize = min(geometry.size.width, geometry.size.height, 420)
+            let artworkSize = min(geometry.size.width, geometry.size.height, Self.maxArtworkSize)
             let gestureWidth = max(geometry.size.width, 1)
             let pageDistance = artworkSize + 24
             let signedProgress = max(-1, min(1, dragOffset / pageDistance))
@@ -432,7 +498,10 @@ struct PlayerView: View {
                 Color.clear
                     .frame(width: artworkSize, height: artworkSize)
                     .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.contentSpace)) } action: {
-                        largeArtworkSlot = $0
+                        // Only from the layout on screen: the one being
+                        // swapped out reports once more while it fades, and
+                        // that stale frame would win.
+                        if wide == isWide { largeArtworkSlot = $0 }
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -458,7 +527,7 @@ struct PlayerView: View {
             )
         }
         .aspectRatio(1, contentMode: .fit)
-        .frame(maxWidth: 420)
+        .frame(maxWidth: Self.maxArtworkSize)
     }
 
     private func artworkTile(artwork: UIImage?, size: CGFloat, cornerRadius: CGFloat = 18) -> some View {
@@ -1242,6 +1311,7 @@ struct MiniPlayerView: View {
         }
         .padding(.horizontal, 12)
         .padding(.bottom, 4)
+        .frame(maxWidth: 700)
         .animation(reduceMotion ? nil : .spring(response: 0.45, dampingFraction: 0.82), value: playerEngine.currentTrack == nil)
         .animation(.smooth(duration: 0.3), value: playerEngine.playbackErrorMessage)
         .fullScreenCover(isPresented: $isExpanded) {
