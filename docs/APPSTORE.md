@@ -11,13 +11,16 @@ What goes into App Store Connect for Cadence 1.0.0. Keep this file in step with 
 | Category | Music (secondary: Entertainment) |
 | Price | Free |
 | Devices | iPhone, iPad (iPhone Duo supported through adaptive layouts) |
-| Age rating | 4+ (no objectionable content; lyrics are fetched from LRCLIB, user-initiated) |
+| Age rating | 9+ (infrequent profanity and mature themes, because song lyrics can contain them) |
 | Support URL | https://github.com/ericchiu-ca/Cadence/issues |
 | Marketing URL | https://github.com/ericchiu-ca/Cadence |
 | Privacy Policy URL | https://github.com/ericchiu-ca/Cadence/blob/main/docs/PRIVACY.md |
 | App Privacy | Data Not Collected |
 | Export compliance | Uses only exempt encryption (HTTPS); `ITSAppUsesNonExemptEncryption = NO` |
-| Content rights | Does not contain, show or access third-party content (it plays the user's own files) |
+| Content rights | Yes, it shows third-party content: lyrics fetched from LRCLIB when a song has none of its own |
+| Availability | 174 countries and regions: every App Store region except China mainland |
+| Release | Automatically after approval |
+| App Review contact | Set in App Store Connect (private to Apple, not kept here) |
 
 ## English (U.S.)
 
@@ -113,4 +116,17 @@ Cadence plays audio files the user adds through the Files app, iCloud Drive or t
 
 ## Screenshots
 
-`docs/appstore/` — 6.3-inch iPhone (1206 × 2622, the size App Store Connect asks for) and 13-inch iPad (2064 × 2752), captured from the simulator with a demo library whose artwork, music and lyrics were generated for the purpose.
+`docs/appstore/promo/` holds what is uploaded, one set per language:
+
+| Slot | Size | Images |
+| --- | --- | --- |
+| iPhone 6.1"/6.3" (medium display, `APP_IPHONE_61`) | 1206 × 2622 | player, lyrics, library, album, queue |
+| iPad 13" (`APP_IPAD_PRO_3GEN_129`) | 2064 × 2752 | player, lyrics, library |
+
+Each image is a caption over a framed capture on a wash of the capture's own colours. The captures themselves are in `docs/appstore/` and come from the simulator with a demo library whose artwork, music and lyrics were generated for the purpose. To rebuild the promo images after replacing a capture:
+
+```sh
+swift docs/appstore/make-promo.swift docs/appstore docs/appstore/promo
+```
+
+The captions are in `make-promo.swift`. No iPhone Duo screenshots yet; that slot is optional.
