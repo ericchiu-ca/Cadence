@@ -1,6 +1,6 @@
 # App Store listing
 
-What goes into App Store Connect for Cadence 1.0.0. Keep this file in step with what is live.
+What goes into App Store Connect for Cadence 1.0.1 (submitted in place of 1.0.0, which was withdrawn from review before release). Keep this file in step with what is live.
 
 | Field | Value |
 | --- | --- |
