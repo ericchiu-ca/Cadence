@@ -2793,6 +2793,10 @@ class PlayerEngine: NSObject, ObservableObject {
             if nextTrackIndex == expectedIndex, nextTrack?.stableId == expectedTrackId {
                 return
             }
+            if gaplessScheduled, isPlaying, audioEngine.isRunning {
+                dropScheduledSuccessorSmoothly()
+                return
+            }
             invalidateGaplessSchedule()
         } else if isPreloadingNext {
             // An in-flight preload was started against the old ordering.
@@ -2800,6 +2804,28 @@ class PlayerEngine: NSObject, ObservableObject {
         }
 
         preloadAndScheduleNextIfNeeded()
+    }
+
+    /// invalidateGaplessSchedule() then preloadAndScheduleNextIfNeeded(), for
+    /// a track that is playing. Taking back a successor that is already
+    /// scheduled means stopping the node, and stopping it mid-waveform was
+    /// the hiccup heard when switching to repeat-one (or reordering what plays
+    /// next). A 30 ms fade either side turns it into a dip too short to hear.
+    private func dropScheduledSuccessorSmoothly() {
+        let generation = scheduleGeneration
+        transportFadeTask?.cancel()
+        transportFadeTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.rampOutputVolume(to: 0, duration: 0.03)
+            // A skip, seek or new track meanwhile scheduled afresh, with the
+            // current queue and loop settings, and set its own volume.
+            guard self.scheduleGeneration == generation else { return }
+            self.invalidateGaplessSchedule()
+            self.preloadAndScheduleNextIfNeeded()
+            // Cancelled by a pause, which fades and restores volume itself.
+            guard !Task.isCancelled else { return }
+            await self.rampOutputVolume(to: 1, duration: 0.05)
+        }
     }
 
     /// Same contract as queueDidChange() for the SFBAudioEngine path: anything

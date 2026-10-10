@@ -449,6 +449,12 @@ struct PlayerCard<Content: View>: View {
     @State private var grabberHideTask: Task<Void, Never>?
     @State private var insets = EdgeInsets()
     @State private var height: CGFloat = DisplayGeometry.screenHeight
+    /// Square corners only once the card has settled at the top; whenever it
+    /// moves it has the display's radius. Deciding this from the offset
+    /// failed mid-animation: SwiftUI animates the offset but applies the
+    /// radius at its end value at once, so on the way back up the corners
+    /// went square while the card was still below the top edge.
+    @State private var isResting = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -459,7 +465,7 @@ struct PlayerCard<Content: View>: View {
             }
             .onGeometryChange(for: EdgeInsets.self) { $0.safeAreaInsets } action: { insets = $0 }
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
-            .modifier(CardTransform(offset: offset, insets: insets))
+            .modifier(CardTransform(offset: offset, isResting: isResting, insets: insets))
             .gesture(
                 DirectionalPan(
                     direction: .down,
@@ -469,7 +475,10 @@ struct PlayerCard<Content: View>: View {
                         revealGrabber()
                         var transaction = Transaction()
                         transaction.isContinuous = true
-                        withTransaction(transaction) { offset = max(translation.y, 0) }
+                        withTransaction(transaction) {
+                            isResting = false
+                            offset = max(translation.y, 0)
+                        }
                     },
                     onEnded: { translation, velocity in
                         hideGrabber(after: 2.5)
@@ -486,29 +495,48 @@ struct PlayerCard<Content: View>: View {
                 hideGrabber(after: 3)
                 if reduceMotion {
                     offset = 0
+                    isResting = true
                 } else {
-                    withAnimation(.spring(response: 0.42, dampingFraction: 0.92)) { offset = 0 }
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.92)) {
+                        offset = 0
+                    } completion: {
+                        settleIfAtTop()
+                    }
                 }
             }
             .onChange(of: closeRequest) { slideAway(velocity: 0) }
     }
 
     private func finishPull(translation: CGFloat, velocity: CGFloat) {
-        guard offset > 0 else { return }
+        // Pushed back up to the top before letting go: nothing to animate,
+        // but it is at rest again. Returning without saying so left the
+        // corners rounded until the next touch.
+        guard offset > 0 else {
+            isResting = true
+            return
+        }
         if offset > 140 || velocity > 900 || translation + velocity * 0.25 > 420 {
             slideAway(velocity: velocity)
         } else {
-            // No bounce: any overshoot carried the card past its resting
-            // place, lifting it off the bottom edge so the library showed
-            // through a strip below it for a few frames.
+            // No bounce, and the finger's speed capped: past about one
+            // distance per spring period a critically damped spring still
+            // overshoots, lifting the card off the bottom edge so the library
+            // showed through a strip below it.
             withAnimation(.interpolatingSpring(
                 duration: 0.35,
                 bounce: 0,
-                initialVelocity: Self.unitVelocity(velocity, from: offset, to: 0)
+                initialVelocity: min(Self.unitVelocity(velocity, from: offset, to: 0), 8)
             )) {
                 offset = 0
+            } completion: {
+                settleIfAtTop()
             }
         }
+    }
+
+    /// Unless a new pull has started meanwhile.
+    private func settleIfAtTop() {
+        if offset == 0 { isResting = true }
     }
 
     /// Off the bottom, then `onSlidAway`. Carries on at the finger's speed;
@@ -541,8 +569,11 @@ struct PlayerCard<Content: View>: View {
         return Double(velocity / distance)
     }
 
+    /// Hidden while pulling is off (lyrics, the queue): a handle there
+    /// promised a gesture that the panel's own scrolling takes instead.
     private var grabber: some View {
-        Button { slideAway(velocity: 0) } label: {
+        let isShown = isGrabberVisible && isEnabled
+        return Button { slideAway(velocity: 0) } label: {
             Capsule()
                 .fill(.white.opacity(0.4))
                 .frame(width: 36, height: 5)
@@ -550,10 +581,10 @@ struct PlayerCard<Content: View>: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .opacity(isGrabberVisible ? 1 : 0)
-        .allowsHitTesting(isGrabberVisible)
+        .opacity(isShown ? 1 : 0)
+        .allowsHitTesting(isShown)
         .accessibilityLabel(Localized.close)
-        .accessibilityHidden(!isGrabberVisible)
+        .accessibilityHidden(!isShown)
     }
 
     private func revealGrabber() {
@@ -574,28 +605,20 @@ struct PlayerCard<Content: View>: View {
     }
 }
 
-/// The card's look as a function of how far down it is. Only the offset is
-/// animatable, so during an animated move the corners and scale are worked
-/// out from where the card actually is on each frame. Animated separately,
-/// the radius ran down to zero while the card was still well below the top
-/// and square corners snapped over the status bar as it arrived.
-private struct CardTransform: ViewModifier, @MainActor Animatable {
-    var offset: CGFloat
+/// The card's look for a given offset.
+private struct CardTransform: ViewModifier {
+    let offset: CGFloat
+    let isResting: Bool
     let insets: EdgeInsets
-
-    nonisolated var animatableData: CGFloat {
-        get { offset }
-        set { offset = newValue }
-    }
 
     func body(content: Content) -> some View {
         let progress = min(max(offset, 0) / 120, 1)
         content
-            // The display's own radius from the first point of travel: the
-            // card's corners are the screen's corners, moved down. At rest
-            // they are square and the panel's rounded edge hides them.
+            // The display's own radius whenever the card moves: its corners
+            // are the screen's corners, moved down. At rest they are square
+            // and the panel's rounded edge hides them.
             .clipShape(ScreenCard(
-                cornerRadius: offset > 0.5 ? DisplayGeometry.cornerRadius : 0,
+                cornerRadius: isResting ? 0 : DisplayGeometry.cornerRadius,
                 insets: insets
             ))
             .scaleEffect(1 - 0.07 * progress, anchor: .top)
@@ -710,7 +733,7 @@ private struct ScreenCard: Shape {
     let cornerRadius: CGFloat
     let insets: EdgeInsets
 
-    // Not animatable: `CardTransform` recomputes the radius every frame.
+    // Not animatable: the radius only switches as the card starts or stops.
     var animatableData: EmptyAnimatableData {
         get { EmptyAnimatableData() }
         set {}

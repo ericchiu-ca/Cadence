@@ -67,7 +67,11 @@ struct QueueManagementView: View {
                         }
                         .listStyle(.plain)
                         .scrollContentBackground(.hidden)
-                        .mask(LyricsEdgeMask(top: 12, bottom: 28))
+                        // Rows start and end clear of the feathered edges;
+                        // the first song used to sit half inside the top fade.
+                        .contentMargins(.top, 16, for: .scrollContent)
+                        .contentMargins(.bottom, 28, for: .scrollContent)
+                        .mask(LyricsEdgeMask(top: 14, bottom: 28))
                         .task {
                             // Open on the song that is playing, with what
                             // plays next below it - after an hour of
