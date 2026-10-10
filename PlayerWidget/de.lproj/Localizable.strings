@@ -1,0 +1,10 @@
+"Now Playing" = "Jetzt läuft";            /* widget label + widget gallery name */
+"Paused" = "Pausiert";
+"No Music Playing" = "Es läuft keine Musik";
+"Open Cadence to start" = "Öffne Cadence, um loszulegen";
+"Control your music playback from your home screen" = "Steuere die Musikwiedergabe direkt auf deinem Home-Bildschirm";   /* widget gallery description */
+"No playlists yet" = "Noch keine Playlists";
+"My Playlists" = "Meine Playlists";          /* widget gallery name */
+"Quick access to your 3 most recently played playlists" = "Schneller Zugriff auf deine 3 zuletzt gespielten Playlists";
+"1 song" = "1 Titel";
+"%lld songs" = "%lld Titel";

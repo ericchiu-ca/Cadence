@@ -1,0 +1,6 @@
+{
+  "subtitle": "好好聽你自己的音樂",
+  "promotionalText": "為你自己的音樂檔案打造的播放器：支援 FLAC、ALAC、MP3 等格式，播放畫面隨封面變色，歌詞逐字同步，無需帳號，沒有廣告，也不追蹤。",
+  "description": "Cadence 播放你已經擁有的音樂，讓聆聽成為一種享受。\n\n把歌曲放進「檔案」App 或 iCloud 雲碟中的 Cadence 檔案夾，它們就會整理成資料庫：專輯、藝人、播放列表和最近加入的項目，封面直接取自你的檔案。\n\n正在播放\n• 全螢幕播放器的色彩取自專輯封面，並隨著音樂輕柔流動\n• 在任何地方向下拉，即可回到資料庫\n• 滑動封面即可切換歌曲，前後兩首的封面會隨之滑入\n\n歌詞\n• 逐字亮起的同步歌詞，緊貼歌曲節奏\n• 點一下任一行即可跳至該處\n• 支援檔案內嵌的歌詞，沒有歌詞時會自動為你取得\n\n播放\n• 無縫播放，以及附預設組的 16 頻段等化器\n• 支援 FLAC、ALAC、AAC、MP3、WAV、AIFF、Opus、Ogg Vorbis、DSD 等格式\n• 重複播放全部或單曲、隨機播放、睡眠定時器、AirPlay 和鎖定畫面控制項目\n• Siri、小工具，以及從其他 App「分享到 Cadence」\n\n適用每一種螢幕\n• iPhone、直向與橫向的 iPad，以及 iPhone Duo\n• 淺色和深色外觀，各有專屬的 App 圖像\n\n隱私至上\n• 無需帳號，沒有廣告、分析或追蹤\n• 你的資料庫只會保存在你的裝置或你自己的 iCloud 雲碟中\n\nCadence 以 GPL 授權開放原始碼，並以 Cosmos Music Player 為基礎開發。原始碼放在 GitHub：github.com/ericchiu-ca/Cadence",
+  "keywords": "無損,FLAC,ALAC,離線,本機音樂,播放器,歌詞,動態歌詞,等化器,無縫播放,高解析,Hi-Res,音訊,DSD,MP3,WAV,AAC,音質,聽歌,檔案,iCloud"
+}

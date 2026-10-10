@@ -1,0 +1,11 @@
+/* PlayerWidget — Simplified Chinese. Keys are the English source strings. */
+"Now Playing" = "正在播放";            /* widget label + widget gallery name */
+"Paused" = "已暂停";
+"No Music Playing" = "没有正在播放的音乐";
+"Open Cadence to start" = "打开 Cadence 开始播放";
+"Control your music playback from your home screen" = "在主屏幕上控制音乐播放";   /* widget gallery description */
+"No playlists yet" = "暂无播放列表";
+"My Playlists" = "我的播放列表";          /* widget gallery name */
+"Quick access to your 3 most recently played playlists" = "快速访问你最近播放的 3 个播放列表";
+"1 song" = "1 首歌曲";
+"%lld songs" = "%lld 首歌曲";

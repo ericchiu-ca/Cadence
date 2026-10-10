@@ -1,0 +1,23 @@
+/* PlayerWidget — Russian */
+
+/* Now Playing widget: status label and widget gallery name */
+"Now Playing" = "Сейчас играет";
+"Paused" = "Пауза";
+
+/* Now Playing widget: placeholder when nothing is playing */
+"No Music Playing" = "Ничего не играет";
+"Open Cadence to start" = "Откройте Cadence, чтобы начать";
+
+/* Now Playing widget: widget gallery description */
+"Control your music playback from your home screen" = "Управляйте воспроизведением музыки прямо с экрана «Домой»";
+
+/* Playlists widget */
+"No playlists yet" = "Плейлистов пока нет";
+"My Playlists" = "Мои плейлисты";
+"Quick access to your 3 most recently played playlists" = "Быстрый доступ к трём плейлистам, которые вы слушали последними";
+
+/* Playlists widget: song count under each playlist.
+   A .strings file has only one plural form, so the "Песен: N" label form is used
+   to stay grammatical for every N (2 песни, 5 песен, 21 песня…). */
+"1 song" = "1 песня";
+"%lld songs" = "Песен: %lld";

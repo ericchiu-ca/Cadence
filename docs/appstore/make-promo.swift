@@ -1,5 +1,5 @@
 // Cadence App Store promotional screenshots: caption + framed device on a colour wash.
-// Usage: swift docs/appstore/make-promo.swift docs/appstore docs/appstore/promo
+// Usage: swift docs/appstore/make-promo.swift docs/appstore docs/appstore/promo\n// Captions per language are in docs/appstore/captions.json.
 import Foundation
 import CoreGraphics
 import CoreText
@@ -51,8 +51,17 @@ func drawText(_ c: CGContext, _ s: String, font f: CTFont, color: CGColor, width
         NSAttributedString.Key(kCTForegroundColorAttributeName as String): color,
         NSAttributedString.Key(kCTParagraphStyleAttributeName as String): para])
     let fs = CTFramesetterCreateWithAttributedString(attr)
-    let size = CTFramesetterSuggestFrameSizeWithConstraints(fs, CFRange(location: 0, length: 0), nil, CGSize(width: width, height: 2000), nil)
-    let rect = CGRect(x: centerX - width / 2, y: canvasH - top - size.height, width: width, height: ceil(size.height) + 2)
+    func lineCount(_ w: CGFloat) -> Int {
+        let frame = CTFramesetterCreateFrame(fs, CFRange(location: 0, length: 0), CGPath(rect: CGRect(x: 0, y: 0, width: w, height: 4000), transform: nil), nil)
+        return CFArrayGetCount(CTFrameGetLines(frame))
+    }
+    // Balance wrapped text: narrow the box while the line count holds, so a
+    // second line never carries a single word or character.
+    var w = width
+    let lines = lineCount(width)
+    if lines > 1 { while w > width / 2, lineCount(w - 8) == lines { w -= 8 } }
+    let size = CTFramesetterSuggestFrameSizeWithConstraints(fs, CFRange(location: 0, length: 0), nil, CGSize(width: w, height: 2000), nil)
+    let rect = CGRect(x: centerX - w / 2, y: canvasH - top - size.height, width: w, height: ceil(size.height) + 2)
     let frame = CTFramesetterCreateFrame(fs, CFRange(location: 0, length: 0), CGPath(rect: rect, transform: nil), nil)
     CTFrameDraw(frame, c)
     return size.height
@@ -78,7 +87,9 @@ func render(_ s: Spec, _ d: Device, src: String, out: String) {
 
     // Caption
     let th = drawText(c, s.title, font: font(d.titleSize, bold: true, lang: s.lang), color: rgb(1, 1, 1), width: d.textWidth, centerX: d.W / 2, top: 150, canvasH: d.H, lineSpacing: d.titleSize * 0.08)
-    _ = drawText(c, s.sub, font: font(d.subSize, bold: false, lang: s.lang), color: rgb(1, 1, 1, 0.72), width: d.textWidth, centerX: d.W / 2, top: 150 + th + d.subSize * 0.7, canvasH: d.H, lineSpacing: d.subSize * 0.2)
+    let subTop = 150 + th + d.subSize * 0.7
+    let subH = drawText(c, s.sub, font: font(d.subSize, bold: false, lang: s.lang), color: rgb(1, 1, 1, 0.72), width: d.textWidth, centerX: d.W / 2, top: subTop, canvasH: d.H, lineSpacing: d.subSize * 0.2)
+    if subTop + subH > d.top - d.bezel - 40 { print("warning: caption crowds the device in \(s.lang) \(s.out): \(s.title)") }
 
     // Device
     let sw = CGFloat(shot.width) * d.scale * (d.W / CGFloat(shot.width)) , sh = sw * CGFloat(shot.height) / CGFloat(shot.width)
@@ -98,25 +109,20 @@ func render(_ s: Spec, _ d: Device, src: String, out: String) {
 }
 
 let src = CommandLine.arguments[1], outRoot = CommandLine.arguments[2]
-let en = "en-US", zh = "zh-Hans"
-let phoneSpecs: [(String, String, String, String, String, String)] = [
-    ("iphone-1-player.jpg", "01-player.jpg", "Colours from the cover", "The player takes its look from your artwork.", "随封面变色的播放界面", "播放界面的颜色取自你的专辑封面"),
-    ("iphone-3-lyrics.jpg", "02-lyrics.jpg", "Lyrics, word by word", "Synced lyrics that light up in time with the song.", "逐字同步的歌词", "歌词随歌曲逐字点亮，点一行即可跳转"),
-    ("iphone-4-library.jpg", "03-library.jpg", "Lossless. Offline. Yours.", "FLAC, ALAC, MP3 and more. No account, no ads.", "无损、离线、只属于你", "支持 FLAC、ALAC、MP3 等格式，无需账号，没有广告"),
-    ("iphone-2-album.jpg", "04-album.jpg", "Albums that look the part", "Every page built from your own files and artwork.", "好好呈现每一张专辑", "专辑页直接取自你的音乐文件和封面"),
-    ("iphone-5-queue.jpg", "05-queue.jpg", "Up next, within reach", "See and reorder the queue right above the controls.", "播放队列触手可及", "接下来播放什么，就在控制按钮上方"),
-]
-let padSpecs: [(String, String, String, String, String, String)] = [
-    ("ipad-1-player.jpg", "01-player.jpg", "Made for iPad too", "A player that fills the big screen with your artwork.", "iPad 上同样出色", "大屏幕上，封面与色彩铺满整个播放界面"),
-    ("ipad-3-lyrics.jpg", "02-lyrics.jpg", "Lyrics across the room", "Large, word-by-word lyrics sized for iPad.", "大屏逐字歌词", "为 iPad 放大的逐字同步歌词"),
-    ("ipad-2-library.jpg", "03-library.jpg", "Your whole library at a glance", "Recently added albums, artists and playlists.", "整个音乐库，一目了然", "最近添加、艺人与播放列表，尽收眼底"),
-]
-for (dir, specs, dev) in [("iphone", phoneSpecs, phone), ("ipad", padSpecs, pad)] {
-    for (lang, isZh) in [(en, false), (zh, true)] {
+// captions.json: { "<language>": { "iphone": [[title, subtitle], ...], "ipad": [...] } }
+// Source captures, in caption order.
+let shots = ["iphone": ["iphone-1-player.jpg", "iphone-3-lyrics.jpg", "iphone-4-library.jpg", "iphone-2-album.jpg", "iphone-5-queue.jpg"],
+             "ipad": ["ipad-1-player.jpg", "ipad-3-lyrics.jpg", "ipad-2-library.jpg"]]
+let names = ["player", "lyrics", "library", "album", "queue"]
+let captionData = try! Data(contentsOf: URL(fileURLWithPath: src + "/captions.json"))
+let captions = try! JSONDecoder().decode([String: [String: [[String]]]].self, from: captionData)
+for (lang, devices) in captions.sorted(by: { $0.key < $1.key }) {
+    for (dir, dev) in [("iphone", phone), ("ipad", pad)] {
         let out = "\(outRoot)/\(lang)/\(dir)"
         try? FileManager.default.createDirectory(atPath: out, withIntermediateDirectories: true)
-        for s in specs {
-            render(Spec(shot: s.0, out: s.1, title: isZh ? s.4 : s.2, sub: isZh ? s.5 : s.3, lang: lang), dev, src: src, out: out)
+        for (i, caption) in devices[dir]!.enumerated() {
+            let file = String(format: "%02d-%@.jpg", i + 1, names[i])
+            render(Spec(shot: shots[dir]![i], out: file, title: caption[0], sub: caption[1], lang: lang), dev, src: src, out: out)
         }
     }
 }

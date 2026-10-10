@@ -1,0 +1,21 @@
+/* PlayerWidget — French */
+
+/* Now Playing widget: status label and widget gallery name */
+"Now Playing" = "À l’écoute";
+"Paused" = "En pause";
+
+/* Now Playing widget: placeholder when nothing is playing */
+"No Music Playing" = "Aucune lecture en cours";
+"Open Cadence to start" = "Ouvrez Cadence pour commencer";
+
+/* Now Playing widget: widget gallery description */
+"Control your music playback from your home screen" = "Contrôlez la lecture de votre musique depuis l’écran d’accueil";
+
+/* Playlists widget */
+"No playlists yet" = "Aucune playlist pour l’instant";
+"My Playlists" = "Mes playlists";
+"Quick access to your 3 most recently played playlists" = "Accédez rapidement aux 3 dernières playlists que vous avez écoutées";
+
+/* Playlists widget: song count under each playlist */
+"1 song" = "1 morceau";
+"%lld songs" = "%lld morceaux";

@@ -50,8 +50,8 @@ struct PlayerWidgetProvider: TimelineProvider {
                 date: Date(),
                 trackData: WidgetTrackData(
                     trackId: "none",
-                    title: "No Music Playing",
-                    artist: "Open Cosmos to start",
+                    title: String(localized: "No Music Playing"),
+                    artist: String(localized: "Open Cadence to start"),
                     isPlaying: false,
                     backgroundColorHex: "FF6B9D"
                 )
@@ -74,8 +74,8 @@ struct PlayerWidgetProvider: TimelineProvider {
                 date: currentDate,
                 trackData: WidgetTrackData(
                     trackId: "none",
-                    title: "No Music Playing",
-                    artist: "Open Cosmos to start",
+                    title: String(localized: "No Music Playing"),
+                    artist: String(localized: "Open Cadence to start"),
                     isPlaying: false,
                     backgroundColorHex: "FF6B9D"
                 )

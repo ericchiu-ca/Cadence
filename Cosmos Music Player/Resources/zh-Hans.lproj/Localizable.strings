@@ -247,9 +247,9 @@
 "audio_settings" = "音频引擎与解码";
 "dsd_playback_mode" = "DSD 解码输出模式";
 "dsd_playback_mode_description" = "选择 DSD (DSF/DFF) 音频文件的底层解码与播放方式";
-"dsd_mode_auto" = "自动（安全）";
-"dsd_mode_pcm" = "PCM 转换 (软解直推)";
-"dsd_mode_dop" = "DoP (DSD over PCM 源码输出)";
+"dsd_mode_auto" = "自动";
+"dsd_mode_pcm" = "PCM";
+"dsd_mode_dop" = "DoP";
 "dsd_mode_auto_description" = "安全转换为 PCM，因为 iOS 无法确认输出设备是否支持 DoP；仅在连接兼容 DAC 时手动选择 DoP。";
 "dsd_mode_pcm_description" = "强制将 DSD 软解转换为高采样率 PCM 格式播放（完美兼容手机扬声器、蓝牙及普通耳机）。";
 "dsd_mode_dop_description" = "强制打包为 DoP 源码输出（警告：必须连接支持 DSD 硬解的专业外接 DAC 设备，否则会产生严重爆音！）";

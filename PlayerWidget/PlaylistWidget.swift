@@ -177,7 +177,13 @@ struct PlaylistCard: View {
                         .lineLimit(1)
                         .frame(width: 100)
 
-                    Text("\(playlist.trackCount) \(playlist.trackCount == 1 ? "song" : "songs")")
+                    Group {
+                        if playlist.trackCount == 1 {
+                            Text("1 song")
+                        } else {
+                            Text("\(playlist.trackCount) songs")
+                        }
+                    }
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(.secondary)
                 }

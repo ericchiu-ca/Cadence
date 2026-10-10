@@ -1,0 +1,480 @@
+/* Playlist related strings */
+"playlists" = "Playlists";
+"no_playlists_yet" = "Aún no hay playlists";
+"create_playlists_instruction" = "Crea playlists añadiéndoles canciones desde la biblioteca";
+"add_to_playlist" = "Añadir a una playlist";
+"create_new_playlist" = "Crear nueva playlist";
+"create_playlist" = "Crear playlist";
+"playlist_name_placeholder" = "Nombre de la playlist";
+"enter_playlist_name" = "Escribe un nombre para tu nueva playlist";
+"delete_playlist" = "Eliminar playlist";
+"delete_playlist_confirmation" = "¿Seguro que quieres eliminar “%@”? Esta acción no se puede deshacer.";
+"delete" = "Eliminar";
+"cancel" = "Cancelar";
+"create" = "Crear";
+"done" = "OK";
+"edit" = "Editar";
+"edit_playlist" = "Editar playlist";
+"save" = "Guardar";
+"enter_new_name" = "Escribe un nuevo nombre para la playlist";
+"manage_playlists" = "Administrar playlists";
+"playlist" = "Playlist";
+"songs_count_singular" = "%d canción";
+"songs_count_plural" = "%d canciones";
+"created_date" = "Creada el %@";
+"no_songs_found" = "No hay canciones";
+"your_music_will_appear_here" = "Para añadir tu música:\n\n1. Abre la app Archivos (o toca “Abrir Archivos”)\n2. Elige una de estas ubicaciones:\n   • iCloud Drive → carpeta Cadence\n   • En mi iPhone → Cadence\n3. Arrastra tus archivos de música a cualquiera de las dos";
+"create_first_playlist" = "Crea tu primera playlist para empezar";
+
+/* General UI strings */
+"all_songs" = "Todas las canciones";
+"liked_songs" = "Canciones favoritas";
+"add_songs" = "Abrir Archivos";
+"import_music_files" = "Importar archivos de música";
+"ok" = "OK";
+"settings" = "Ajustes";
+"retry" = "Reintentar";
+"open_settings" = "Abrir Ajustes";
+"continue" = "Continuar";
+"back" = "Atrás";
+"get_started" = "Comenzar";
+"im_signed_in" = "Ya tengo la sesión iniciada";
+"its_enabled" = "Ya está activado";
+
+/* Library and Navigation */
+"library" = "Biblioteca";
+"artists" = "Artistas";
+"albums" = "Álbumes";
+"search" = "Buscar";
+"browse" = "Explorar";
+"songs" = "Canciones";
+"processing" = "Procesando";
+"waiting" = "En espera";
+"and_more" = "... y %d más";
+
+/* Artist/Album/Track Info */
+"no_artists_found" = "No hay artistas";
+"artists_will_appear" = "Los artistas aparecerán aquí cuando añadas música a tu biblioteca";
+"no_albums_found" = "No hay álbumes";
+"albums_will_appear" = "Los álbumes aparecerán aquí cuando añadas música a tu biblioteca";
+"artist" = "Artista";
+"album" = "Álbum";
+"track_number" = "%d";
+"play" = "Reproducir";
+"shuffle" = "Aleatorio";
+"wrong_artist" = "¿Artista incorrecto?";
+"data_provided_by" = "Datos proporcionados por %@";
+"open_spotify" = "ABRIR SPOTIFY";
+"loading_artist" = "Cargando artista...";
+
+/* Player */
+"playing_queue" = "A continuación";
+"no_songs_in_queue" = "No hay canciones en la cola";
+"no_track_selected" = "Ninguna canción seleccionada";
+
+/* Search */
+"search_your_music_library" = "Busca en tu biblioteca de música";
+"find_songs_artists_albums_playlists" = "Encuentra canciones, artistas, álbumes y playlists";
+"no_results_found" = "No hay resultados";
+"try_different_keywords" = "Prueba con otras palabras clave";
+
+/* Context Menu Actions */
+"show_artist_page" = "Ver página del artista";
+"add_to_playlist_ellipsis" = "Añadir a una playlist...";
+"delete_file" = "Eliminar archivo";
+"delete_file_confirmation" = "¿Seguro que quieres eliminar “%@”? Esta acción no se puede deshacer.";
+
+/* Settings */
+"appearance" = "Apariencia";
+"information" = "Información";
+"minimalist_library_icons" = "Iconos minimalistas en la biblioteca";
+"force_dark_mode" = "Forzar modo oscuro";
+"version" = "Versión";
+"app_name" = "Nombre de la app";
+"cosmos_music_player" = "Cadence";
+"github_repository" = "Repositorio en GitHub";
+"use_simple_icons" = "Usa iconos sencillos sin fondo de color en las secciones de la biblioteca.";
+"override_system_appearance" = "Ignora la apariencia del sistema y usa siempre el modo oscuro en la app.";
+"background_color" = "Color de acentuación";
+"choose_color_theme" = "El color de los iconos, los resaltados y el indicador de reproducción.";
+"library_section" = "Biblioteca";
+"home_sections" = "Secciones de inicio";
+"choose_visible_sections" = "Elige qué secciones se muestran en la pantalla de inicio";
+"remove_from_library_only" = "Quitar solo de la biblioteca";
+"remove_from_library_only_description" = "Si está activado, al eliminar una canción solo se quita de la biblioteca. El archivo se conserva en el dispositivo.";
+"auto_folder_playlists" = "Crear playlists a partir de carpetas";
+"auto_folder_playlists_description" = "Si está activado, se crea automáticamente una playlist por cada carpeta de archivos de música, sincronizada con su contenido.";
+"delete_folder_playlists_title" = "¿Eliminar las playlists de carpetas?";
+"delete_folder_playlists_message" = "La creación automática ahora está desactivada. ¿Quieres eliminar las playlists de carpetas ya creadas? Tus archivos de música no se modificarán.";
+"delete_folder_playlists_confirm" = "Eliminar playlists";
+"keep_folder_playlists" = "Conservar playlists";
+"player_controls" = "Controles del reproductor";
+"show_lyrics_button" = "Mostrar botón de letra";
+"show_sleep_timer_button" = "Mostrar botón de temporizador";
+
+/* Liked Songs Actions */
+"add_to_liked_songs" = "Añadir a Canciones favoritas";
+"remove_from_liked_songs" = "Quitar de Canciones favoritas";
+
+/* Search Categories */
+"all" = "Todo";
+
+/* Sync and Connection */
+"library_out_of_sync" = "Biblioteca no sincronizada";
+"library_sync_message" = "Tu biblioteca de música no está sincronizada con iCloud. Es posible que algunas funciones no estén disponibles hasta que vuelvas a iniciar sesión.";
+"offline_mode" = "Modo sin conexión";
+"offline_mode_message" = "Sincronización con iCloud desactivada. Solo se usan los archivos de música de la carpeta Documentos.";
+"icloud_connection_required" = "Se requiere conexión con iCloud";
+
+/* Tutorial/Onboarding */
+"welcome_to_cosmos" = "Te damos la bienvenida a Cadence";
+"sign_in_to_apple_id" = "Inicia sesión con tu Cuenta de Apple";
+"sign_in_message" = "Para sincronizar tu música y tus favoritos entre dispositivos, asegúrate de haber iniciado sesión con tu Cuenta de Apple.";
+"if_signed_in_continue" = "Si ya tienes la sesión iniciada, puedes continuar";
+"enable_icloud_drive" = "Activa iCloud Drive";
+"icloud_drive_message" = "iCloud Drive te permite acceder a tus archivos de música desde cualquier dispositivo y mantiene tus favoritos sincronizados.";
+"if_icloud_enabled_continue" = "Si iCloud Drive está activado, puedes continuar";
+"add_your_music" = "Añade tu música";
+"how_to_add_music" = "Puedes añadir archivos de música a iCloud Drive (se sincronizan entre dispositivos) o localmente (solo en este dispositivo):";
+"open_files_app" = "Abre la app Archivos";
+"navigate_to_icloud_drive" = "Ve a iCloud Drive";
+"find_cosmos_player_folder" = "Busca la carpeta Cadence";
+"add_your_music_instruction" = "Añade tu música";
+
+/* Tutorial Status Messages */
+"signed_in_to_apple_id" = "Sesión iniciada con la Cuenta de Apple";
+"not_signed_in_to_apple_id" = "No hay sesión iniciada con la Cuenta de Apple";
+"cannot_detect_apple_id_status" = "No se puede detectar el estado de la Cuenta de Apple";
+"icloud_drive_enabled" = "iCloud Drive está activado";
+"icloud_drive_not_enabled" = "iCloud Drive no está activado";
+"cannot_detect_icloud_status" = "No se puede detectar el estado de iCloud Drive";
+
+/* Tutorial Instructions */
+"find_open_files_app" = "Busca y abre la app Archivos en tu dispositivo";
+"tap_icloud_drive_sidebar" = "Elige “iCloud Drive” o “En mi iPhone” en la barra lateral";
+"look_for_cosmos_folder" = "Busca la carpeta “Cadence” y ábrela";
+"copy_music_files" = "Copia tus archivos FLAC o MP3 en esta carpeta";
+
+/* Library Processing */
+"found_tracks" = "%d canciones encontradas";
+"processing_colon" = "🎵 Procesando:";
+"waiting_colon" = "⏳ En espera:";
+"percent_complete" = "%d%%";
+
+/* Subtitles and descriptions */
+"songs_count" = "%d canciones";
+"your_favorites" = "Tus favoritos";
+"your_playlists" = "Tus playlists";
+"browse_by_artist" = "Explorar por artista";
+"browse_by_album" = "Explorar por álbum";
+"unknown_album" = "Álbum desconocido";
+"unknown_artist" = "Artista desconocido";
+
+/* Sync result messages */
+"sync_no_new_tracks" = "No hay música nueva";
+"sync_one_new_track" = "1 canción nueva encontrada";
+"sync_multiple_new_tracks" = "%d canciones nuevas encontradas";
+"sync_one_track_deleted" = "1 canción eliminada";
+"sync_multiple_tracks_deleted" = "%d canciones eliminadas";
+"sync_no_changes" = "La biblioteca está actualizada";
+
+/* Equalizer strings */
+"equalizer" = "Ecualizador";
+"graphic_equalizer" = "Ecualizador gráfico";
+"enable_equalizer" = "Activar ecualizador";
+"enable_disable_eq_description" = "Activa o desactiva el ecualizador gráfico";
+
+/* Manual EQ Presets */
+"manual_eq_presets" = "Preajustes manuales de 16 bandas";
+"no_manual_presets_created" = "No hay preajustes manuales";
+"create_manual_eq_description" = "Crea un preajuste de ecualizador personalizado de 16 bandas con reguladores ajustables";
+"create_manual_16band_eq" = "Crear EQ manual de 16 bandas";
+"manual_16band_eq" = "EQ manual de 16 bandas";
+"manual_16band_description" = "Crea un ecualizador de 16 bandas con frecuencias ISO estándar que puedes ajustar manualmente";
+"adjust_bands_after_creation" = "Podrás ajustar todas las bandas de frecuencia después de crearlo";
+"frequency_bands" = "Bandas de frecuencia";
+"edit_equalizer" = "Editar ecualizador";
+"reset_to_flat" = "Restablecer a plano";
+
+/* Imported GraphicEQ Presets */
+"imported_presets" = "Preajustes importados";
+"no_presets_imported" = "No hay preajustes importados";
+"import_graphiceq_description" = "Importa archivos .txt de GraphicEQ para empezar";
+"imported_graphiceq" = "GraphicEQ importado";
+"import_graphiceq_file" = "Importar archivo GraphicEQ";
+
+/* General EQ Settings */
+"global_settings" = "Ajustes generales";
+"global_gain" = "Ganancia global";
+"global_gain_description" = "Ajusta el nivel de volumen general después del procesamiento de EQ";
+"about_graphiceq_format" = "Acerca del formato GraphicEQ";
+"import_graphiceq_format_description" = "Importa archivos .txt de GraphicEQ con este formato:";
+"frequency_gain_pair_description" = "Cada par representa la frecuencia (Hz) y la ganancia (dB)";
+"delete" = "Eliminar";
+"export" = "Exportar";
+"edit" = "Editar";
+"cancel" = "Cancelar";
+"done" = "OK";
+"save" = "Guardar";
+"create" = "Crear";
+"preset_info" = "Información del preajuste";
+
+/* GraphicEQ Import View */
+"import_graphiceq" = "Importar GraphicEQ";
+"preset_name" = "Nombre del preajuste";
+"enter_preset_name" = "Escribe el nombre del preajuste";
+"import_methods" = "Métodos de importación";
+"import_from_txt_file" = "Importar desde archivo .txt";
+"paste_graphiceq_text" = "Pegar texto de GraphicEQ";
+"error" = "Error";
+"format_info" = "Información del formato";
+"expected_graphiceq_format" = "Formato GraphicEQ esperado:";
+"frequency_gain_pair" = "Cada par: frecuencia (Hz) ganancia (dB)";
+
+/* Text Import View */
+"paste_graphiceq" = "Pegar GraphicEQ";
+"paste_graphiceq_text_section" = "Pegar texto de GraphicEQ";
+"example" = "Ejemplo";
+"import" = "Importar";
+
+/* Error Messages */
+"failed_to_import" = "Error al importar: %@";
+"file_import_failed" = "Error al importar el archivo: %@";
+"failed_to_create" = "Error al crear: %@";
+"failed_to_export" = "Error al exportar el preajuste";
+"failed_to_delete" = "Error al eliminar el preajuste";
+
+/* EQ Band Information */
+"band_count_info" = "%d bandas (reducidas de %d)";
+"bands_reduced_description" = "Tu GraphicEQ tiene más bandas de las que admite iOS. El sistema adapta de forma inteligente tus %d bandas a %d bandas promediando las frecuencias.";
+"bands_limited_warning" = "⚠️ GraphicEQ reducido de %d a %d bandas (límite de iOS)";
+
+/* Audio Settings */
+"audio_settings" = "Audio";
+"dsd_playback_mode" = "Modo de reproducción DSD";
+"dsd_playback_mode_description" = "Elige cómo se reproducen los archivos de audio DSD (DSF/DFF)";
+"dsd_mode_auto" = "Auto";
+"dsd_mode_pcm" = "PCM";
+"dsd_mode_dop" = "DoP";
+"dsd_mode_auto_description" = "Convierte a PCM por seguridad, ya que iOS no puede comprobar si una salida admite DoP; elige DoP manualmente solo con un DAC compatible";
+"dsd_mode_pcm_description" = "Convierte siempre DSD a PCM para reproducirlo (compatible con todos los dispositivos)";
+"dsd_mode_dop_description" = "Usa siempre la codificación DoP (requiere un DAC externo compatible con DSD)";
+
+/* Sort Options */
+"sort_date_newest" = "Fecha de adición (más reciente)";
+"sort_date_oldest" = "Fecha de adición (más antigua)";
+"sort_name_az" = "Nombre (A-Z)";
+"sort_name_za" = "Nombre (Z-A)";
+"sort_size_largest" = "Tamaño (más grande)";
+"sort_size_smallest" = "Tamaño (más pequeño)";
+
+/* Queue Actions */
+"play_next" = "Reproducir a continuación";
+"add_to_queue" = "Añadir a la cola";
+
+/* Sleep Timer */
+"sleep_timer" = "Temporizador";
+"sleep_timer_off" = "Temporizador desactivado";
+"sleep_timer_15_minutes" = "15 minutos";
+"sleep_timer_30_minutes" = "30 minutos";
+"sleep_timer_45_minutes" = "45 minutos";
+"sleep_timer_60_minutes" = "60 minutos";
+"cancel_sleep_timer" = "Cancelar temporizador";
+
+/* Bulk Selection */
+"select" = "Seleccionar";
+"select_all" = "Seleccionar todo";
+"bulk_actions" = "Acciones";
+"add_to_liked" = "Añadir a favoritos";
+"remove_from_liked" = "Quitar de favoritos";
+"delete_files" = "Eliminar archivos";
+"delete_files_confirmation" = "Eliminar archivos";
+"selected_count_singular" = "%d seleccionado";
+"selected_count_plural" = "%d seleccionados";
+"delete_files_confirmation_message" = "¿Seguro que quieres eliminar %d archivo(s)? Esta acción no se puede deshacer.";
+
+/* ============================================================
+   App Intents (Siri / Shortcuts) — added in the Siri
+   modernization pass. Keys are the English source strings.
+   ============================================================ */
+
+/* Intent titles & descriptions */
+"Resume Playback" = "Reanudar reproducción";
+"Resumes playing your music where you left off." = "Reanuda tu música donde la dejaste.";
+"Audio" = "Audio";
+"Play Music" = "Reproducir música";
+"Plays a song, album, artist or playlist from your Cadence library." = "Reproduce una canción, un álbum, un artista o una playlist de tu biblioteca de Cadence.";
+"Playback" = "Reproducción";
+"Add to Playlist" = "Añadir a una playlist";
+"Generate Mix" = "Generar mix";
+"Builds a mix from your Cadence library matching a mood or description and starts playing it." = "Crea un mix con canciones de tu biblioteca de Cadence según un estado de ánimo o una descripción, y empieza a reproducirlo.";
+"Toggle Favorite" = "Alternar favorito";
+"Favorite Current Song" = "Marcar canción actual como favorita";
+"Adds the currently playing Cadence song to Liked Songs." = "Añade la canción que se está reproduciendo en Cadence a Canciones favoritas.";
+"%@ is already in your Liked Songs." = "%@ ya está en tus Canciones favoritas.";
+"Added %@ to your Liked Songs." = "%@ ahora está en tus Canciones favoritas.";
+"There isn't a song playing in Cadence right now." = "Ahora mismo no se está reproduciendo ninguna canción en Cadence.";
+"Add to Queue" = "Añadir a la cola";
+"Play Playlist" = "Reproducir playlist";
+"Save Mix as Playlist" = "Guardar mix como playlist";
+"Song Card" = "Tarjeta de canción";
+"Playlist Card" = "Tarjeta de playlist";
+"Mix Card" = "Tarjeta de mix";
+
+/* Parameter titles & prompts */
+"Track" = "Canción";
+"Play Next" = "Reproducir a continuación";
+"Playlist" = "Playlist";
+"Description" = "Descripción";
+"What kind of mix do you want?" = "¿Qué tipo de mix quieres?";
+
+/* Dialogs */
+"Added %@ to your favorites." = "%@ ahora está en tus favoritos.";
+"Removed %@ from your favorites." = "%@ ya no está en tus favoritos.";
+"Added %@ to %@." = "%1$@ ahora está en %2$@.";
+"Added" = "Añadido";
+"Playing your mix: %@." = "Reproduciendo tu mix: %@.";
+"Now playing" = "En reproducción";
+
+/* Errors */
+"There's no music in your Cadence library yet." = "Todavía no hay música en tu biblioteca de Cadence.";
+"No matching music was found in your library." = "No hay música en tu biblioteca que coincida.";
+"You can only take that action on individual songs." = "Esa acción solo está disponible para canciones individuales.";
+"That song is already in this playlist." = "Esa canción ya está en esta playlist.";
+"Playback failed. Please try again in the app." = "Error de reproducción. Vuelve a intentarlo en la app.";
+"Your library is empty, so there's nothing to build a mix from." = "Tu biblioteca está vacía, así que no hay canciones para crear un mix.";
+"That mix isn't available anymore. Ask for a new one." = "Ese mix ya no está disponible. Pide uno nuevo.";
+
+/* Enum case labels */
+"Shuffle" = "Aleatorio";
+"Repeat" = "Repetir";
+"Next" = "A continuación";
+"Last" = "Al final";
+"Like" = "Me gusta";
+"Dislike" = "No me gusta";
+"Unset" = "Sin definir";
+
+/* Entity display representations */
+"%@ by %@" = "%1$@ de %2$@";
+"album %@" = "álbum %@";
+"%@ playlist" = "lista de reproducción %@";
+"playlist %@" = "playlist %@";
+"^[%lld song](inflect: true)" = "^[%lld canción](inflect: true)";
+"Warmup Audio Queue Result" = "Resultado de preparación de la cola de audio";
+
+/* Snippet cards */
+"Play next" = "Reproducir a continuación";
+"Add to queue" = "Añadir a la cola";
+"Remove from favorites" = "Quitar de favoritos";
+"Add to favorites" = "Añadir a favoritos";
+"Play playlist" = "Reproducir playlist";
+"^[%lld song](inflect: true) · %lld min" = "^[%lld canción](inflect: true) · %lld min";
+"Saved" = "Guardado";
+"Save" = "Guardar";
+"Save mix as playlist" = "Guardar mix como playlist";
+
+/* AI playlist generation (in-app) */
+"ai_playlist_title" = "Playlist con IA";
+"ai_playlist_description" = "Describe la playlist que quieres: la IA del dispositivo elige las canciones adecuadas de tu biblioteca.";
+"ai_playlist_placeholder" = "Noche tranquila, entrenamiento intenso, un artista…";
+"ai_playlist_generate" = "Generar";
+"ai_playlist_generating" = "Generando…";
+"ai_playlist_failed" = "No se puede generar una playlist. Prueba con otra descripción.";
+"ai_playlist_button" = "Crear playlist con IA";
+
+"ai_playlist_created_title" = "Playlist creada";
+"ai_playlist_created_message" = "“%@” tiene %d canciones.";
+
+/* In-place search bars and queue navigation */
+"search_songs" = "Buscar canciones, artistas, álbumes";
+"search_artists" = "Buscar artistas";
+"search_albums" = "Buscar álbumes";
+"search_playlists" = "Buscar playlists";
+
+/* Library scan interval and album-artist browsing */
+"album_artists" = "Artistas del álbum";
+"all_artists" = "Todos los artistas";
+"library_scan_frequency" = "Escaneo automático";
+"library_scan_frequency_description" = "Con qué frecuencia Cadence vuelve a escanear tus archivos al abrirse. iOS suele cerrar la app en segundo plano, así que un intervalo corto implica un escaneo completo casi cada vez que la abres. El botón de sincronizar siempre vuelve a escanear al instante.";
+"checking_library_formats" = "Comprobando formatos de audio…";
+"scan_every_launch" = "Cada vez que se abre";
+"scan_hourly" = "Como máximo cada hora";
+"scan_daily" = "Como máximo una vez al día";
+"scan_weekly" = "Como máximo una vez a la semana";
+"scan_manual_only" = "Solo manual";
+
+/* Playback failures the user can act on */
+"playback_track_unavailable" = "No se puede reproducir esta canción. Es posible que el archivo se haya movido o eliminado.";
+"playback_download_stalled" = "La descarga está detenida. Comprueba la conexión y vuelve a intentarlo.";
+"playback_audio_unavailable" = "La salida de audio no está disponible temporalmente. Comprueba la conexión y vuelve a intentarlo.";
+"playback_format_needs_phone" = "Este formato no se puede reproducir en CarPlay. Reprodúcelo desde tu teléfono o elige otra canción.";
+
+/* Lyrics screen */
+"lyrics" = "Letra";
+"close" = "Cerrar";
+"lyrics_copy" = "Copiar letra";
+"lyrics_more_actions" = "Más acciones de la letra";
+"lyrics_seek_hint" = "Reproduce la canción desde esta línea";
+"lyrics_back_to_current" = "Volver a la línea actual";
+"lyrics_instrumental_break" = "Interludio instrumental";
+"lyrics_instrumental" = "Instrumental";
+"lyrics_instrumental_message" = "Esta canción no tiene letra";
+"lyrics_unavailable" = "Letra no disponible";
+"lyrics_unavailable_message" = "No hay letra para esta canción";
+"lyrics_loading" = "Cargando letra";
+"lyrics_loading_message" = "Buscando en los metadatos y en fuentes en línea";
+"lyrics_search_again" = "Volver a buscar";
+
+/* App appearance */
+"app_appearance" = "Apariencia de la app";
+"app_appearance_description" = "Elige el aspecto de Cadence o usa el ajuste del dispositivo.";
+"appearance_system" = "Sistema";
+"appearance_light" = "Claro";
+"appearance_dark" = "Oscuro";
+"lyrics_choose_version" = "Elegir versión";
+"lyrics_synced" = "Sincronizada";
+"queue_full_list_from_search" = "Poner en cola toda la lista al buscar";
+"queue_full_list_from_search_description" = "Al reproducir una canción encontrada en una búsqueda, añade a la cola toda la lista de la que procede, no solo los resultados.";
+"split_artists_on_comma" = "Separar artistas por comas";
+"split_artists_on_comma_description" = "Trata “A, B” en la etiqueta de artista como dos artistas. Desactivado de forma predeterminada, porque las comas también aparecen en nombres reales como “Earth, Wind & Fire”.";
+
+/* Additional interface localization */
+"playlist_cover" = "Portada de la playlist";
+"change_cover_image" = "Cambiar imagen de portada";
+"remove_custom_cover" = "Quitar portada personalizada";
+"unknown" = "Desconocido";
+"searching" = "Buscando…";
+"albums_count_singular" = "%d álbum";
+"albums_count_plural" = "%d álbumes";
+"disc_number" = "Disco %d";
+"imported_song_count_singular" = "%d canción importada";
+"imported_song_count_plural" = "%d canciones importadas";
+"songs_already_in_library" = "%d ya en la biblioteca";
+"import_summary" = "%d importadas, %d omitidas";
+"setting_up_icloud_library" = "Configurando tu biblioteca de música de iCloud…";
+"setting_up_offline_library" = "Configurando tu biblioteca de música sin conexión…";
+"setting_up_local_library" = "Configurando tu biblioteca de música local…";
+"manual_parametric_eq" = "EQ paramétrico manual";
+"create_manual_eq" = "Crear EQ manual";
+"bands" = "Bandas";
+"create_parametric_eq_description" = "Crea un preajuste de EQ paramétrico con hasta 16 bandas totalmente editables.";
+"edit_parametric_bands_description" = "Después de crearlo, puedes editar la frecuencia, la ganancia y el factor Q de cada banda.";
+"parametric_editor" = "Editor paramétrico";
+"band_count" = "%d / %d bandas";
+"add_band" = "Añadir banda";
+"remove_band" = "Quitar banda";
+"selected_band" = "Banda seleccionada";
+"band_number" = "Banda %d";
+"frequency" = "Frecuencia";
+"gain" = "Ganancia";
+"sort_manual_order" = "Orden manual";
+"sort_artist_az" = "Artista A–Z";
+"sort_artist_za" = "Artista Z–A";
+
+/* Player controls */
+"pause" = "Pausa";
+"next_track" = "Canción siguiente";
+"previous_track" = "Canción anterior";
+"sync_library" = "Sincronizar biblioteca";
+"recently_added" = "Añadido recientemente";
+"based_on_cosmos" = "Basado en Cosmos Music Player";

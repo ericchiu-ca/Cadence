@@ -1,0 +1,480 @@
+/* Playlist related strings */
+"playlists" = "プレイリスト";
+"no_playlists_yet" = "プレイリストはまだありません";
+"create_playlists_instruction" = "ライブラリから曲を追加して、プレイリストを作成できます";
+"add_to_playlist" = "プレイリストに追加";
+"create_new_playlist" = "新規プレイリストを作成";
+"create_playlist" = "プレイリストを作成";
+"playlist_name_placeholder" = "プレイリスト名";
+"enter_playlist_name" = "新しいプレイリストの名前を入力してください";
+"delete_playlist" = "プレイリストを削除";
+"delete_playlist_confirmation" = "「%@」を削除してもよろしいですか？この操作は取り消せません。";
+"delete" = "削除";
+"cancel" = "キャンセル";
+"create" = "作成";
+"done" = "完了";
+"edit" = "編集";
+"edit_playlist" = "プレイリストを編集";
+"save" = "保存";
+"enter_new_name" = "プレイリストの新しい名前を入力してください";
+"manage_playlists" = "プレイリストを管理";
+"playlist" = "プレイリスト";
+"songs_count_singular" = "%d曲";
+"songs_count_plural" = "%d曲";
+"created_date" = "作成日：%@";
+"no_songs_found" = "曲が見つかりません";
+"your_music_will_appear_here" = "音楽を追加するには：\n\n1. ファイル App を開きます（または「ファイルを開く」をタップ）\n2. 次のどちらかを選びます：\n   • iCloud Drive → Cadence フォルダ\n   • このiPhone内 → Cadence\n3. どちらかの場所に音楽ファイルをドラッグします";
+"create_first_playlist" = "最初のプレイリストを作成してみましょう";
+
+/* General UI strings */
+"all_songs" = "すべての曲";
+"liked_songs" = "お気に入りの曲";
+"add_songs" = "ファイルを開く";
+"import_music_files" = "音楽ファイルを読み込む";
+"ok" = "OK";
+"settings" = "設定";
+"retry" = "再試行";
+"open_settings" = "設定を開く";
+"continue" = "続ける";
+"back" = "戻る";
+"get_started" = "はじめる";
+"im_signed_in" = "サインインしました";
+"its_enabled" = "オンにしました";
+
+/* Library and Navigation */
+"library" = "ライブラリ";
+"artists" = "アーティスト";
+"albums" = "アルバム";
+"search" = "検索";
+"browse" = "ブラウズ";
+"songs" = "曲";
+"processing" = "処理中";
+"waiting" = "待機中";
+"and_more" = "…ほか%d件";
+
+/* Artist/Album/Track Info */
+"no_artists_found" = "アーティストが見つかりません";
+"artists_will_appear" = "ライブラリに音楽を追加すると、ここにアーティストが表示されます";
+"no_albums_found" = "アルバムが見つかりません";
+"albums_will_appear" = "ライブラリに音楽を追加すると、ここにアルバムが表示されます";
+"artist" = "アーティスト";
+"album" = "アルバム";
+"track_number" = "%d";
+"play" = "再生";
+"shuffle" = "シャッフル";
+"wrong_artist" = "アーティストが違いますか？";
+"data_provided_by" = "データ提供：%@";
+"open_spotify" = "SPOTIFY を開く";
+"loading_artist" = "アーティストを読み込み中…";
+
+/* Player */
+"playing_queue" = "再生キュー";
+"no_songs_in_queue" = "再生キューに曲がありません";
+"no_track_selected" = "曲が選択されていません";
+
+/* Search */
+"search_your_music_library" = "ミュージックライブラリを検索";
+"find_songs_artists_albums_playlists" = "曲、アーティスト、アルバム、プレイリストを検索できます";
+"no_results_found" = "結果が見つかりません";
+"try_different_keywords" = "別のキーワードで検索してみてください";
+
+/* Context Menu Actions */
+"show_artist_page" = "アーティストのページを表示";
+"add_to_playlist_ellipsis" = "プレイリストに追加…";
+"delete_file" = "ファイルを削除";
+"delete_file_confirmation" = "「%@」を削除してもよろしいですか？この操作は取り消せません。";
+
+/* Settings */
+"appearance" = "外観";
+"information" = "情報";
+"minimalist_library_icons" = "シンプルなライブラリアイコン";
+"force_dark_mode" = "常にダークモード";
+"version" = "バージョン";
+"app_name" = "App 名";
+"cosmos_music_player" = "Cadence";
+"github_repository" = "GitHub リポジトリ";
+"use_simple_icons" = "ライブラリの各セクションで、色付きの背景がないシンプルなアイコンを使用します。";
+"override_system_appearance" = "システムの外観設定に関係なく、App を常にダークモードで表示します。";
+"background_color" = "アクセントカラー";
+"choose_color_theme" = "アイコン、ハイライト、再生中マークに使用される色です。";
+"library_section" = "ライブラリ";
+"home_sections" = "ホームのセクション";
+"choose_visible_sections" = "ホームに表示するセクションを選択します";
+"remove_from_library_only" = "ライブラリからのみ削除";
+"remove_from_library_only_description" = "オンにすると、曲を削除してもライブラリから取り除かれるだけで、ファイル自体はストレージに残ります。";
+"auto_folder_playlists" = "フォルダからプレイリストを自動作成";
+"auto_folder_playlists_description" = "オンにすると、音楽ファイルのフォルダごとにプレイリストが自動的に作成され、フォルダの内容と同期されます。";
+"delete_folder_playlists_title" = "フォルダのプレイリストを削除しますか？";
+"delete_folder_playlists_message" = "自動作成をオフにしました。すでに作成されたフォルダのプレイリストを削除しますか？音楽ファイルには影響しません。";
+"delete_folder_playlists_confirm" = "プレイリストを削除";
+"keep_folder_playlists" = "プレイリストを残す";
+"player_controls" = "プレーヤーのコントロール";
+"show_lyrics_button" = "歌詞ボタンを表示";
+"show_sleep_timer_button" = "スリープタイマーボタンを表示";
+
+/* Liked Songs Actions */
+"add_to_liked_songs" = "お気に入りの曲に追加";
+"remove_from_liked_songs" = "お気に入りの曲から削除";
+
+/* Search Categories */
+"all" = "すべて";
+
+/* Sync and Connection */
+"library_out_of_sync" = "ライブラリが同期されていません";
+"library_sync_message" = "ミュージックライブラリが現在 iCloud と同期されていません。再度サインインするまで、一部の機能が使用できない場合があります。";
+"offline_mode" = "オフラインモード";
+"offline_mode_message" = "iCloud 同期はオフです。このデバイス内の音楽ファイルのみを使用します。";
+"icloud_connection_required" = "iCloud への接続が必要です";
+
+/* Tutorial/Onboarding */
+"welcome_to_cosmos" = "Cadence へようこそ";
+"sign_in_to_apple_id" = "Apple ID にサインイン";
+"sign_in_message" = "音楽とお気に入りをデバイス間で同期するには、Apple ID にサインインしていることを確認してください。";
+"if_signed_in_continue" = "サインイン済みの場合は、そのまま続けられます";
+"enable_icloud_drive" = "iCloud Drive をオンにする";
+"icloud_drive_message" = "iCloud Drive を使うと、どのデバイスからでも音楽ファイルにアクセスでき、お気に入りも同期されます。";
+"if_icloud_enabled_continue" = "iCloud Drive がオンの場合は、そのまま続けられます";
+"add_your_music" = "音楽を追加";
+"how_to_add_music" = "音楽ファイルは、iCloud Drive（デバイス間で同期）またはローカル（このデバイスのみ）のどちらかに追加できます：";
+"open_files_app" = "ファイル App を開く";
+"navigate_to_icloud_drive" = "iCloud Drive に移動";
+"find_cosmos_player_folder" = "Cadence フォルダを探す";
+"add_your_music_instruction" = "音楽を追加";
+
+/* Tutorial Status Messages */
+"signed_in_to_apple_id" = "Apple ID にサインインしています";
+"not_signed_in_to_apple_id" = "Apple ID にサインインしていません";
+"cannot_detect_apple_id_status" = "Apple ID の状態を確認できません";
+"icloud_drive_enabled" = "iCloud Drive はオンです";
+"icloud_drive_not_enabled" = "iCloud Drive はオフです";
+"cannot_detect_icloud_status" = "iCloud Drive の状態を確認できません";
+
+/* Tutorial Instructions */
+"find_open_files_app" = "デバイスでファイル App を探して開きます";
+"tap_icloud_drive_sidebar" = "サイドバーで「iCloud Drive」または「このiPhone内」を選択します";
+"look_for_cosmos_folder" = "「Cadence」フォルダを探して開きます";
+"copy_music_files" = "FLAC や MP3 のファイルをこのフォルダにコピーします";
+
+/* Library Processing */
+"found_tracks" = "%d曲が見つかりました";
+"processing_colon" = "🎵 処理中：";
+"waiting_colon" = "⏳ 待機中：";
+"percent_complete" = "%d%%";
+
+/* Subtitles and descriptions */
+"songs_count" = "%d曲";
+"your_favorites" = "お気に入り";
+"your_playlists" = "自分のプレイリスト";
+"browse_by_artist" = "アーティスト別に表示";
+"browse_by_album" = "アルバム別に表示";
+"unknown_album" = "不明なアルバム";
+"unknown_artist" = "不明なアーティスト";
+
+/* Sync result messages */
+"sync_no_new_tracks" = "新しい音楽は見つかりませんでした";
+"sync_one_new_track" = "新しい曲が1曲見つかりました";
+"sync_multiple_new_tracks" = "新しい曲が%d曲見つかりました";
+"sync_one_track_deleted" = "1曲を削除しました";
+"sync_multiple_tracks_deleted" = "%d曲を削除しました";
+"sync_no_changes" = "ライブラリは最新の状態です";
+
+/* Equalizer strings */
+"equalizer" = "イコライザ";
+"graphic_equalizer" = "グラフィックイコライザ";
+"enable_equalizer" = "イコライザを使用";
+"enable_disable_eq_description" = "グラフィックイコライザのオン／オフを切り替えます";
+
+/* Manual EQ Presets */
+"manual_eq_presets" = "手動16バンドプリセット";
+"no_manual_presets_created" = "手動プリセットはまだありません";
+"create_manual_eq_description" = "スライダーで調整できる、カスタムの16バンドイコライザプリセットを作成します";
+"create_manual_16band_eq" = "手動16バンド EQ を作成";
+"manual_16band_eq" = "手動16バンド EQ";
+"manual_16band_description" = "標準の ISO 周波数を使った16バンドイコライザを作成し、手動で調整できます";
+"adjust_bands_after_creation" = "作成後にすべての周波数バンドを調整できます";
+"frequency_bands" = "周波数バンド";
+"edit_equalizer" = "イコライザを編集";
+"reset_to_flat" = "フラットにリセット";
+
+/* Imported GraphicEQ Presets */
+"imported_presets" = "読み込んだプリセット";
+"no_presets_imported" = "読み込んだプリセットはありません";
+"import_graphiceq_description" = "GraphicEQ の .txt ファイルを読み込んで始めましょう";
+"imported_graphiceq" = "読み込んだ GraphicEQ";
+"import_graphiceq_file" = "GraphicEQ ファイルを読み込む";
+
+/* General EQ Settings */
+"global_settings" = "全体設定";
+"global_gain" = "全体ゲイン";
+"global_gain_description" = "EQ 処理後の全体の音量レベルを調整します";
+"about_graphiceq_format" = "GraphicEQ 形式について";
+"import_graphiceq_format_description" = "次の形式の GraphicEQ .txt ファイルを読み込めます：";
+"frequency_gain_pair_description" = "各ペアは周波数（Hz）とゲイン（dB）を表します";
+"delete" = "削除";
+"export" = "書き出す";
+"edit" = "編集";
+"cancel" = "キャンセル";
+"done" = "完了";
+"save" = "保存";
+"create" = "作成";
+"preset_info" = "プリセット情報";
+
+/* GraphicEQ Import View */
+"import_graphiceq" = "GraphicEQ を読み込む";
+"preset_name" = "プリセット名";
+"enter_preset_name" = "プリセット名を入力";
+"import_methods" = "読み込み方法";
+"import_from_txt_file" = ".txt ファイルから読み込む";
+"paste_graphiceq_text" = "GraphicEQ テキストをペースト";
+"error" = "エラー";
+"format_info" = "形式について";
+"expected_graphiceq_format" = "対応する GraphicEQ 形式：";
+"frequency_gain_pair" = "各ペア：周波数（Hz） ゲイン（dB）";
+
+/* Text Import View */
+"paste_graphiceq" = "GraphicEQ をペースト";
+"paste_graphiceq_text_section" = "GraphicEQ テキストをペースト";
+"example" = "例";
+"import" = "読み込む";
+
+/* Error Messages */
+"failed_to_import" = "読み込めませんでした：%@";
+"file_import_failed" = "ファイルを読み込めませんでした：%@";
+"failed_to_create" = "作成できませんでした：%@";
+"failed_to_export" = "プリセットを書き出せませんでした";
+"failed_to_delete" = "プリセットを削除できませんでした";
+
+/* EQ Band Information */
+"band_count_info" = "%dバンド（%dバンドから削減）";
+"bands_reduced_description" = "この GraphicEQ のバンド数は iOS の上限を超えています。周波数の平均化により、%dバンドを%dバンドに自動的に割り当てます。";
+"bands_limited_warning" = "⚠️ GraphicEQ を%dバンドから%dバンドに削減しました（iOS の制限）";
+
+/* Audio Settings */
+"audio_settings" = "オーディオ";
+"dsd_playback_mode" = "DSD 再生モード";
+"dsd_playback_mode_description" = "DSD オーディオファイル（DSF/DFF）の再生方法を選択します";
+"dsd_mode_auto" = "自動";
+"dsd_mode_pcm" = "PCM";
+"dsd_mode_dop" = "DoP";
+"dsd_mode_auto_description" = "iOS では出力先が DoP に対応しているか確認できないため、安全に PCM へ変換します。DoP は対応する DAC を使う場合にのみ選択してください";
+"dsd_mode_pcm_description" = "常に DSD を PCM に変換して再生します（すべてのデバイスに対応）";
+"dsd_mode_dop_description" = "常に DoP エンコードを使用します（DSD 対応の外部 DAC が必要です）";
+
+/* Sort Options */
+"sort_date_newest" = "追加日（新しい順）";
+"sort_date_oldest" = "追加日（古い順）";
+"sort_name_az" = "名前（A-Z）";
+"sort_name_za" = "名前（Z-A）";
+"sort_size_largest" = "サイズ（大きい順）";
+"sort_size_smallest" = "サイズ（小さい順）";
+
+/* Queue Actions */
+"play_next" = "次に再生";
+"add_to_queue" = "再生キューに追加";
+
+/* Sleep Timer */
+"sleep_timer" = "スリープタイマー";
+"sleep_timer_off" = "スリープタイマーはオフ";
+"sleep_timer_15_minutes" = "15分";
+"sleep_timer_30_minutes" = "30分";
+"sleep_timer_45_minutes" = "45分";
+"sleep_timer_60_minutes" = "60分";
+"cancel_sleep_timer" = "スリープタイマーをキャンセル";
+
+/* Bulk Selection */
+"select" = "選択";
+"select_all" = "すべてを選択";
+"bulk_actions" = "アクション";
+"add_to_liked" = "お気に入りに追加";
+"remove_from_liked" = "お気に入りから削除";
+"delete_files" = "ファイルを削除";
+"delete_files_confirmation" = "ファイルを削除";
+"selected_count_singular" = "%d項目を選択中";
+"selected_count_plural" = "%d項目を選択中";
+"delete_files_confirmation_message" = "%d個のファイルを削除してもよろしいですか？この操作は取り消せません。";
+
+/* ============================================================
+   App Intents (Siri / Shortcuts) — added in the Siri
+   modernization pass. Keys are the English source strings.
+   ============================================================ */
+
+/* Intent titles & descriptions */
+"Resume Playback" = "再生を再開";
+"Resumes playing your music where you left off." = "前回停止したところから音楽の再生を再開します。";
+"Audio" = "オーディオ";
+"Play Music" = "音楽を再生";
+"Plays a song, album, artist or playlist from your Cadence library." = "Cadence ライブラリの曲、アルバム、アーティスト、またはプレイリストを再生します。";
+"Playback" = "再生";
+"Add to Playlist" = "プレイリストに追加";
+"Generate Mix" = "ミックスを生成";
+"Builds a mix from your Cadence library matching a mood or description and starts playing it." = "気分や説明に合ったミックスを Cadence ライブラリから作成し、再生を開始します。";
+"Toggle Favorite" = "お気に入りを切り替える";
+"Favorite Current Song" = "再生中の曲をお気に入りに追加";
+"Adds the currently playing Cadence song to Liked Songs." = "Cadence で再生中の曲を“お気に入りの曲”に追加します。";
+"%@ is already in your Liked Songs." = "「%@」はすでに“お気に入りの曲”にあります。";
+"Added %@ to your Liked Songs." = "「%@」を“お気に入りの曲”に追加しました。";
+"There isn't a song playing in Cadence right now." = "現在、Cadence で再生中の曲はありません。";
+"Add to Queue" = "再生キューに追加";
+"Play Playlist" = "プレイリストを再生";
+"Save Mix as Playlist" = "ミックスをプレイリストとして保存";
+"Song Card" = "曲カード";
+"Playlist Card" = "プレイリストカード";
+"Mix Card" = "ミックスカード";
+
+/* Parameter titles & prompts */
+"Track" = "曲";
+"Play Next" = "次に再生";
+"Playlist" = "プレイリスト";
+"Description" = "説明";
+"What kind of mix do you want?" = "どんなミックスにしますか？";
+
+/* Dialogs */
+"Added %@ to your favorites." = "「%@」をお気に入りに追加しました。";
+"Removed %@ from your favorites." = "「%@」をお気に入りから削除しました。";
+"Added %@ to %@." = "「%1$@」を「%2$@」に追加しました。";
+"Added" = "追加しました";
+"Playing your mix: %@." = "ミックスを再生中：%@。";
+"Now playing" = "再生中";
+
+/* Errors */
+"There's no music in your Cadence library yet." = "Cadence ライブラリにはまだ音楽がありません。";
+"No matching music was found in your library." = "ライブラリに一致する音楽が見つかりませんでした。";
+"You can only take that action on individual songs." = "この操作は個々の曲に対してのみ実行できます。";
+"That song is already in this playlist." = "この曲はすでにこのプレイリストにあります。";
+"Playback failed. Please try again in the app." = "再生できませんでした。App でもう一度お試しください。";
+"Your library is empty, so there's nothing to build a mix from." = "ライブラリが空のため、ミックスを作成できません。";
+"That mix isn't available anymore. Ask for a new one." = "このミックスは利用できなくなりました。新しいミックスをリクエストしてください。";
+
+/* Enum case labels */
+"Shuffle" = "シャッフル";
+"Repeat" = "リピート";
+"Next" = "次";
+"Last" = "最後";
+"Like" = "好き";
+"Dislike" = "好きではない";
+"Unset" = "未設定";
+
+/* Entity display representations */
+"%@ by %@" = "%2$@の%1$@";
+"album %@" = "アルバム%@";
+"%@ playlist" = "%@プレイリスト";
+"playlist %@" = "プレイリスト%@";
+"^[%lld song](inflect: true)" = "%lld曲";
+"Warmup Audio Queue Result" = "オーディオキューの準備結果";
+
+/* Snippet cards */
+"Play next" = "次に再生";
+"Add to queue" = "再生キューに追加";
+"Remove from favorites" = "お気に入りから削除";
+"Add to favorites" = "お気に入りに追加";
+"Play playlist" = "プレイリストを再生";
+"^[%lld song](inflect: true) · %lld min" = "%lld曲 · %lld分";
+"Saved" = "保存済み";
+"Save" = "保存";
+"Save mix as playlist" = "ミックスをプレイリストとして保存";
+
+/* AI playlist generation (in-app) */
+"ai_playlist_title" = "AI プレイリスト";
+"ai_playlist_description" = "聴きたいプレイリストを言葉で説明すると、デバイス上の AI がライブラリから合う曲を選びます。";
+"ai_playlist_placeholder" = "落ち着いた夜、アップテンポなワークアウト、アーティスト名…";
+"ai_playlist_generate" = "生成";
+"ai_playlist_generating" = "生成中…";
+"ai_playlist_failed" = "プレイリストを生成できませんでした。別の説明でお試しください。";
+"ai_playlist_button" = "AI でプレイリストを作成";
+
+"ai_playlist_created_title" = "プレイリストを作成しました";
+"ai_playlist_created_message" = "「%@」を作成しました（%d曲）。";
+
+/* In-place search bars and queue navigation */
+"search_songs" = "曲、アーティスト、アルバムを検索";
+"search_artists" = "アーティストを検索";
+"search_albums" = "アルバムを検索";
+"search_playlists" = "プレイリストを検索";
+
+/* Library scan interval and album-artist browsing */
+"album_artists" = "アルバムアーティスト";
+"all_artists" = "すべてのアーティスト";
+"library_scan_frequency" = "自動スキャン";
+"library_scan_frequency_description" = "Cadence の起動時にファイルを再スキャンする頻度です。iOS はバックグラウンドの App をよく終了させるため、間隔が短いとほぼ毎回の起動時にフルスキャンが行われます。同期ボタンを使えば、いつでもすぐに再スキャンできます。";
+"checking_library_formats" = "オーディオフォーマットを確認中…";
+"scan_every_launch" = "起動するたび";
+"scan_hourly" = "最大1時間に1回";
+"scan_daily" = "最大1日に1回";
+"scan_weekly" = "最大1週間に1回";
+"scan_manual_only" = "手動のみ";
+
+/* Playback failures the user can act on */
+"playback_track_unavailable" = "この曲を再生できませんでした。ファイルが移動または削除された可能性があります。";
+"playback_download_stalled" = "ダウンロードが止まりました。接続を確認して、もう一度お試しください。";
+"playback_audio_unavailable" = "オーディオ出力を一時的に利用できません。接続を確認して、もう一度お試しください。";
+"playback_format_needs_phone" = "このフォーマットは CarPlay では再生できません。iPhone 本体で再生するか、別の曲を選んでください。";
+
+/* Lyrics screen */
+"lyrics" = "歌詞";
+"close" = "閉じる";
+"lyrics_copy" = "歌詞をコピー";
+"lyrics_more_actions" = "歌詞のその他の操作";
+"lyrics_seek_hint" = "この行から曲を再生します";
+"lyrics_back_to_current" = "現在の行に戻る";
+"lyrics_instrumental_break" = "間奏";
+"lyrics_instrumental" = "インストゥルメンタル";
+"lyrics_instrumental_message" = "この曲には歌詞がありません";
+"lyrics_unavailable" = "歌詞がありません";
+"lyrics_unavailable_message" = "この曲の歌詞が見つかりませんでした";
+"lyrics_loading" = "歌詞を読み込み中";
+"lyrics_loading_message" = "メタデータとオンラインのソースから取得しています";
+"lyrics_search_again" = "もう一度検索";
+
+/* App appearance */
+"app_appearance" = "App の外観";
+"app_appearance_description" = "Cadence の外観を選択するか、デバイスの設定に合わせます。";
+"appearance_system" = "システム";
+"appearance_light" = "ライト";
+"appearance_dark" = "ダーク";
+"lyrics_choose_version" = "バージョンを選択";
+"lyrics_synced" = "同期";
+"queue_full_list_from_search" = "検索時にリスト全体をキューに追加";
+"queue_full_list_from_search_description" = "検索で見つけた曲を再生するとき、検索に一致した曲だけでなく、その曲が含まれるリスト全体を再生キューに追加します。";
+"split_artists_on_comma" = "コンマでアーティストを分割";
+"split_artists_on_comma_description" = "アーティストタグの「A, B」を別々のアーティストとして扱います。「Earth, Wind & Fire」のように実際の名前にもコンマが含まれることがあるため、デフォルトではオフです。";
+
+/* Additional interface localization */
+"playlist_cover" = "プレイリストのカバー";
+"change_cover_image" = "カバー画像を変更";
+"remove_custom_cover" = "カスタムカバーを削除";
+"unknown" = "不明";
+"searching" = "検索中…";
+"albums_count_singular" = "%d枚のアルバム";
+"albums_count_plural" = "%d枚のアルバム";
+"disc_number" = "ディスク%d";
+"imported_song_count_singular" = "%d曲を読み込みました";
+"imported_song_count_plural" = "%d曲を読み込みました";
+"songs_already_in_library" = "%d曲はすでにライブラリにあります";
+"import_summary" = "%d曲を読み込み、%d曲をスキップしました";
+"setting_up_icloud_library" = "iCloud の音楽ライブラリを準備中…";
+"setting_up_offline_library" = "オフラインの音楽ライブラリを準備中…";
+"setting_up_local_library" = "ローカルの音楽ライブラリを準備中…";
+"manual_parametric_eq" = "手動パラメトリック EQ";
+"create_manual_eq" = "手動 EQ を作成";
+"bands" = "バンド";
+"create_parametric_eq_description" = "最大16バンドを自由に編集できる、パラメトリック EQ のプリセットを作成します。";
+"edit_parametric_bands_description" = "作成後、各バンドの周波数、ゲイン、Q を編集できます。";
+"parametric_editor" = "パラメトリックエディタ";
+"band_count" = "%d / %dバンド";
+"add_band" = "バンドを追加";
+"remove_band" = "バンドを削除";
+"selected_band" = "選択中のバンド";
+"band_number" = "バンド%d";
+"frequency" = "周波数";
+"gain" = "ゲイン";
+"sort_manual_order" = "手動の順序";
+"sort_artist_az" = "アーティスト（A–Z）";
+"sort_artist_za" = "アーティスト（Z–A）";
+
+/* Player controls */
+"pause" = "一時停止";
+"next_track" = "次のトラック";
+"previous_track" = "前のトラック";
+"sync_library" = "ライブラリを同期";
+"recently_added" = "最近追加した項目";
+"based_on_cosmos" = "Cosmos Music Player をベースに開発";

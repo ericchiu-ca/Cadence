@@ -1,0 +1,480 @@
+/* Playlist related strings */
+"playlists" = "播放列表";
+"no_playlists_yet" = "尚無播放列表";
+"create_playlists_instruction" = "從資料庫將歌曲加入播放列表，即可建立播放列表";
+"add_to_playlist" = "加入播放列表";
+"create_new_playlist" = "新增播放列表";
+"create_playlist" = "建立播放列表";
+"playlist_name_placeholder" = "播放列表名稱";
+"enter_playlist_name" = "為新的播放列表輸入名稱";
+"delete_playlist" = "刪除播放列表";
+"delete_playlist_confirmation" = "確定要刪除「%@」嗎？此動作無法還原。";
+"delete" = "刪除";
+"cancel" = "取消";
+"create" = "建立";
+"done" = "完成";
+"edit" = "編輯";
+"edit_playlist" = "編輯播放列表";
+"save" = "儲存";
+"enter_new_name" = "為此播放列表輸入新名稱";
+"manage_playlists" = "管理播放列表";
+"playlist" = "播放列表";
+"songs_count_singular" = "%d 首歌曲";
+"songs_count_plural" = "%d 首歌曲";
+"created_date" = "建立於 %@";
+"no_songs_found" = "找不到歌曲";
+"your_music_will_appear_here" = "如何加入你的音樂：\n\n1. 打開「檔案」App（或點一下「打開檔案」）\n2. 選擇以下任一位置：\n   • iCloud 雲碟 → Cadence 檔案夾\n   • 我的 iPhone → Cadence\n3. 將音樂檔案拖移到其中一個位置";
+"create_first_playlist" = "建立你的第一個播放列表，開始使用吧";
+
+/* General UI strings */
+"all_songs" = "所有歌曲";
+"liked_songs" = "喜愛的歌曲";
+"add_songs" = "打開檔案";
+"import_music_files" = "匯入音樂檔案";
+"ok" = "好";
+"settings" = "設定";
+"retry" = "重試";
+"open_settings" = "打開設定";
+"continue" = "繼續";
+"back" = "返回";
+"get_started" = "開始使用";
+"im_signed_in" = "我已登入";
+"its_enabled" = "已啟用";
+
+/* Library and Navigation */
+"library" = "資料庫";
+"artists" = "藝人";
+"albums" = "專輯";
+"search" = "搜尋";
+"browse" = "瀏覽";
+"songs" = "歌曲";
+"processing" = "處理中";
+"waiting" = "等待中";
+"and_more" = "⋯以及其他 %d 首";
+
+/* Artist/Album/Track Info */
+"no_artists_found" = "找不到藝人";
+"artists_will_appear" = "將音樂加入資料庫後，藝人就會顯示在這裡";
+"no_albums_found" = "找不到專輯";
+"albums_will_appear" = "將音樂加入資料庫後，專輯就會顯示在這裡";
+"artist" = "藝人";
+"album" = "專輯";
+"track_number" = "%d";
+"play" = "播放";
+"shuffle" = "隨機播放";
+"wrong_artist" = "藝人資訊有誤？";
+"data_provided_by" = "資料由 %@ 提供";
+"open_spotify" = "打開 SPOTIFY";
+"loading_artist" = "正在載入藝人⋯";
+
+/* Player */
+"playing_queue" = "待播清單";
+"no_songs_in_queue" = "待播清單中沒有歌曲";
+"no_track_selected" = "未選取歌曲";
+
+/* Search */
+"search_your_music_library" = "搜尋你的音樂資料庫";
+"find_songs_artists_albums_playlists" = "尋找歌曲、藝人、專輯和播放列表";
+"no_results_found" = "沒有結果";
+"try_different_keywords" = "試著使用其他關鍵字搜尋";
+
+/* Context Menu Actions */
+"show_artist_page" = "顯示藝人頁面";
+"add_to_playlist_ellipsis" = "加入播放列表⋯";
+"delete_file" = "刪除檔案";
+"delete_file_confirmation" = "確定要刪除「%@」嗎？此動作無法還原。";
+
+/* Settings */
+"appearance" = "外觀";
+"information" = "關於";
+"minimalist_library_icons" = "極簡資料庫圖像";
+"force_dark_mode" = "強制深色模式";
+"version" = "版本";
+"app_name" = "App 名稱";
+"cosmos_music_player" = "Cadence";
+"github_repository" = "GitHub 儲存庫";
+"use_simple_icons" = "在資料庫區塊中使用不含彩色背景的簡易圖像。";
+"override_system_appearance" = "忽略系統外觀設定，強制 App 使用深色模式。";
+"background_color" = "強調色";
+"choose_color_theme" = "用於圖像、強調標示和「正在播放」標記的顏色。";
+"library_section" = "資料庫";
+"home_sections" = "首頁區塊";
+"choose_visible_sections" = "選擇要在首頁顯示的區塊";
+"remove_from_library_only" = "僅從資料庫移除";
+"remove_from_library_only_description" = "開啟後，刪除歌曲只會將其從資料庫移除，檔案仍會保留在儲存空間中。";
+"auto_folder_playlists" = "依檔案夾自動建立播放列表";
+"auto_folder_playlists_description" = "開啟後，系統會為每個音樂檔案夾自動建立播放列表，並與其內容保持同步。";
+"delete_folder_playlists_title" = "要刪除檔案夾播放列表嗎？";
+"delete_folder_playlists_message" = "自動建立功能已關閉。要刪除已經建立的檔案夾播放列表嗎？你的音樂檔案不會受到影響。";
+"delete_folder_playlists_confirm" = "刪除播放列表";
+"keep_folder_playlists" = "保留播放列表";
+"player_controls" = "播放器控制項目";
+"show_lyrics_button" = "顯示歌詞按鈕";
+"show_sleep_timer_button" = "顯示睡眠定時器按鈕";
+
+/* Liked Songs Actions */
+"add_to_liked_songs" = "加入喜愛的歌曲";
+"remove_from_liked_songs" = "從喜愛的歌曲中移除";
+
+/* Search Categories */
+"all" = "全部";
+
+/* Sync and Connection */
+"library_out_of_sync" = "資料庫未同步";
+"library_sync_message" = "你的音樂資料庫目前未與 iCloud 同步。在你重新登入之前，部分功能可能無法使用。";
+"offline_mode" = "離線模式";
+"offline_mode_message" = "iCloud 同步已停用。僅使用本機檔案夾中的音樂檔案。";
+"icloud_connection_required" = "需要連接 iCloud";
+
+/* Tutorial/Onboarding */
+"welcome_to_cosmos" = "歡迎使用 Cadence";
+"sign_in_to_apple_id" = "登入 Apple 帳號";
+"sign_in_message" = "若要在不同裝置間同步你的音樂和喜好項目，請確認你已登入 Apple 帳號。";
+"if_signed_in_continue" = "如果你已登入，即可繼續";
+"enable_icloud_drive" = "啟用 iCloud 雲碟";
+"icloud_drive_message" = "iCloud 雲碟可讓你從任何裝置取用音樂檔案，並讓喜好項目保持同步。";
+"if_icloud_enabled_continue" = "如果已啟用 iCloud 雲碟，即可繼續";
+"add_your_music" = "加入你的音樂";
+"how_to_add_music" = "你可以將音樂檔案加入 iCloud 雲碟（在不同裝置間同步）或存在本機（僅限此裝置）：";
+"open_files_app" = "打開「檔案」App";
+"navigate_to_icloud_drive" = "前往 iCloud 雲碟";
+"find_cosmos_player_folder" = "找到 Cadence 檔案夾";
+"add_your_music_instruction" = "加入你的音樂";
+
+/* Tutorial Status Messages */
+"signed_in_to_apple_id" = "已登入 Apple 帳號";
+"not_signed_in_to_apple_id" = "未登入 Apple 帳號";
+"cannot_detect_apple_id_status" = "無法偵測 Apple 帳號狀態";
+"icloud_drive_enabled" = "iCloud 雲碟已啟用";
+"icloud_drive_not_enabled" = "iCloud 雲碟未啟用";
+"cannot_detect_icloud_status" = "無法偵測 iCloud 雲碟狀態";
+
+/* Tutorial Instructions */
+"find_open_files_app" = "在裝置上找到並打開「檔案」App";
+"tap_icloud_drive_sidebar" = "在側邊欄中選擇「iCloud 雲碟」或「我的 iPhone」";
+"look_for_cosmos_folder" = "找到「Cadence」檔案夾並打開";
+"copy_music_files" = "將你的 FLAC 或 MP3 檔案拷貝到這個檔案夾";
+
+/* Library Processing */
+"found_tracks" = "找到 %d 首歌曲";
+"processing_colon" = "🎵 處理中：";
+"waiting_colon" = "⏳ 等待中：";
+"percent_complete" = "%d%%";
+
+/* Subtitles and descriptions */
+"songs_count" = "%d 首歌曲";
+"your_favorites" = "你的喜好項目";
+"your_playlists" = "你的播放列表";
+"browse_by_artist" = "依藝人瀏覽";
+"browse_by_album" = "依專輯瀏覽";
+"unknown_album" = "未知的專輯";
+"unknown_artist" = "未知的藝人";
+
+/* Sync result messages */
+"sync_no_new_tracks" = "沒有找到新音樂";
+"sync_one_new_track" = "找到 1 首新歌曲";
+"sync_multiple_new_tracks" = "找到 %d 首新歌曲";
+"sync_one_track_deleted" = "已移除 1 首歌曲";
+"sync_multiple_tracks_deleted" = "已移除 %d 首歌曲";
+"sync_no_changes" = "資料庫已是最新狀態";
+
+/* Equalizer strings */
+"equalizer" = "等化器";
+"graphic_equalizer" = "圖形等化器";
+"enable_equalizer" = "啟用等化器";
+"enable_disable_eq_description" = "啟用或停用圖形等化器";
+
+/* Manual EQ Presets */
+"manual_eq_presets" = "手動 16 頻段預設組";
+"no_manual_presets_created" = "尚未建立手動預設組";
+"create_manual_eq_description" = "使用可調整的滑桿，建立自訂的 16 頻段等化器預設組";
+"create_manual_16band_eq" = "建立手動 16 頻段 EQ";
+"manual_16band_eq" = "手動 16 頻段 EQ";
+"manual_16band_description" = "建立採用標準 ISO 頻率的 16 頻段等化器，可讓你手動調整";
+"adjust_bands_after_creation" = "建立後，你可以調整所有頻段";
+"frequency_bands" = "頻段";
+"edit_equalizer" = "編輯等化器";
+"reset_to_flat" = "重置為平坦";
+
+/* Imported GraphicEQ Presets */
+"imported_presets" = "已匯入的預設組";
+"no_presets_imported" = "尚未匯入預設組";
+"import_graphiceq_description" = "匯入 GraphicEQ .txt 檔案以開始使用";
+"imported_graphiceq" = "已匯入的 GraphicEQ";
+"import_graphiceq_file" = "匯入 GraphicEQ 檔案";
+
+/* General EQ Settings */
+"global_settings" = "全域設定";
+"global_gain" = "全域增益";
+"global_gain_description" = "調整經過 EQ 處理後的整體音量";
+"about_graphiceq_format" = "關於 GraphicEQ 格式";
+"import_graphiceq_format_description" = "匯入以下格式的 GraphicEQ .txt 檔案：";
+"frequency_gain_pair_description" = "每一組數值代表頻率（Hz）和增益（dB）";
+"delete" = "刪除";
+"export" = "匯出";
+"edit" = "編輯";
+"cancel" = "取消";
+"done" = "完成";
+"save" = "儲存";
+"create" = "建立";
+"preset_info" = "預設組資訊";
+
+/* GraphicEQ Import View */
+"import_graphiceq" = "匯入 GraphicEQ";
+"preset_name" = "預設組名稱";
+"enter_preset_name" = "輸入預設組名稱";
+"import_methods" = "匯入方式";
+"import_from_txt_file" = "從 .txt 檔案匯入";
+"paste_graphiceq_text" = "貼上 GraphicEQ 文字";
+"error" = "錯誤";
+"format_info" = "格式資訊";
+"expected_graphiceq_format" = "GraphicEQ 格式應為：";
+"frequency_gain_pair" = "每一組：頻率（Hz）增益（dB）";
+
+/* Text Import View */
+"paste_graphiceq" = "貼上 GraphicEQ";
+"paste_graphiceq_text_section" = "貼上 GraphicEQ 文字";
+"example" = "範例";
+"import" = "匯入";
+
+/* Error Messages */
+"failed_to_import" = "無法匯入：%@";
+"file_import_failed" = "檔案匯入失敗：%@";
+"failed_to_create" = "無法建立：%@";
+"failed_to_export" = "無法匯出預設組";
+"failed_to_delete" = "無法刪除預設組";
+
+/* EQ Band Information */
+"band_count_info" = "%d 個頻段（由 %d 個縮減）";
+"bands_reduced_description" = "你的 GraphicEQ 頻段數超過 iOS 支援的上限。系統會以頻率平均的方式，將你的 %d 個頻段智慧對應為 %d 個頻段。";
+"bands_limited_warning" = "⚠️ GraphicEQ 已從 %d 個頻段縮減為 %d 個（iOS 限制）";
+
+/* Audio Settings */
+"audio_settings" = "音訊";
+"dsd_playback_mode" = "DSD 播放模式";
+"dsd_playback_mode_description" = "選擇 DSD 音訊檔案（DSF/DFF）的播放方式";
+"dsd_mode_auto" = "自動";
+"dsd_mode_pcm" = "PCM";
+"dsd_mode_dop" = "DoP";
+"dsd_mode_auto_description" = "由於 iOS 無法確認輸出裝置是否支援 DoP，因此會安全地轉換為 PCM；僅在使用相容的 DAC 時才手動選擇 DoP";
+"dsd_mode_pcm_description" = "一律將 DSD 轉換為 PCM 播放（與所有裝置相容）";
+"dsd_mode_dop_description" = "一律使用 DoP 編碼（需搭配支援 DSD 的外接 DAC）";
+
+/* Sort Options */
+"sort_date_newest" = "加入日期（由新到舊）";
+"sort_date_oldest" = "加入日期（由舊到新）";
+"sort_name_az" = "名稱（A-Z）";
+"sort_name_za" = "名稱（Z-A）";
+"sort_size_largest" = "大小（由大到小）";
+"sort_size_smallest" = "大小（由小到大）";
+
+/* Queue Actions */
+"play_next" = "插播";
+"add_to_queue" = "加入待播清單";
+
+/* Sleep Timer */
+"sleep_timer" = "睡眠定時器";
+"sleep_timer_off" = "睡眠定時器已關閉";
+"sleep_timer_15_minutes" = "15 分鐘";
+"sleep_timer_30_minutes" = "30 分鐘";
+"sleep_timer_45_minutes" = "45 分鐘";
+"sleep_timer_60_minutes" = "60 分鐘";
+"cancel_sleep_timer" = "取消睡眠定時器";
+
+/* Bulk Selection */
+"select" = "選取";
+"select_all" = "全選";
+"bulk_actions" = "動作";
+"add_to_liked" = "加入喜愛的歌曲";
+"remove_from_liked" = "從喜愛的歌曲中移除";
+"delete_files" = "刪除檔案";
+"delete_files_confirmation" = "刪除檔案";
+"selected_count_singular" = "已選取 %d 項";
+"selected_count_plural" = "已選取 %d 項";
+"delete_files_confirmation_message" = "確定要刪除 %d 個檔案嗎？此動作無法還原。";
+
+/* ============================================================
+   App Intents (Siri / Shortcuts) — added in the Siri
+   modernization pass. Keys are the English source strings.
+   ============================================================ */
+
+/* Intent titles & descriptions */
+"Resume Playback" = "繼續播放";
+"Resumes playing your music where you left off." = "從上次停止的地方繼續播放音樂。";
+"Audio" = "音訊";
+"Play Music" = "播放音樂";
+"Plays a song, album, artist or playlist from your Cadence library." = "播放 Cadence 資料庫中的歌曲、專輯、藝人或播放列表。";
+"Playback" = "播放";
+"Add to Playlist" = "加入播放列表";
+"Generate Mix" = "產生合輯";
+"Builds a mix from your Cadence library matching a mood or description and starts playing it." = "依照心情或描述，從你的 Cadence 資料庫產生合輯並開始播放。";
+"Toggle Favorite" = "切換喜好項目";
+"Favorite Current Song" = "將目前歌曲加入喜好項目";
+"Adds the currently playing Cadence song to Liked Songs." = "將 Cadence 中正在播放的歌曲加入「喜愛的歌曲」。";
+"%@ is already in your Liked Songs." = "%@ 已在「喜愛的歌曲」中。";
+"Added %@ to your Liked Songs." = "已將 %@ 加入「喜愛的歌曲」。";
+"There isn't a song playing in Cadence right now." = "Cadence 目前沒有正在播放的歌曲。";
+"Add to Queue" = "加入待播清單";
+"Play Playlist" = "播放播放列表";
+"Save Mix as Playlist" = "將合輯儲存為播放列表";
+"Song Card" = "歌曲卡片";
+"Playlist Card" = "播放列表卡片";
+"Mix Card" = "合輯卡片";
+
+/* Parameter titles & prompts */
+"Track" = "歌曲";
+"Play Next" = "插播";
+"Playlist" = "播放列表";
+"Description" = "描述";
+"What kind of mix do you want?" = "你想要什麼樣的合輯？";
+
+/* Dialogs */
+"Added %@ to your favorites." = "已將 %@ 加入喜好項目。";
+"Removed %@ from your favorites." = "已將 %@ 從喜好項目中移除。";
+"Added %@ to %@." = "已將 %1$@ 加入「%2$@」。";
+"Added" = "已加入";
+"Playing your mix: %@." = "正在播放你的合輯：%@。";
+"Now playing" = "正在播放";
+
+/* Errors */
+"There's no music in your Cadence library yet." = "你的 Cadence 資料庫中還沒有音樂。";
+"No matching music was found in your library." = "在你的資料庫中找不到相符的音樂。";
+"You can only take that action on individual songs." = "此動作只能用於單首歌曲。";
+"That song is already in this playlist." = "這首歌曲已在此播放列表中。";
+"Playback failed. Please try again in the app." = "播放失敗。請在 App 中再試一次。";
+"Your library is empty, so there's nothing to build a mix from." = "你的資料庫是空的，因此無法產生合輯。";
+"That mix isn't available anymore. Ask for a new one." = "此合輯已無法使用。請重新產生一個。";
+
+/* Enum case labels */
+"Shuffle" = "隨機播放";
+"Repeat" = "重複播放";
+"Next" = "下一首";
+"Last" = "最後";
+"Like" = "喜愛";
+"Dislike" = "不喜歡";
+"Unset" = "未設定";
+
+/* Entity display representations */
+"%@ by %@" = "%1$@ - %2$@";
+"album %@" = "專輯 %@";
+"%@ playlist" = "%@ 播放列表";
+"playlist %@" = "播放列表 %@";
+"^[%lld song](inflect: true)" = "%lld 首歌曲";
+"Warmup Audio Queue Result" = "音訊佇列預熱結果";
+
+/* Snippet cards */
+"Play next" = "插播";
+"Add to queue" = "加入待播清單";
+"Remove from favorites" = "從喜好項目中移除";
+"Add to favorites" = "加入喜好項目";
+"Play playlist" = "播放播放列表";
+"^[%lld song](inflect: true) · %lld min" = "%lld 首歌曲 · %lld 分鐘";
+"Saved" = "已儲存";
+"Save" = "儲存";
+"Save mix as playlist" = "將合輯儲存為播放列表";
+
+/* AI playlist generation (in-app) */
+"ai_playlist_title" = "AI 播放列表";
+"ai_playlist_description" = "描述你想要的播放列表，裝置端 AI 會從你的資料庫中挑選相符的歌曲。";
+"ai_playlist_placeholder" = "放鬆的夜晚、充滿活力的健身、某位藝人⋯";
+"ai_playlist_generate" = "產生";
+"ai_playlist_generating" = "正在產生⋯";
+"ai_playlist_failed" = "無法產生播放列表。請試試其他描述。";
+"ai_playlist_button" = "使用 AI 建立播放列表";
+
+"ai_playlist_created_title" = "已建立播放列表";
+"ai_playlist_created_message" = "已建立「%@」，共 %d 首歌曲。";
+
+/* In-place search bars and queue navigation */
+"search_songs" = "搜尋歌曲、藝人、專輯";
+"search_artists" = "搜尋藝人";
+"search_albums" = "搜尋專輯";
+"search_playlists" = "搜尋播放列表";
+
+/* Library scan interval and album-artist browsing */
+"album_artists" = "專輯藝人";
+"all_artists" = "所有藝人";
+"library_scan_frequency" = "自動掃描";
+"library_scan_frequency_description" = "Cadence 啟動時重新掃描檔案的頻率。iOS 經常會在背景關閉 App，因此間隔較短時，幾乎每次啟動都會完整掃描一次。同步按鈕一律會立即重新掃描。";
+"checking_library_formats" = "正在檢查音訊格式⋯";
+"scan_every_launch" = "每次啟動";
+"scan_hourly" = "最多每小時一次";
+"scan_daily" = "最多每天一次";
+"scan_weekly" = "最多每週一次";
+"scan_manual_only" = "僅限手動";
+
+/* Playback failures the user can act on */
+"playback_track_unavailable" = "無法播放這首歌曲。檔案可能已被移動或移除。";
+"playback_download_stalled" = "下載停滯。請檢查網路連線後再試一次。";
+"playback_audio_unavailable" = "音訊輸出暫時無法使用。請檢查連線後再試一次。";
+"playback_format_needs_phone" = "此格式無法透過 CarPlay 播放。請在手機上播放，或選擇其他歌曲。";
+
+/* Lyrics screen */
+"lyrics" = "歌詞";
+"close" = "關閉";
+"lyrics_copy" = "拷貝歌詞";
+"lyrics_more_actions" = "更多歌詞動作";
+"lyrics_seek_hint" = "從這一行開始播放歌曲";
+"lyrics_back_to_current" = "回到目前歌詞";
+"lyrics_instrumental_break" = "間奏";
+"lyrics_instrumental" = "純音樂";
+"lyrics_instrumental_message" = "這首歌曲沒有歌詞";
+"lyrics_unavailable" = "沒有可用的歌詞";
+"lyrics_unavailable_message" = "找不到這首歌曲的歌詞";
+"lyrics_loading" = "正在載入歌詞";
+"lyrics_loading_message" = "正在從後設資料和線上來源取得";
+"lyrics_search_again" = "重新搜尋";
+
+/* App appearance */
+"app_appearance" = "App 外觀";
+"app_appearance_description" = "選擇 Cadence 的外觀，或依照裝置設定。";
+"appearance_system" = "依照系統";
+"appearance_light" = "淺色";
+"appearance_dark" = "深色";
+"lyrics_choose_version" = "選擇版本";
+"lyrics_synced" = "同步歌詞";
+"queue_full_list_from_search" = "從搜尋結果播放整個列表";
+"queue_full_list_from_search_description" = "播放搜尋到的歌曲時，將其所在的整個列表加入待播清單，而不只是相符的結果。";
+"split_artists_on_comma" = "以逗號分隔藝人";
+"split_artists_on_comma_description" = "將藝人標籤中的「A, B」視為兩位藝人。預設為關閉，因為逗號也會出現在真實名稱中，例如「Earth, Wind & Fire」。";
+
+/* Additional interface localization */
+"playlist_cover" = "播放列表封面";
+"change_cover_image" = "更改封面影像";
+"remove_custom_cover" = "移除自訂封面";
+"unknown" = "未知";
+"searching" = "正在搜尋⋯";
+"albums_count_singular" = "%d 張專輯";
+"albums_count_plural" = "%d 張專輯";
+"disc_number" = "光碟 %d";
+"imported_song_count_singular" = "已匯入 %d 首歌曲";
+"imported_song_count_plural" = "已匯入 %d 首歌曲";
+"songs_already_in_library" = "%d 首已在資料庫中";
+"import_summary" = "已匯入 %d 首，略過 %d 首";
+"setting_up_icloud_library" = "正在設定你的 iCloud 音樂資料庫⋯";
+"setting_up_offline_library" = "正在設定你的離線音樂資料庫⋯";
+"setting_up_local_library" = "正在設定你的本機音樂資料庫⋯";
+"manual_parametric_eq" = "手動參數等化器";
+"create_manual_eq" = "建立手動 EQ";
+"bands" = "頻段";
+"create_parametric_eq_description" = "建立參數式 EQ 預設組，最多可包含 16 個可完整編輯的頻段。";
+"edit_parametric_bands_description" = "建立後，你可以編輯每個頻段的頻率、增益和 Q 值。";
+"parametric_editor" = "參數編輯器";
+"band_count" = "%d / %d 個頻段";
+"add_band" = "加入頻段";
+"remove_band" = "移除頻段";
+"selected_band" = "所選頻段";
+"band_number" = "頻段 %d";
+"frequency" = "頻率";
+"gain" = "增益";
+"sort_manual_order" = "手動排序";
+"sort_artist_az" = "藝人 A–Z";
+"sort_artist_za" = "藝人 Z–A";
+
+/* Player controls */
+"pause" = "暫停";
+"next_track" = "下一首";
+"previous_track" = "上一首";
+"sync_library" = "同步資料庫";
+"recently_added" = "最近加入";
+"based_on_cosmos" = "以 Cosmos Music Player 為基礎";

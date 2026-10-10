@@ -453,7 +453,7 @@ class IntentHandler: INExtension, INPlayMediaIntentHandling, INAddMediaIntentHan
                 // repair a genuinely missing library item.
                 let missing = INMediaItem(
                     identifier: "cosmos_not_found",
-                    title: "I couldn't find that song in Cosmos",
+                    title: "I couldn't find that song in Cadence",
                     type: .song,
                     artwork: nil,
                     artist: nil

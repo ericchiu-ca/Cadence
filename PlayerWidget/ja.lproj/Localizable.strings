@@ -1,0 +1,10 @@
+"Now Playing" = "再生中";            /* widget label + widget gallery name */
+"Paused" = "一時停止中";
+"No Music Playing" = "再生中の音楽はありません";
+"Open Cadence to start" = "Cadence を開いて再生を始めましょう";
+"Control your music playback from your home screen" = "ホーム画面から音楽の再生をコントロールできます";   /* widget gallery description */
+"No playlists yet" = "プレイリストはまだありません";
+"My Playlists" = "マイプレイリスト";          /* widget gallery name */
+"Quick access to your 3 most recently played playlists" = "最近再生した3つのプレイリストにすばやくアクセスできます";
+"1 song" = "1曲";
+"%lld songs" = "%lld曲";

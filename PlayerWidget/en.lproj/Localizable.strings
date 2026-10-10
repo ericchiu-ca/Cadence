@@ -1,0 +1,11 @@
+/* Widget strings. The key is the English text. */
+"Now Playing" = "Now Playing";
+"Paused" = "Paused";
+"No Music Playing" = "No Music Playing";
+"Open Cadence to start" = "Open Cadence to start";
+"Control your music playback from your home screen" = "Control your music playback from your home screen";
+"No playlists yet" = "No playlists yet";
+"My Playlists" = "My Playlists";
+"Quick access to your 3 most recently played playlists" = "Quick access to your 3 most recently played playlists";
+"1 song" = "1 song";
+"%lld songs" = "%lld songs";

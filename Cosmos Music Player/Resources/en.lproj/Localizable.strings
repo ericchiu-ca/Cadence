@@ -253,9 +253,9 @@
 "audio_settings" = "Audio";
 "dsd_playback_mode" = "DSD Playback Mode";
 "dsd_playback_mode_description" = "Choose how DSD audio files (DSF/DFF) are played back";
-"dsd_mode_auto" = "Auto (Safe)";
-"dsd_mode_pcm" = "PCM Conversion";
-"dsd_mode_dop" = "DoP (DSD over PCM)";
+"dsd_mode_auto" = "Auto";
+"dsd_mode_pcm" = "PCM";
+"dsd_mode_dop" = "DoP";
 "dsd_mode_auto_description" = "Safely converts to PCM because iOS cannot verify whether an output supports DoP; select DoP explicitly only for a compatible DAC";
 "dsd_mode_pcm_description" = "Always convert DSD to PCM for playback (compatible with all devices)";
 "dsd_mode_dop_description" = "Always use DoP encoding (requires external DAC that supports DSD)";

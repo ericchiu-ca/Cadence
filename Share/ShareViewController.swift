@@ -430,7 +430,7 @@ class ShareViewController: SLComposeServiceViewController {
             message: String(
                 format: NSLocalizedString(
                     "share_nothing_imported_message",
-                    value: "Cosmos did not find a supported audio file to import. Supported formats: %@.",
+                    value: "Cadence did not find a supported audio file to import. Supported formats: %@.",
                     comment: "Body of the nothing-imported share alert"
                 ),
                 formats

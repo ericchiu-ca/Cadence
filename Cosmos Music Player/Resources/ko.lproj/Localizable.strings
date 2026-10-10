@@ -1,0 +1,480 @@
+/* Playlist related strings */
+"playlists" = "플레이리스트";
+"no_playlists_yet" = "플레이리스트 없음";
+"create_playlists_instruction" = "보관함에서 노래를 추가하여 플레이리스트를 만드세요";
+"add_to_playlist" = "플레이리스트에 추가";
+"create_new_playlist" = "새로운 플레이리스트";
+"create_playlist" = "플레이리스트 생성";
+"playlist_name_placeholder" = "플레이리스트 이름";
+"enter_playlist_name" = "새로운 플레이리스트의 이름을 입력하세요";
+"delete_playlist" = "플레이리스트 삭제";
+"delete_playlist_confirmation" = "'%@'을(를) 삭제하시겠습니까? 이 동작은 실행 취소할 수 없습니다.";
+"delete" = "삭제";
+"cancel" = "취소";
+"create" = "생성";
+"done" = "완료";
+"edit" = "편집";
+"edit_playlist" = "플레이리스트 편집";
+"save" = "저장";
+"enter_new_name" = "플레이리스트의 새로운 이름을 입력하세요";
+"manage_playlists" = "플레이리스트 관리";
+"playlist" = "플레이리스트";
+"songs_count_singular" = "%d곡";
+"songs_count_plural" = "%d곡";
+"created_date" = "생성일: %@";
+"no_songs_found" = "노래를 찾을 수 없음";
+"your_music_will_appear_here" = "음악을 추가하려면:\n\n1. 파일 앱을 여세요(또는 '파일 열기'를 탭하세요)\n2. 다음 중 하나를 선택하세요:\n   • iCloud Drive → Cadence 폴더\n   • 나의 iPhone → Cadence\n3. 두 위치 중 한 곳으로 음악 파일을 드래그하세요";
+"create_first_playlist" = "첫 번째 플레이리스트를 만들어 시작하세요";
+
+/* General UI strings */
+"all_songs" = "모든 노래";
+"liked_songs" = "좋아하는 노래";
+"add_songs" = "파일 열기";
+"import_music_files" = "음악 파일 가져오기";
+"ok" = "확인";
+"settings" = "설정";
+"retry" = "재시도";
+"open_settings" = "설정 열기";
+"continue" = "계속";
+"back" = "뒤로";
+"get_started" = "시작하기";
+"im_signed_in" = "로그인했습니다";
+"its_enabled" = "켜져 있습니다";
+
+/* Library and Navigation */
+"library" = "보관함";
+"artists" = "아티스트";
+"albums" = "앨범";
+"search" = "검색";
+"browse" = "둘러보기";
+"songs" = "노래";
+"processing" = "처리 중";
+"waiting" = "대기 중";
+"and_more" = "... 외 %d개";
+
+/* Artist/Album/Track Info */
+"no_artists_found" = "아티스트를 찾을 수 없음";
+"artists_will_appear" = "보관함에 음악을 추가하면 여기에 아티스트가 표시됩니다";
+"no_albums_found" = "앨범을 찾을 수 없음";
+"albums_will_appear" = "보관함에 음악을 추가하면 여기에 앨범이 표시됩니다";
+"artist" = "아티스트";
+"album" = "앨범";
+"track_number" = "%d";
+"play" = "재생";
+"shuffle" = "임의 재생";
+"wrong_artist" = "아티스트가 잘못되었나요?";
+"data_provided_by" = "데이터 제공: %@";
+"open_spotify" = "SPOTIFY 열기";
+"loading_artist" = "아티스트 불러오는 중...";
+
+/* Player */
+"playing_queue" = "재생 대기열";
+"no_songs_in_queue" = "대기열에 노래 없음";
+"no_track_selected" = "선택한 노래 없음";
+
+/* Search */
+"search_your_music_library" = "음악 보관함 검색";
+"find_songs_artists_albums_playlists" = "노래, 아티스트, 앨범 및 플레이리스트를 찾아보세요";
+"no_results_found" = "결과 없음";
+"try_different_keywords" = "다른 키워드로 검색해 보세요";
+
+/* Context Menu Actions */
+"show_artist_page" = "아티스트 페이지 보기";
+"add_to_playlist_ellipsis" = "플레이리스트에 추가...";
+"delete_file" = "파일 삭제";
+"delete_file_confirmation" = "'%@'을(를) 삭제하시겠습니까? 이 동작은 실행 취소할 수 없습니다.";
+
+/* Settings */
+"appearance" = "모양";
+"information" = "정보";
+"minimalist_library_icons" = "간결한 보관함 아이콘";
+"force_dark_mode" = "항상 다크 모드 사용";
+"version" = "버전";
+"app_name" = "앱 이름";
+"cosmos_music_player" = "Cadence";
+"github_repository" = "GitHub 저장소";
+"use_simple_icons" = "보관함 섹션에서 색상 배경 없이 단순한 아이콘을 사용합니다.";
+"override_system_appearance" = "시스템 모양 설정을 무시하고 앱에서 항상 다크 모드를 사용합니다.";
+"background_color" = "강조 색상";
+"choose_color_theme" = "아이콘, 강조 표시 및 지금 재생 중 표시에 사용되는 색상입니다.";
+"library_section" = "보관함";
+"home_sections" = "홈 섹션";
+"choose_visible_sections" = "홈 화면에 표시할 섹션을 선택하세요";
+"remove_from_library_only" = "보관함에서만 제거";
+"remove_from_library_only_description" = "켜면 트랙을 삭제할 때 보관함에서만 제거되며, 파일은 기기에 그대로 남아 있습니다.";
+"auto_folder_playlists" = "폴더별 플레이리스트 자동 생성";
+"auto_folder_playlists_description" = "켜면 음악 파일이 있는 폴더마다 플레이리스트가 자동으로 생성되며, 폴더 내용과 계속 동기화됩니다.";
+"delete_folder_playlists_title" = "폴더 플레이리스트를 삭제하시겠습니까?";
+"delete_folder_playlists_message" = "자동 생성이 꺼졌습니다. 이미 생성된 폴더 플레이리스트를 삭제하시겠습니까? 음악 파일은 그대로 유지됩니다.";
+"delete_folder_playlists_confirm" = "플레이리스트 삭제";
+"keep_folder_playlists" = "플레이리스트 유지";
+"player_controls" = "플레이어 제어";
+"show_lyrics_button" = "가사 버튼 표시";
+"show_sleep_timer_button" = "잠자기 타이머 버튼 표시";
+
+/* Liked Songs Actions */
+"add_to_liked_songs" = "좋아하는 노래에 추가";
+"remove_from_liked_songs" = "좋아하는 노래에서 제거";
+
+/* Search Categories */
+"all" = "전체";
+
+/* Sync and Connection */
+"library_out_of_sync" = "보관함이 동기화되지 않음";
+"library_sync_message" = "음악 보관함이 현재 iCloud와 동기화되지 않은 상태입니다. 다시 로그인할 때까지 일부 기능이 작동하지 않을 수 있습니다.";
+"offline_mode" = "오프라인 모드";
+"offline_mode_message" = "iCloud 동기화가 꺼져 있습니다. Documents 폴더에 있는 음악 파일만 사용합니다.";
+"icloud_connection_required" = "iCloud 연결 필요";
+
+/* Tutorial/Onboarding */
+"welcome_to_cosmos" = "Cadence에 오신 것을 환영합니다";
+"sign_in_to_apple_id" = "Apple ID에 로그인";
+"sign_in_message" = "여러 기기에서 음악과 즐겨찾기를 동기화하려면 Apple ID에 로그인되어 있는지 확인하세요.";
+"if_signed_in_continue" = "로그인되어 있다면 계속할 수 있습니다";
+"enable_icloud_drive" = "iCloud Drive 켜기";
+"icloud_drive_message" = "iCloud Drive를 사용하면 어느 기기에서나 음악 파일에 접근할 수 있고 즐겨찾기도 동기화됩니다.";
+"if_icloud_enabled_continue" = "iCloud Drive가 켜져 있다면 계속할 수 있습니다";
+"add_your_music" = "음악 추가하기";
+"how_to_add_music" = "음악 파일을 iCloud Drive(여러 기기 간 동기화) 또는 로컬(이 기기에만)에 추가할 수 있습니다:";
+"open_files_app" = "파일 앱 열기";
+"navigate_to_icloud_drive" = "iCloud Drive로 이동";
+"find_cosmos_player_folder" = "Cadence 폴더 찾기";
+"add_your_music_instruction" = "음악 추가하기";
+
+/* Tutorial Status Messages */
+"signed_in_to_apple_id" = "Apple ID에 로그인됨";
+"not_signed_in_to_apple_id" = "Apple ID에 로그인되지 않음";
+"cannot_detect_apple_id_status" = "Apple ID 상태를 확인할 수 없음";
+"icloud_drive_enabled" = "iCloud Drive가 켜져 있음";
+"icloud_drive_not_enabled" = "iCloud Drive가 꺼져 있음";
+"cannot_detect_icloud_status" = "iCloud Drive 상태를 확인할 수 없음";
+
+/* Tutorial Instructions */
+"find_open_files_app" = "기기에서 파일 앱을 찾아 여세요";
+"tap_icloud_drive_sidebar" = "사이드바에서 'iCloud Drive' 또는 '나의 iPhone' 중 하나를 선택하세요";
+"look_for_cosmos_folder" = "'Cadence' 폴더를 찾아 여세요";
+"copy_music_files" = "FLAC 또는 MP3 파일을 이 폴더로 복사하세요";
+
+/* Library Processing */
+"found_tracks" = "트랙 %d개 발견";
+"processing_colon" = "🎵 처리 중:";
+"waiting_colon" = "⏳ 대기 중:";
+"percent_complete" = "%d%%";
+
+/* Subtitles and descriptions */
+"songs_count" = "%d곡";
+"your_favorites" = "내 즐겨찾기";
+"your_playlists" = "내 플레이리스트";
+"browse_by_artist" = "아티스트별로 둘러보기";
+"browse_by_album" = "앨범별로 둘러보기";
+"unknown_album" = "알 수 없는 앨범";
+"unknown_artist" = "알 수 없는 아티스트";
+
+/* Sync result messages */
+"sync_no_new_tracks" = "새로운 음악 없음";
+"sync_one_new_track" = "새로운 노래 1곡 발견";
+"sync_multiple_new_tracks" = "새로운 노래 %d곡 발견";
+"sync_one_track_deleted" = "노래 1곡 제거됨";
+"sync_multiple_tracks_deleted" = "노래 %d곡 제거됨";
+"sync_no_changes" = "보관함이 최신 상태입니다";
+
+/* Equalizer strings */
+"equalizer" = "이퀄라이저";
+"graphic_equalizer" = "그래픽 이퀄라이저";
+"enable_equalizer" = "이퀄라이저 켜기";
+"enable_disable_eq_description" = "그래픽 이퀄라이저를 켜거나 끕니다";
+
+/* Manual EQ Presets */
+"manual_eq_presets" = "수동 16밴드 프리셋";
+"no_manual_presets_created" = "생성된 수동 프리셋 없음";
+"create_manual_eq_description" = "슬라이더로 조절하는 사용자 지정 16밴드 이퀄라이저 프리셋을 만드세요";
+"create_manual_16band_eq" = "수동 16밴드 EQ 만들기";
+"manual_16band_eq" = "수동 16밴드 EQ";
+"manual_16band_description" = "표준 ISO 주파수로 구성된 16밴드 이퀄라이저를 만들어 직접 조절할 수 있습니다";
+"adjust_bands_after_creation" = "생성 후 모든 주파수 밴드를 조절할 수 있습니다";
+"frequency_bands" = "주파수 밴드";
+"edit_equalizer" = "이퀄라이저 편집";
+"reset_to_flat" = "플랫으로 재설정";
+
+/* Imported GraphicEQ Presets */
+"imported_presets" = "가져온 프리셋";
+"no_presets_imported" = "가져온 프리셋 없음";
+"import_graphiceq_description" = "시작하려면 GraphicEQ .txt 파일을 가져오세요";
+"imported_graphiceq" = "가져온 GraphicEQ";
+"import_graphiceq_file" = "GraphicEQ 파일 가져오기";
+
+/* General EQ Settings */
+"global_settings" = "전체 설정";
+"global_gain" = "전체 게인";
+"global_gain_description" = "EQ 처리 후의 전체 볼륨 레벨을 조절합니다";
+"about_graphiceq_format" = "GraphicEQ 형식 정보";
+"import_graphiceq_format_description" = "다음 형식의 GraphicEQ .txt 파일을 가져오세요:";
+"frequency_gain_pair_description" = "각 쌍은 주파수(Hz)와 게인(dB)을 나타냅니다";
+"delete" = "삭제";
+"export" = "내보내기";
+"edit" = "편집";
+"cancel" = "취소";
+"done" = "완료";
+"save" = "저장";
+"create" = "생성";
+"preset_info" = "프리셋 정보";
+
+/* GraphicEQ Import View */
+"import_graphiceq" = "GraphicEQ 가져오기";
+"preset_name" = "프리셋 이름";
+"enter_preset_name" = "프리셋 이름 입력";
+"import_methods" = "가져오기 방법";
+"import_from_txt_file" = ".txt 파일에서 가져오기";
+"paste_graphiceq_text" = "GraphicEQ 텍스트 붙여넣기";
+"error" = "오류";
+"format_info" = "형식 정보";
+"expected_graphiceq_format" = "필요한 GraphicEQ 형식:";
+"frequency_gain_pair" = "각 쌍: 주파수(Hz) 게인(dB)";
+
+/* Text Import View */
+"paste_graphiceq" = "GraphicEQ 붙여넣기";
+"paste_graphiceq_text_section" = "GraphicEQ 텍스트 붙여넣기";
+"example" = "예시";
+"import" = "가져오기";
+
+/* Error Messages */
+"failed_to_import" = "가져오기 실패: %@";
+"file_import_failed" = "파일 가져오기 실패: %@";
+"failed_to_create" = "생성 실패: %@";
+"failed_to_export" = "프리셋을 내보내지 못했습니다";
+"failed_to_delete" = "프리셋을 삭제하지 못했습니다";
+
+/* EQ Band Information */
+"band_count_info" = "%d밴드(%d밴드에서 축소됨)";
+"bands_reduced_description" = "GraphicEQ의 밴드 수가 iOS에서 지원하는 수보다 많습니다. 주파수 평균화를 통해 %d개 밴드를 %d개 밴드로 지능적으로 매핑합니다.";
+"bands_limited_warning" = "⚠️ GraphicEQ가 %d밴드에서 %d밴드로 축소됨(iOS 제한)";
+
+/* Audio Settings */
+"audio_settings" = "오디오";
+"dsd_playback_mode" = "DSD 재생 모드";
+"dsd_playback_mode_description" = "DSD 오디오 파일(DSF/DFF)의 재생 방식을 선택하세요";
+"dsd_mode_auto" = "자동";
+"dsd_mode_pcm" = "PCM";
+"dsd_mode_dop" = "DoP";
+"dsd_mode_auto_description" = "iOS는 출력 장치의 DoP 지원 여부를 확인할 수 없으므로 안전하게 PCM으로 변환합니다. 호환되는 DAC 연결 시에만 DoP를 직접 선택하세요";
+"dsd_mode_pcm_description" = "재생 시 항상 DSD를 PCM으로 변환합니다(모든 기기와 호환)";
+"dsd_mode_dop_description" = "항상 DoP 인코딩을 사용합니다(DSD를 지원하는 외장 DAC 필요)";
+
+/* Sort Options */
+"sort_date_newest" = "추가한 날짜(최신순)";
+"sort_date_oldest" = "추가한 날짜(오래된순)";
+"sort_name_az" = "이름(오름차순)";
+"sort_name_za" = "이름(내림차순)";
+"sort_size_largest" = "크기(큰 순)";
+"sort_size_smallest" = "크기(작은 순)";
+
+/* Queue Actions */
+"play_next" = "다음 재생";
+"add_to_queue" = "대기열에 추가";
+
+/* Sleep Timer */
+"sleep_timer" = "잠자기 타이머";
+"sleep_timer_off" = "잠자기 타이머 끔";
+"sleep_timer_15_minutes" = "15분";
+"sleep_timer_30_minutes" = "30분";
+"sleep_timer_45_minutes" = "45분";
+"sleep_timer_60_minutes" = "60분";
+"cancel_sleep_timer" = "잠자기 타이머 취소";
+
+/* Bulk Selection */
+"select" = "선택";
+"select_all" = "모두 선택";
+"bulk_actions" = "동작";
+"add_to_liked" = "좋아하는 노래에 추가";
+"remove_from_liked" = "좋아하는 노래에서 제거";
+"delete_files" = "파일 삭제";
+"delete_files_confirmation" = "파일 삭제";
+"selected_count_singular" = "%d개 선택됨";
+"selected_count_plural" = "%d개 선택됨";
+"delete_files_confirmation_message" = "파일 %d개를 삭제하시겠습니까? 이 동작은 실행 취소할 수 없습니다.";
+
+/* ============================================================
+   App Intents (Siri / Shortcuts) — added in the Siri
+   modernization pass. Keys are the English source strings.
+   ============================================================ */
+
+/* Intent titles & descriptions */
+"Resume Playback" = "이어서 재생";
+"Resumes playing your music where you left off." = "마지막으로 멈춘 곳부터 음악을 이어서 재생합니다.";
+"Audio" = "오디오";
+"Play Music" = "음악 재생";
+"Plays a song, album, artist or playlist from your Cadence library." = "Cadence 보관함에서 노래, 앨범, 아티스트 또는 플레이리스트를 재생합니다.";
+"Playback" = "재생";
+"Add to Playlist" = "플레이리스트에 추가";
+"Generate Mix" = "믹스 생성";
+"Builds a mix from your Cadence library matching a mood or description and starts playing it." = "분위기나 설명에 맞는 믹스를 Cadence 보관함에서 만들어 재생합니다.";
+"Toggle Favorite" = "즐겨찾기 전환";
+"Favorite Current Song" = "현재 노래 즐겨찾기";
+"Adds the currently playing Cadence song to Liked Songs." = "Cadence에서 지금 재생 중인 노래를 ‘좋아하는 노래’에 추가합니다.";
+"%@ is already in your Liked Songs." = "%@ 노래는 이미 ‘좋아하는 노래’에 있습니다.";
+"Added %@ to your Liked Songs." = "%@ 노래를 ‘좋아하는 노래’에 추가했습니다.";
+"There isn't a song playing in Cadence right now." = "현재 Cadence에서 재생 중인 노래가 없습니다.";
+"Add to Queue" = "대기열에 추가";
+"Play Playlist" = "플레이리스트 재생";
+"Save Mix as Playlist" = "믹스를 플레이리스트로 저장";
+"Song Card" = "노래 카드";
+"Playlist Card" = "플레이리스트 카드";
+"Mix Card" = "믹스 카드";
+
+/* Parameter titles & prompts */
+"Track" = "노래";
+"Play Next" = "다음 재생";
+"Playlist" = "플레이리스트";
+"Description" = "설명";
+"What kind of mix do you want?" = "어떤 믹스를 원하세요?";
+
+/* Dialogs */
+"Added %@ to your favorites." = "%@ 노래를 즐겨찾기에 추가했습니다.";
+"Removed %@ from your favorites." = "%@ 노래를 즐겨찾기에서 제거했습니다.";
+"Added %@ to %@." = "%1$@ 노래를 %2$@ 플레이리스트에 추가했습니다.";
+"Added" = "추가됨";
+"Playing your mix: %@." = "믹스를 재생합니다: %@.";
+"Now playing" = "지금 재생 중";
+
+/* Errors */
+"There's no music in your Cadence library yet." = "아직 Cadence 보관함에 음악이 없습니다.";
+"No matching music was found in your library." = "보관함에서 일치하는 음악을 찾을 수 없습니다.";
+"You can only take that action on individual songs." = "이 동작은 개별 노래에만 사용할 수 있습니다.";
+"That song is already in this playlist." = "해당 노래는 이미 이 플레이리스트에 있습니다.";
+"Playback failed. Please try again in the app." = "재생하지 못했습니다. 앱에서 다시 시도하세요.";
+"Your library is empty, so there's nothing to build a mix from." = "보관함이 비어 있어 믹스를 만들 수 없습니다.";
+"That mix isn't available anymore. Ask for a new one." = "해당 믹스는 더 이상 사용할 수 없습니다. 새로운 믹스를 요청하세요.";
+
+/* Enum case labels */
+"Shuffle" = "임의 재생";
+"Repeat" = "반복 재생";
+"Next" = "다음";
+"Last" = "마지막";
+"Like" = "좋아요";
+"Dislike" = "싫어요";
+"Unset" = "설정 안 함";
+
+/* Entity display representations */
+"%@ by %@" = "%2$@의 %1$@";
+"album %@" = "%@ 앨범";
+"%@ playlist" = "%@ 플레이리스트";
+"playlist %@" = "플레이리스트 %@";
+"^[%lld song](inflect: true)" = "%lld곡";
+"Warmup Audio Queue Result" = "오디오 대기열 준비 결과";
+
+/* Snippet cards */
+"Play next" = "다음 재생";
+"Add to queue" = "대기열에 추가";
+"Remove from favorites" = "즐겨찾기에서 제거";
+"Add to favorites" = "즐겨찾기에 추가";
+"Play playlist" = "플레이리스트 재생";
+"^[%lld song](inflect: true) · %lld min" = "%lld곡 · %lld분";
+"Saved" = "저장됨";
+"Save" = "저장";
+"Save mix as playlist" = "믹스를 플레이리스트로 저장";
+
+/* AI playlist generation (in-app) */
+"ai_playlist_title" = "AI 플레이리스트";
+"ai_playlist_description" = "원하는 플레이리스트를 설명하세요. 기기 내 AI가 보관함에서 어울리는 노래를 골라 줍니다.";
+"ai_playlist_placeholder" = "편안한 저녁, 신나는 운동, 아티스트 이름…";
+"ai_playlist_generate" = "생성";
+"ai_playlist_generating" = "생성 중…";
+"ai_playlist_failed" = "플레이리스트를 생성할 수 없습니다. 다른 설명으로 다시 시도해 보세요.";
+"ai_playlist_button" = "AI로 플레이리스트 만들기";
+
+"ai_playlist_created_title" = "플레이리스트 생성됨";
+"ai_playlist_created_message" = "“%@” 플레이리스트가 %d곡으로 생성되었습니다.";
+
+/* In-place search bars and queue navigation */
+"search_songs" = "노래, 아티스트, 앨범 검색";
+"search_artists" = "아티스트 검색";
+"search_albums" = "앨범 검색";
+"search_playlists" = "플레이리스트 검색";
+
+/* Library scan interval and album-artist browsing */
+"album_artists" = "앨범 아티스트";
+"all_artists" = "모든 아티스트";
+"library_scan_frequency" = "자동 스캔";
+"library_scan_frequency_description" = "Cadence가 시작될 때 파일을 다시 스캔하는 빈도입니다. iOS는 백그라운드에 있는 앱을 자주 종료하므로 간격이 짧으면 거의 매번 실행할 때마다 전체 스캔이 이루어집니다. 동기화 버튼을 누르면 언제나 즉시 다시 스캔합니다.";
+"checking_library_formats" = "오디오 포맷 확인 중…";
+"scan_every_launch" = "실행할 때마다";
+"scan_hourly" = "최대 1시간에 한 번";
+"scan_daily" = "최대 하루에 한 번";
+"scan_weekly" = "최대 일주일에 한 번";
+"scan_manual_only" = "수동으로만";
+
+/* Playback failures the user can act on */
+"playback_track_unavailable" = "이 트랙을 재생할 수 없습니다. 파일이 이동되었거나 삭제되었을 수 있습니다.";
+"playback_download_stalled" = "다운로드가 멈췄습니다. 연결 상태를 확인한 후 다시 시도하세요.";
+"playback_audio_unavailable" = "일시적으로 오디오 출력을 사용할 수 없습니다. 연결 상태를 확인한 후 다시 시도하세요.";
+"playback_format_needs_phone" = "이 포맷은 CarPlay에서 재생할 수 없습니다. 휴대폰에서 재생하거나 다른 트랙을 선택하세요.";
+
+/* Lyrics screen */
+"lyrics" = "가사";
+"close" = "닫기";
+"lyrics_copy" = "가사 복사";
+"lyrics_more_actions" = "가사 동작 더 보기";
+"lyrics_seek_hint" = "이 줄부터 노래를 재생합니다";
+"lyrics_back_to_current" = "현재 줄로 돌아가기";
+"lyrics_instrumental_break" = "간주";
+"lyrics_instrumental" = "연주곡";
+"lyrics_instrumental_message" = "이 트랙에는 가사가 없습니다";
+"lyrics_unavailable" = "가사 없음";
+"lyrics_unavailable_message" = "이 트랙의 가사를 찾을 수 없습니다";
+"lyrics_loading" = "가사 불러오는 중";
+"lyrics_loading_message" = "메타데이터 및 온라인 소스에서 가져오는 중";
+"lyrics_search_again" = "다시 검색";
+
+/* App appearance */
+"app_appearance" = "앱 모양";
+"app_appearance_description" = "Cadence의 모양을 선택하거나 기기 설정을 따르세요.";
+"appearance_system" = "시스템";
+"appearance_light" = "라이트";
+"appearance_dark" = "다크";
+"lyrics_choose_version" = "버전 선택";
+"lyrics_synced" = "실시간";
+"queue_full_list_from_search" = "검색 시 전체 목록을 대기열에 추가";
+"queue_full_list_from_search_description" = "검색으로 찾은 노래를 재생할 때 검색 결과만이 아니라 그 노래가 속한 전체 목록을 대기열에 추가합니다.";
+"split_artists_on_comma" = "쉼표로 아티스트 구분";
+"split_artists_on_comma_description" = "아티스트 태그의 “A, B”를 두 명의 아티스트로 처리합니다. “Earth, Wind & Fire”처럼 실제 이름에도 쉼표가 들어갈 수 있으므로 기본적으로 꺼져 있습니다.";
+
+/* Additional interface localization */
+"playlist_cover" = "플레이리스트 커버";
+"change_cover_image" = "커버 이미지 변경";
+"remove_custom_cover" = "사용자 지정 커버 제거";
+"unknown" = "알 수 없음";
+"searching" = "검색 중…";
+"albums_count_singular" = "앨범 %d개";
+"albums_count_plural" = "앨범 %d개";
+"disc_number" = "디스크 %d";
+"imported_song_count_singular" = "%d곡 가져옴";
+"imported_song_count_plural" = "%d곡 가져옴";
+"songs_already_in_library" = "%d곡은 이미 보관함에 있음";
+"import_summary" = "%d개 가져옴, %d개 건너뜀";
+"setting_up_icloud_library" = "iCloud 음악 보관함을 설정하는 중…";
+"setting_up_offline_library" = "오프라인 음악 보관함을 설정하는 중…";
+"setting_up_local_library" = "로컬 음악 보관함을 설정하는 중…";
+"manual_parametric_eq" = "수동 파라메트릭 EQ";
+"create_manual_eq" = "수동 EQ 만들기";
+"bands" = "밴드";
+"create_parametric_eq_description" = "완전히 편집 가능한 밴드를 최대 16개까지 사용하는 파라메트릭 EQ 프리셋을 만드세요.";
+"edit_parametric_bands_description" = "생성 후 모든 밴드의 주파수, 게인 및 Q 값을 편집할 수 있습니다.";
+"parametric_editor" = "파라메트릭 편집기";
+"band_count" = "%d / %d 밴드";
+"add_band" = "밴드 추가";
+"remove_band" = "밴드 제거";
+"selected_band" = "선택한 밴드";
+"band_number" = "밴드 %d";
+"frequency" = "주파수";
+"gain" = "게인";
+"sort_manual_order" = "수동 정렬";
+"sort_artist_az" = "아티스트(오름차순)";
+"sort_artist_za" = "아티스트(내림차순)";
+
+/* Player controls */
+"pause" = "일시 정지";
+"next_track" = "다음 트랙";
+"previous_track" = "이전 트랙";
+"sync_library" = "보관함 동기화";
+"recently_added" = "최근 추가된 항목";
+"based_on_cosmos" = "Cosmos Music Player 기반";

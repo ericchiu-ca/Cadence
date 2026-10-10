@@ -1,0 +1,344 @@
+{
+  "en-US": {
+    "iphone": [
+      [
+        "Colours from the cover",
+        "The player takes its look from your artwork."
+      ],
+      [
+        "Lyrics, word by word",
+        "Synced lyrics that light up in time with the song."
+      ],
+      [
+        "Lossless. Offline. Yours.",
+        "FLAC, ALAC, MP3 and more. No account, no ads."
+      ],
+      [
+        "Albums that look the part",
+        "Every page built from your own files and artwork."
+      ],
+      [
+        "Up next, within reach",
+        "See and reorder the queue right above the controls."
+      ]
+    ],
+    "ipad": [
+      [
+        "Made for iPad too",
+        "A player that fills the big screen with your artwork."
+      ],
+      [
+        "Lyrics across the room",
+        "Large, word-by-word lyrics sized for iPad."
+      ],
+      [
+        "Your whole library at a glance",
+        "Recently added albums, artists and playlists."
+      ]
+    ]
+  },
+  "zh-Hans": {
+    "iphone": [
+      [
+        "随封面变色的播放界面",
+        "播放界面的颜色取自你的专辑封面"
+      ],
+      [
+        "逐字同步的歌词",
+        "歌词随歌曲逐字点亮，点一行即可跳转"
+      ],
+      [
+        "无损、离线、只属于你",
+        "支持 FLAC、ALAC、MP3 等格式，无需账号，没有广告"
+      ],
+      [
+        "好好呈现每一张专辑",
+        "专辑页直接取自你的音乐文件和封面"
+      ],
+      [
+        "播放队列触手可及",
+        "接下来播放什么，就在控制按钮上方"
+      ]
+    ],
+    "ipad": [
+      [
+        "iPad 上同样出色",
+        "大屏幕上，封面与色彩铺满整个播放界面"
+      ],
+      [
+        "大屏逐字歌词",
+        "为 iPad 放大的逐字同步歌词"
+      ],
+      [
+        "整个音乐库，一目了然",
+        "最近添加、艺人与播放列表，尽收眼底"
+      ]
+    ]
+  },
+  "fr": {
+    "iphone": [
+      [
+        "La pochette donne le ton",
+        "Le lecteur prend les couleurs de vos pochettes."
+      ],
+      [
+        "Paroles mot par mot",
+        "Des paroles synchronisées qui s’illuminent en rythme."
+      ],
+      [
+        "Sans perte. Hors ligne. À vous.",
+        "FLAC, ALAC, MP3 et plus. Sans compte, sans pub."
+      ],
+      [
+        "Des albums soignés",
+        "Chaque page naît de vos fichiers et pochettes."
+      ],
+      [
+        "À suivre, sous la main",
+        "Réorganisez la file juste au-dessus des commandes."
+      ]
+    ],
+    "ipad": [
+      [
+        "Pensé aussi pour l’iPad",
+        "Un lecteur qui remplit le grand écran de vos pochettes."
+      ],
+      [
+        "Paroles lisibles de loin",
+        "Des paroles en grand, mot par mot, pensées pour l’iPad."
+      ],
+      [
+        "Votre musique d’un coup d’œil",
+        "Albums ajoutés récemment, artistes et playlists."
+      ]
+    ]
+  },
+  "ru": {
+    "iphone": [
+      [
+        "В цветах обложки",
+        "Плеер подстраивается под цвета вашей обложки."
+      ],
+      [
+        "Текст слово за словом",
+        "Синхронный текст подсвечивается в такт песне."
+      ],
+      [
+        "Без потерь. Офлайн. Всё ваше.",
+        "FLAC, ALAC, MP3. Без аккаунта и рекламы."
+      ],
+      [
+        "Альбомы при параде",
+        "Каждая страница — из ваших файлов и обложек."
+      ],
+      [
+        "Далее — под рукой",
+        "Меняйте порядок очереди прямо над кнопками."
+      ]
+    ],
+    "ipad": [
+      [
+        "Создано и для iPad",
+        "Ваша обложка — на весь большой экран."
+      ],
+      [
+        "Текст видно издалека",
+        "Крупный текст слово за словом, под размер iPad."
+      ],
+      [
+        "Вся медиатека как на ладони",
+        "Недавно добавленные альбомы, исполнители и плейлисты."
+      ]
+    ]
+  },
+  "ja": {
+    "iphone": [
+      [
+        "カバーの色をまとう",
+        "プレーヤーの見た目は、アートワークから。"
+      ],
+      [
+        "歌詞を、一語ずつ",
+        "曲に合わせて光る、同期歌詞。"
+      ],
+      [
+        "ロスレス。オフライン。",
+        "FLAC、ALAC、MP3 など。アカウントも広告もなし。"
+      ],
+      [
+        "アルバムを、美しく",
+        "どのページも、あなたのファイルとアートワークから。"
+      ],
+      [
+        "次の曲も、すぐそこに",
+        "コントロールのすぐ上で、再生キューを確認・並べ替え。"
+      ]
+    ],
+    "ipad": [
+      [
+        "iPad にも最適",
+        "大きな画面いっぱいに、アートワークを映すプレーヤー。"
+      ],
+      [
+        "離れていても読める歌詞",
+        "iPad に合わせて大きく表示される、一語ずつの歌詞。"
+      ],
+      [
+        "ライブラリをひと目で",
+        "最近追加したアルバム、アーティスト、プレイリスト。"
+      ]
+    ]
+  },
+  "zh-Hant": {
+    "iphone": [
+      [
+        "隨封面變色的播放器",
+        "播放畫面的色彩，取自你的專輯封面"
+      ],
+      [
+        "逐字同步的歌詞",
+        "歌詞緊貼歌曲節奏，一字一字亮起"
+      ],
+      [
+        "無損、離線、只屬於你",
+        "支援 FLAC、ALAC、MP3 等格式，無需帳號，沒有廣告"
+      ],
+      [
+        "好好呈現每一張專輯",
+        "每一頁都取自你自己的檔案和封面"
+      ],
+      [
+        "待播清單，觸手可及",
+        "就在控制按鈕上方，查看並重新排序待播清單"
+      ]
+    ],
+    "ipad": [
+      [
+        "iPad 上一樣出色",
+        "讓你的專輯封面填滿大螢幕的播放器"
+      ],
+      [
+        "遠遠就看得清的歌詞",
+        "專為 iPad 放大的逐字同步歌詞"
+      ],
+      [
+        "整個資料庫，一目了然",
+        "最近加入的專輯、藝人和播放列表"
+      ]
+    ]
+  },
+  "ko": {
+    "iphone": [
+      [
+        "커버를 닮은 색감",
+        "플레이어가 아트워크의 색을 입습니다."
+      ],
+      [
+        "가사를 한 단어씩",
+        "노래에 맞춰 빛나는 실시간 가사."
+      ],
+      [
+        "무손실·오프라인·내 음악",
+        "FLAC, ALAC, MP3 등 지원. 계정도 광고도 없습니다."
+      ],
+      [
+        "앨범을 앨범답게",
+        "모든 페이지가 내 파일과 아트워크로 만들어집니다."
+      ],
+      [
+        "다음 재생을 손끝에서",
+        "컨트롤 바로 위에서 대기열을 보고 순서를 바꾸세요."
+      ]
+    ],
+    "ipad": [
+      [
+        "iPad에서도 완벽하게",
+        "큰 화면을 아트워크로 가득 채우는 플레이어."
+      ],
+      [
+        "멀리서도 보이는 가사",
+        "iPad에 맞춘 큼직한 단어 단위 가사."
+      ],
+      [
+        "보관함을 한눈에",
+        "최근 추가된 앨범, 아티스트, 플레이리스트."
+      ]
+    ]
+  },
+  "de": {
+    "iphone": [
+      [
+        "Farben vom Cover",
+        "Der Player passt seinen Look an dein Cover an."
+      ],
+      [
+        "Songtexte, Wort für Wort",
+        "Songtexte, die im Takt aufleuchten."
+      ],
+      [
+        "Lossless. Offline. Deins.",
+        "FLAC, ALAC, MP3 und mehr. Ohne Konto, ohne Werbung."
+      ],
+      [
+        "Alben, die was hermachen",
+        "Jede Seite entsteht aus deinen Dateien und Covern."
+      ],
+      [
+        "Als Nächstes im Griff",
+        "Die Warteschlange direkt über der Steuerung – sortierbar."
+      ]
+    ],
+    "ipad": [
+      [
+        "Auch fürs iPad gemacht",
+        "Ein Player, der das große Display mit deinem Cover füllt."
+      ],
+      [
+        "Songtexte, raumfüllend",
+        "Große Songtexte, Wort für Wort – gemacht fürs iPad."
+      ],
+      [
+        "Deine Mediathek im Blick",
+        "Zuletzt hinzugefügte Alben, Künstler:innen und Playlists."
+      ]
+    ]
+  },
+  "es": {
+    "iphone": [
+      [
+        "Colores de la portada",
+        "El reproductor adopta el aspecto de tus portadas."
+      ],
+      [
+        "Palabra por palabra",
+        "Letra sincronizada que se ilumina al ritmo de la canción."
+      ],
+      [
+        "Lossless y sin conexión",
+        "FLAC, ALAC, MP3 y más. Sin cuenta ni anuncios."
+      ],
+      [
+        "Álbumes con estilo",
+        "Cada página creada con tus propios archivos y portadas."
+      ],
+      [
+        "Lo que sigue, a la vista",
+        "Mira y reordena la cola justo encima de los controles."
+      ]
+    ],
+    "ipad": [
+      [
+        "También para iPad",
+        "Un reproductor que llena la gran pantalla con tus portadas."
+      ],
+      [
+        "Letra que se ve de lejos",
+        "Letra grande, palabra por palabra, a la medida del iPad."
+      ],
+      [
+        "Tu música de un vistazo",
+        "Álbumes, artistas y playlists añadidos recientemente."
+      ]
+    ]
+  }
+}

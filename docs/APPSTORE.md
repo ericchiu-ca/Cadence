@@ -7,7 +7,9 @@ What goes into App Store Connect for Cadence 1.0.0. Keep this file in step with 
 | Name | Cadence: Offline Music |
 | Bundle ID | `io.github.ericchiuca.cadence` |
 | SKU | `cadence-ios` |
-| Primary language | English (U.S.), with Simplified Chinese |
+| Primary language | English (U.S.) |
+| Store languages | English (U.S.), Simplified Chinese, Traditional Chinese, Japanese, Korean, French (France, Canada), German, Spanish (Spain, Mexico), Russian |
+| App languages | English, Simplified Chinese, Traditional Chinese, Japanese, Korean, French, German, Spanish, Russian |
 | Category | Music (secondary: Entertainment) |
 | Price | Free |
 | Devices | iPhone, iPad (iPhone Duo supported through adaptive layouts) |
@@ -110,13 +112,17 @@ Cadence 以 GPL 协议开源，基于 Cosmos Music Player 开发，代码托管�
 
 **新功能：** 首个版本。
 
+## Other languages
+
+The listings for the other store languages are in `docs/appstore/listings/<language>.json` (subtitle, promotional text, description, keywords). French is used for both the France and Canada pages, Spanish for both Spain and Mexico. The name stays "Cadence: Offline Music" everywhere.
+
 ## App Review notes
 
 Cadence plays audio files the user adds through the Files app, iCloud Drive or the Share sheet. To review it without your own files, open Files › On My iPhone › Cadence and add any audio file (FLAC, MP3, M4A…), or share one to Cadence from another app; the library refreshes automatically. No sign-in is required. Online lookups are limited to lyrics from LRCLIB.
 
 ## Screenshots
 
-`docs/appstore/promo/` holds what is uploaded, one set per language:
+`docs/appstore/promo/` holds what is uploaded, one set per language (`fr` and `es` serve two store pages each):
 
 | Slot | Size | Images |
 | --- | --- | --- |
@@ -129,4 +135,4 @@ Each image is a caption over a framed capture on a wash of the capture's own col
 swift docs/appstore/make-promo.swift docs/appstore docs/appstore/promo
 ```
 
-The captions are in `make-promo.swift`. No iPhone Duo screenshots yet; that slot is optional.
+The captions are in `docs/appstore/captions.json`; the script balances wrapped lines and warns if a caption runs into the device frame. No iPhone Duo screenshots yet; that slot is optional.
