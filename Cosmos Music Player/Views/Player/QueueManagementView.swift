@@ -4,9 +4,7 @@ import GRDB
 struct QueueManagementView: View {
     @StateObject private var playerEngine = PlayerEngine.shared
     @StateObject private var artworkManager = ArtworkManager.shared
-    @Environment(\.dismiss) private var dismiss
     @State private var draggedTrack: Track?
-    @State private var settings = DeleteSettings.load()
     @State private var artistNameCache: [Int64: String] = [:]
     @State private var hasScrolledToCurrent = false
 
@@ -23,96 +21,67 @@ struct QueueManagementView: View {
         return rows[playerEngine.currentIndex].rowId
     }
 
+    /// Shown in the full player in place of the artwork, under the compact
+    /// header and above the controls (see `PlayerPanel.queue`), so it is
+    /// within thumb reach and inherits the player's dark appearance.
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color(uiColor: .systemBackground)
-                .ignoresSafeArea()
+        Group {
+            if playerEngine.playbackQueue.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "music.note.list")
+                        .font(.system(size: 44))
+                        .foregroundStyle(.secondary)
 
-                VStack(spacing: 20) {
-                    // Header
-                    HStack {
-                        Button(Localized.done) {
-                            dismiss()
-                        }
+                    Text(Localized.noSongsInQueue)
                         .font(.headline)
-                        .frame(minWidth: 64, alignment: .leading)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(Localized.playingQueue)
+                        .font(.headline)
+                        .padding(.top, 12)
 
-                        Spacer()
-
-                        Text(Localized.playingQueue)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-
-                        Spacer()
-
-                        // Empty counterweight so the title stays centred
-                        // against the leading Done button.
-                        Color.clear.frame(width: 64, height: 0)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-                    
-                    if playerEngine.playbackQueue.isEmpty {
-                        VStack(spacing: 16) {
-                            Image(systemName: "music.note.list")
-                                .font(.system(size: 60))
-                                .foregroundColor(.secondary)
-                            
-                            Text(Localized.noSongsInQueue)
-                                .font(.headline)
-                                .foregroundColor(.secondary)
+                    ScrollViewReader { proxy in
+                        List {
+                            ForEach(queueRows, id: \.rowId) { row in
+                                let index = row.index
+                                let track = row.track
+                                QueueTrackRow(
+                                    track: track,
+                                    index: index,
+                                    isCurrentTrack: index == playerEngine.currentIndex,
+                                    isDragging: draggedTrack?.stableId == track.stableId,
+                                    artistName: (try? DatabaseManager.shared.getArtistDisplayName(forTrackStableId: track.stableId, fallbackArtistId: track.artistId)) ?? track.artistId.flatMap { artistNameCache[$0] },
+                                    onTap: {
+                                        jumpToTrack(at: index)
+                                    }
+                                )
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets())
+                            }
+                            .onMove(perform: moveItems)
+                            .onDelete(perform: deleteItems)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        ScrollViewReader { proxy in
-                            List {
-                                ForEach(queueRows, id: \.rowId) { row in
-                                    let index = row.index
-                                    let track = row.track
-                                    QueueTrackRow(
-                                        track: track,
-                                        index: index,
-                                        isCurrentTrack: index == playerEngine.currentIndex,
-                                        isDragging: draggedTrack?.stableId == track.stableId,
-                                        artistName: (try? DatabaseManager.shared.getArtistDisplayName(forTrackStableId: track.stableId, fallbackArtistId: track.artistId)) ?? track.artistId.flatMap { artistNameCache[$0] },
-                                        onTap: {
-                                            jumpToTrack(at: index)
-                                        }
-                                    )
-                                    .listRowBackground(Color.clear)
-                                    .listRowSeparator(.hidden)
-                                    .listRowInsets(EdgeInsets())
-                                }
-                                .onMove(perform: moveItems)
-                                .onDelete(perform: deleteItems)
-                            }
-                            .listStyle(PlainListStyle())
-                            .scrollContentBackground(.hidden)
-                            .padding(.horizontal, 16)
-                            .task {
-                                // Open on the song that is playing rather than
-                                // at the top - after an hour of listening the
-                                // current track is hundreds of rows down. The
-                                // list has to lay out before it can resolve an
-                                // off-screen row id, and the sheet is still
-                                // animating in on the first frames, hence the
-                                // short wait.
-                                guard !hasScrolledToCurrent else { return }
-                                hasScrolledToCurrent = true
-                                try? await Task.sleep(for: .milliseconds(150))
-                                scrollToCurrentTrack(with: proxy)
-                            }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .mask(LyricsEdgeMask(top: 12, bottom: 28))
+                        .task {
+                            // Open on the song that is playing, with what
+                            // plays next below it - after an hour of
+                            // listening it is hundreds of rows down. The list
+                            // has to lay out before it can resolve an
+                            // off-screen row id, hence the short wait.
+                            guard !hasScrolledToCurrent else { return }
+                            hasScrolledToCurrent = true
+                            try? await Task.sleep(for: .milliseconds(150))
+                            scrollToCurrentTrack(with: proxy)
                         }
                     }
                 }
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BackgroundColorChanged"))) { _ in
-            settings = DeleteSettings.load()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .cosmosSettingsDidChange)) { _ in
-            settings = DeleteSettings.load()
         }
         .onAppear {
             loadArtistNameCache()
@@ -121,7 +90,7 @@ struct QueueManagementView: View {
 
     private func scrollToCurrentTrack(with proxy: ScrollViewProxy) {
         guard let rowId = currentRowId else { return }
-        proxy.scrollTo(rowId, anchor: .center)
+        proxy.scrollTo(rowId, anchor: .top)
     }
 
     private func loadArtistNameCache() {
@@ -208,7 +177,6 @@ struct QueueTrackRow: View {
     let onTap: () -> Void
 
     @State private var artworkImage: UIImage?
-    @State private var settings = DeleteSettings.load()
     
     var body: some View {
         HStack(spacing: 12) {
@@ -237,13 +205,13 @@ struct QueueTrackRow: View {
                     Text(track.title)
                         .font(.headline)
                         .fontWeight(isCurrentTrack ? .bold : .medium)
-                        .foregroundColor(isCurrentTrack ? settings.backgroundColorChoice.color : .primary)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
                     
                     if isCurrentTrack {
                         Image(systemName: "speaker.wave.2.fill")
                             .font(.caption)
-                            .foregroundColor(settings.backgroundColorChoice.color)
+                            .foregroundStyle(.primary)
                     }
                 }
                 
@@ -266,7 +234,9 @@ struct QueueTrackRow: View {
         .padding(.horizontal, 12)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(isCurrentTrack ? settings.backgroundColorChoice.color.opacity(0.15) : Color.clear)
+                // Accent-coloured text was hard to read on the player's
+                // artwork-tinted backdrop; a neutral highlight works on any.
+                .fill(isCurrentTrack ? Color.primary.opacity(0.12) : Color.clear)
         )
         .opacity(isDragging ? 0.8 : 1.0)
         .scaleEffect(isDragging ? 1.05 : 1.0)
@@ -282,9 +252,6 @@ struct QueueTrackRow: View {
             if artworkImage == nil {
                 loadArtwork()
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("BackgroundColorChanged"))) { _ in
-            settings = DeleteSettings.load()
         }
         .reloadsArtwork(for: track.stableId) { loadArtwork() }
     }

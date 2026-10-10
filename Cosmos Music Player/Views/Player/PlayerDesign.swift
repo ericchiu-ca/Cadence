@@ -36,6 +36,11 @@ enum ArtworkPaletteExtractor {
         init(_ palette: ArtworkPalette) { self.palette = palette }
     }
 
+    /// A palette already worked out for this key, without waiting.
+    static func cachedPalette(for key: String) -> ArtworkPalette? {
+        cache.object(forKey: key as NSString)?.palette
+    }
+
     /// Off the main actor: draws the image into a 3x3 bitmap (the resampling
     /// averages each cell) and adjusts each cell for a dark, readable backdrop.
     static func palette(for key: String, image: UIImage) async -> ArtworkPalette? {
@@ -413,50 +418,48 @@ struct ArtworkTile: View {
     }
 }
 
-// MARK: - Pull to dismiss
+// MARK: - Player card
 
-/// Apple Music style pull-down-to-close: the page turns into a card that
-/// follows the finger and uncovers what is behind it. The drag state lives
-/// here, so a drag frame re-renders this wrapper only, not the content.
-struct PullToDismiss<Content: View>: View {
-    /// Off while the content scrolls vertically itself (lyrics).
+/// The full player as a card: it rises from the bottom when opened, follows
+/// the finger when pulled down, and slides away when closed, all through
+/// one offset. Presenting it with a system transition instead (the zoom
+/// from the mini player) made iOS push the library back behind it; a pull
+/// could not bring the library forward again, so it stayed shrunk under
+/// the card and jumped back to full size when the player closed.
+///
+/// The drag state lives here, so a drag frame re-renders this wrapper
+/// only, not the content.
+struct PlayerCard<Content: View>: View {
+    /// Off while the content scrolls vertically itself (lyrics, the queue).
     var isEnabled: Bool
     /// Checked when a drag starts, e.g. not while the artwork is being swiped.
     var canBegin: Bool
-    /// The grabber's tap: an ordinary, animated close.
-    let onDismiss: () -> Void
-    /// Called once a pull has carried the card off screen. It must close
-    /// without a transition: a zoom back into the mini player replays from
-    /// the presented view's frame, so a sliver of the card reappeared over
-    /// the mini player's spot after the card had already gone.
-    let onPulledAway: () -> Void
+    /// Bumped by the content to close with the same slide a pull ends in.
+    var closeRequest: Int
+    /// Called once the card is off screen. The presentation must then end
+    /// without a transition of its own; there is nothing left to animate.
+    let onSlidAway: () -> Void
     @ViewBuilder var content: Content
 
-    @State private var offset: CGFloat = 0
+    /// Starts below the screen; `onAppear` raises it.
+    @State private var offset: CGFloat = DisplayGeometry.screenHeight
     /// Shown while the player is touched and for a moment after, then out of
     /// the way. Kept here, not in the player, so a touch re-renders only this.
     @State private var isGrabberVisible = true
     @State private var grabberHideTask: Task<Void, Never>?
     @State private var insets = EdgeInsets()
-    @State private var height: CGFloat = 900
-
-    /// 0 at rest, 1 once the card has travelled far enough to look like one.
-    private var progress: CGFloat { min(max(offset, 0) / 120, 1) }
+    @State private var height: CGFloat = DisplayGeometry.screenHeight
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         content
-            // Before the transforms below, so the grabber travels with the card.
+            // Before the card transform, so the grabber travels with the card.
             .overlay(alignment: .top) {
                 grabber.padding(.top, -4)
             }
             .onGeometryChange(for: EdgeInsets.self) { $0.safeAreaInsets } action: { insets = $0 }
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
-            // Clipped to the whole screen, safe areas included: a mask laid
-            // out in the safe area cut a strip off the top and bottom of the
-            // full-bleed backdrop as soon as the card moved.
-            .clipShape(ScreenCard(cornerRadius: 52 * progress, insets: insets))
-            .scaleEffect(1 - 0.07 * progress, anchor: .top)
-            .offset(y: offset)
+            .modifier(CardTransform(offset: offset, insets: insets))
             .gesture(
                 DirectionalPan(
                     direction: .down,
@@ -479,35 +482,67 @@ struct PullToDismiss<Content: View>: View {
                     .onChanged { _ in revealGrabber() }
                     .onEnded { _ in hideGrabber(after: 2.5) }
             )
-            .onAppear { hideGrabber(after: 3) }
+            .onAppear {
+                hideGrabber(after: 3)
+                if reduceMotion {
+                    offset = 0
+                } else {
+                    withAnimation(.spring(response: 0.42, dampingFraction: 0.92)) { offset = 0 }
+                }
+            }
+            .onChange(of: closeRequest) { slideAway(velocity: 0) }
     }
 
     private func finishPull(translation: CGFloat, velocity: CGFloat) {
         guard offset > 0 else { return }
         if offset > 140 || velocity > 900 || translation + velocity * 0.25 > 420 {
-            // Finish the move the finger started - slide the card off the
-            // bottom - and only then close (see `onPulledAway`). Aimed a
-            // third of a screen past the edge: a spring creeps through its
-            // last few percent, which left the card's top edge lingering over
-            // the mini player.
-            let screenHeight = height + insets.top + insets.bottom
-            withAnimation(.spring(response: 0.3, dampingFraction: 1)) {
-                offset = screenHeight * 1.35
-            } completion: {
-                onPulledAway()
-            }
+            slideAway(velocity: velocity)
         } else {
-            // Critically damped: any bounce carried the card past its resting
+            // No bounce: any overshoot carried the card past its resting
             // place, lifting it off the bottom edge so the library showed
             // through a strip below it for a few frames.
-            withAnimation(.spring(response: 0.35, dampingFraction: 1)) {
+            withAnimation(.interpolatingSpring(
+                duration: 0.35,
+                bounce: 0,
+                initialVelocity: Self.unitVelocity(velocity, from: offset, to: 0)
+            )) {
                 offset = 0
             }
         }
     }
 
+    /// Off the bottom, then `onSlidAway`. Carries on at the finger's speed;
+    /// a spring that started from rest made the card hang for a beat at
+    /// the moment of release. Aimed a third of a screen past the edge, since
+    /// a spring creeps through its last few percent, which left the card's
+    /// top edge lingering over the mini player.
+    private func slideAway(velocity: CGFloat) {
+        guard !reduceMotion else {
+            onSlidAway()
+            return
+        }
+        let target = (height + insets.top + insets.bottom) * 1.35
+        withAnimation(.interpolatingSpring(
+            duration: 0.4,
+            bounce: 0,
+            initialVelocity: Self.unitVelocity(velocity, from: offset, to: target)
+        )) {
+            offset = target
+        } completion: {
+            onSlidAway()
+        }
+    }
+
+    /// A gesture's points-per-second as a spring's initial velocity, which is
+    /// measured in whole distances per second.
+    private static func unitVelocity(_ velocity: CGFloat, from start: CGFloat, to end: CGFloat) -> Double {
+        let distance = end - start
+        guard abs(distance) > 1 else { return 0 }
+        return Double(velocity / distance)
+    }
+
     private var grabber: some View {
-        Button(action: onDismiss) {
+        Button { slideAway(velocity: 0) } label: {
             Capsule()
                 .fill(.white.opacity(0.4))
                 .frame(width: 36, height: 5)
@@ -535,6 +570,64 @@ struct PullToDismiss<Content: View>: View {
             try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
             withAnimation(.easeInOut(duration: 0.45)) { isGrabberVisible = false }
+        }
+    }
+}
+
+/// The card's look as a function of how far down it is. Only the offset is
+/// animatable, so during an animated move the corners and scale are worked
+/// out from where the card actually is on each frame. Animated separately,
+/// the radius ran down to zero while the card was still well below the top
+/// and square corners snapped over the status bar as it arrived.
+private struct CardTransform: ViewModifier, @MainActor Animatable {
+    var offset: CGFloat
+    let insets: EdgeInsets
+
+    nonisolated var animatableData: CGFloat {
+        get { offset }
+        set { offset = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let progress = min(max(offset, 0) / 120, 1)
+        content
+            // The display's own radius from the first point of travel: the
+            // card's corners are the screen's corners, moved down. At rest
+            // they are square and the panel's rounded edge hides them.
+            .clipShape(ScreenCard(
+                cornerRadius: offset > 0.5 ? DisplayGeometry.cornerRadius : 0,
+                insets: insets
+            ))
+            .scaleEffect(1 - 0.07 * progress, anchor: .top)
+            .offset(y: offset)
+    }
+}
+
+/// Screen facts the card needs before it has been laid out.
+@MainActor
+enum DisplayGeometry {
+    static var screenHeight: CGFloat {
+        let scene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }
+        return scene?.screen.bounds.height ?? 1000
+    }
+
+    /// The rounded corners of the panel, which no public API reports. Taken
+    /// from the screen size; erring small is safe, since a card radius
+    /// tighter than the glass only rounds a little less than the panel.
+    static var cornerRadius: CGFloat {
+        guard UIDevice.current.userInterfaceIdiom == .phone else { return 18 }
+        switch screenHeight {
+        case ..<800: return 0          // Home button models
+        case 800..<830: return 39      // X, XS, 11 Pro, 12/13 mini
+        case 830..<850: return 47      // 12, 13, 14
+        case 850..<870: return 55      // 14 Pro, 15, 15 Pro, 16
+        case 870..<880: return 62      // 16 Pro and later Pro models
+        case 880..<900: return 39      // XR, XS Max, 11, 11 Pro Max
+        case 900..<930: return 53      // 12-13 Pro Max, 14 Plus, Air
+        case 930..<950: return 55      // 14 Pro Max, 15 Pro Max
+        default: return 62             // 16 Pro Max and larger
         }
     }
 }
@@ -614,12 +707,13 @@ struct DirectionalPan: UIGestureRecognizerRepresentable {
 
 /// A rounded rectangle covering the view and its safe areas.
 private struct ScreenCard: Shape {
-    var cornerRadius: CGFloat
-    var insets: EdgeInsets
+    let cornerRadius: CGFloat
+    let insets: EdgeInsets
 
-    var animatableData: CGFloat {
-        get { cornerRadius }
-        set { cornerRadius = newValue }
+    // Not animatable: `CardTransform` recomputes the radius every frame.
+    var animatableData: EmptyAnimatableData {
+        get { EmptyAnimatableData() }
+        set {}
     }
 
     func path(in rect: CGRect) -> Path {

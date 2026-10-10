@@ -87,11 +87,15 @@ private enum ArtworkSwipeDirection: Equatable {
     }
 }
 
+/// What the full player shows above its controls.
+enum PlayerPanel {
+    case artwork, lyrics, queue
+}
+
 struct PlayerView: View {
     @ObservedObject private var playerEngine = PlayerEngine.shared
     @ObservedObject private var artworkManager = ArtworkManager.shared
     @EnvironmentObject private var appCoordinator: AppCoordinator
-    @Environment(\.dismiss) private var dismiss
     @State private var palette: ArtworkPalette?
     @State private var trackContext = PlayerTrackContext()
     @State private var skipForwardTrigger = 0
@@ -105,42 +109,62 @@ struct PlayerView: View {
     @State private var isAnimating = false
     @State private var isFavorite = false
     @State private var showPlaylistDialog = false
-    @State private var showQueueSheet = false
-    @State private var showLyrics = false
+    /// What fills the space above the controls. Lyrics and the queue share
+    /// the compact header, as in Apple Music, so the queue sits within thumb
+    /// reach above the controls instead of opening as a sheet led by a Done
+    /// button in the top corner.
+    @State private var panel: PlayerPanel = .artwork
+    /// Bumped to close the card with its slide; see `PlayerCard`.
+    @State private var closeRequest = 0
     /// Where the two layouts want the artwork, in the content's coordinates.
     /// Kept in state so the toggle animates between known frames.
     @State private var largeArtworkSlot: CGRect = .zero
     @State private var compactArtworkSlot = CGRect(x: 0, y: 12, width: 64, height: 64)
-    /// 0 = full-size artwork, 1 = lyrics header. The only value animated by
-    /// the toggle; the artwork interpolates between the slots from it.
-    @State private var lyricsProgress: CGFloat = 0
+    /// 0 = full-size artwork, 1 = compact header. The only value animated by
+    /// a panel change; the artwork interpolates between the slots from it.
+    @State private var compactProgress: CGFloat = 0
     @State private var currentLyrics: Lyrics? = nil
     @State private var isLoadingLyrics = false
     @State private var settings = DeleteSettings.load()
     @State private var sleepTimerTask: Task<Void, Never>?
     @State private var sleepTimerEndDate: Date?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    /// Ends the presentation without a transition; see
-    /// `PullToDismiss.onPulledAway`.
+    /// Ends the presentation without a transition; see `PlayerCard.onSlidAway`.
     private let closeWithoutTransition: () -> Void
 
     init(closeWithoutTransition: @escaping () -> Void) {
         self.closeWithoutTransition = closeWithoutTransition
+        // The card is on screen from its first frame, so start from what the
+        // mini player has already warmed: waiting for the async loads showed
+        // a placeholder note and the accent-coloured fallback backdrop, which
+        // then faded to the artwork's colours on every open.
+        if let stableId = PlayerEngine.shared.currentTrack?.stableId {
+            _palette = State(initialValue: ArtworkPaletteExtractor.cachedPalette(for: stableId))
+            _currentArtwork = State(initialValue: ArtworkManager.shared.cachedArtwork(for: stableId))
+        }
+    }
+
+    private var showLyrics: Bool { panel == .lyrics }
+    /// Lyrics or the queue: the artwork sits in the header.
+    private var isCompact: Bool { panel != .artwork }
+
+    /// Slides the card away, like the end of a pull.
+    private func close() {
+        closeRequest += 1
     }
     
     var body: some View {
-        PullToDismiss(
-            isEnabled: !showLyrics,
+        PlayerCard(
+            isEnabled: !isCompact,
             canBegin: dragOffset == 0,
-            onDismiss: { dismiss() },
-            onPulledAway: closeWithoutTransition
+            closeRequest: closeRequest,
+            onSlidAway: closeWithoutTransition
         ) {
             ZStack {
                 PlayerAmbientBackground(
                     palette: palette ?? .fallback(accent: settings.backgroundColorChoice.color),
                     // Still while covered by a sheet or in Low Power Mode.
                     isAnimating: playerEngine.displaysPlaying
-                        && !showQueueSheet
                         && !showPlaylistDialog
                         && !ProcessInfo.processInfo.isLowPowerModeEnabled
                 )
@@ -149,7 +173,7 @@ struct PlayerView: View {
         }
         // Cap Dynamic Type so large accessibility sizes don't overflow the player layout
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .accessibilityAction(.escape) { dismiss() }
+        .accessibilityAction(.escape) { close() }
         .onAppear { ResponsiveTransport.prepare() }
 
         .task(id: playerEngine.currentTrack?.stableId) {
@@ -194,9 +218,6 @@ struct PlayerView: View {
             .sheet(isPresented: $showPlaylistDialog) {
                 playlistSheet
             }
-            .sheet(isPresented: $showQueueSheet) {
-                queueSheet
-            }
             .onChange(of: playerEngine.currentTrack) { oldValue, newValue in
                 // Clear current lyrics
                 currentLyrics = nil
@@ -213,13 +234,14 @@ struct PlayerView: View {
     private var contentView: some View {
         VStack(spacing: 0) {
             if let currentTrack = playerEngine.currentTrack {
-                if showLyrics {
-                    // Apple Music's lyrics mode: the artwork shrinks into the
-                    // header, lyrics take the stage, the controls stay put.
+                if isCompact {
+                    // Apple Music's lyrics and queue modes: the artwork shrinks
+                    // into the header, the panel takes the stage, the controls
+                    // stay put.
                     compactHeader(track: currentTrack)
                         .padding(.top, 12)
                         .transition(.opacity)
-                    lyricsPanel
+                    compactPanel
                         .frame(maxHeight: .infinity)
                         .padding(.top, 4)
                         .transition(.asymmetric(
@@ -264,19 +286,19 @@ struct PlayerView: View {
     /// neighbours share it, so the incoming cover lands at the size the
     /// floating artwork then takes over at, instead of shrinking after.
     private var artworkRestingScale: CGFloat {
-        (showLyrics || showsPlaying) ? 1 : 0.84
+        (isCompact || showsPlaying) ? 1 : 0.84
     }
 
     private var floatingArtwork: some View {
         let pageDistance = largeArtworkSlot.width + 24
-        let swipeProgress = showLyrics ? 0 : min(abs(dragOffset) / max(pageDistance, 1), 1)
-        let isLarge = !showLyrics && showsPlaying
+        let swipeProgress = isCompact ? 0 : min(abs(dragOffset) / max(pageDistance, 1), 1)
+        let isLarge = !isCompact && showsPlaying
 
         return FlyingArtwork(
             image: currentArtwork,
             from: largeArtworkSlot,
             to: compactArtworkSlot,
-            progress: lyricsProgress,
+            progress: compactProgress,
             scale: artworkRestingScale * (1 - (0.04 * swipeProgress)),
             shadowStrength: isLarge ? 1 : 0.35
         )
@@ -284,7 +306,7 @@ struct PlayerView: View {
             reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.38, dampingFraction: 0.72),
             value: showsPlaying
         )
-        .offset(x: showLyrics ? 0 : dragOffset)
+        .offset(x: isCompact ? 0 : dragOffset)
         .opacity(1 - Double(swipeProgress) * 0.35)
     }
 
@@ -298,9 +320,16 @@ struct PlayerView: View {
         }
     }
 
-    private var queueSheet: some View {
-        QueueManagementView()
-            .accentColor(settings.backgroundColorChoice.color)
+    @ViewBuilder
+    private var compactPanel: some View {
+        switch panel {
+        case .queue:
+            QueueManagementView()
+                .transition(.opacity)
+        case .lyrics, .artwork:
+            lyricsPanel
+                .transition(.opacity)
+        }
     }
 
     private var lyricsPanel: some View {
@@ -317,18 +346,19 @@ struct PlayerView: View {
         .padding(.horizontal, -4)
     }
 
-    /// The header lyrics mode shrinks into: small artwork that morphs from
-    /// the full-size one, title and artist, and the same glass actions.
+    /// The header lyrics and queue modes shrink into: small artwork that
+    /// morphs from the full-size one, title and artist, and the same glass
+    /// actions.
     private func compactHeader(track: Track) -> some View {
         HStack(spacing: 12) {
-            // Slot for the floating artwork; tapping it leaves lyrics.
+            // Slot for the floating artwork; tapping it brings the artwork back.
             Color.clear
                 .frame(width: 64, height: 64)
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.contentSpace)) } action: {
                     compactArtworkSlot = $0
                 }
                 .contentShape(Rectangle())
-                .onTapGesture { toggleLyrics() }
+                .onTapGesture { show(.artwork) }
                 .accessibilityElement()
                 .accessibilityLabel(Localized.lyrics)
                 .accessibilityAddTraits(.isButton)
@@ -355,16 +385,22 @@ struct PlayerView: View {
 
     private var showsPlaying: Bool { pendingPlaying ?? playerEngine.displaysPlaying }
 
-    private var lyricsToggleAnimation: Animation {
+    private var panelAnimation: Animation {
         reduceMotion ? .easeInOut(duration: 0.25) : .spring(response: 0.55, dampingFraction: 0.86)
     }
 
-    private func toggleLyrics() {
-        withAnimation(lyricsToggleAnimation) {
-            showLyrics.toggle()
-            lyricsProgress = showLyrics ? 1 : 0
+    /// The panel's button: opens it, or goes back to the artwork if it is
+    /// already open.
+    private func toggle(_ target: PlayerPanel) {
+        show(panel == target ? .artwork : target)
+    }
+
+    private func show(_ target: PlayerPanel) {
+        withAnimation(panelAnimation) {
+            panel = target
+            compactProgress = target == .artwork ? 0 : 1
         }
-        if showLyrics, currentLyrics == nil, !isLoadingLyrics {
+        if target == .lyrics, currentLyrics == nil, !isLoadingLyrics {
             loadLyrics()
         }
     }
@@ -400,7 +436,7 @@ struct PlayerView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        dismiss()
+                        close()
                     }
                     .zIndex(1)
 
@@ -749,8 +785,8 @@ struct PlayerView: View {
                     sleepTimerButton
                 }
 
-                toolButton(systemName: "list.bullet", isActive: false, label: Localized.playingQueue) {
-                    showQueueSheet = true
+                toolButton(systemName: "list.bullet", isActive: panel == .queue, label: Localized.playingQueue) {
+                    toggle(.queue)
                 }
 
                 toolButton(
@@ -815,7 +851,7 @@ struct PlayerView: View {
 
     private var lyricsButton: some View {
         Button {
-            toggleLyrics()
+            toggle(.lyrics)
         } label: {
             toolGlyph(systemName: showLyrics ? "quote.bubble.fill" : "quote.bubble", isActive: showLyrics)
                 .overlay(alignment: .topTrailing) {
@@ -1182,7 +1218,6 @@ struct MiniPlayerView: View {
     @ObservedObject private var playerEngine = PlayerEngine.shared
     @ObservedObject private var artworkManager = ArtworkManager.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Namespace private var playerTransition
     @State private var isExpanded = false
     @State private var currentArtwork: UIImage?
     @State private var artistName: String?
@@ -1217,7 +1252,6 @@ struct MiniPlayerView: View {
             })
                 .accentColor(settings.backgroundColorChoice.color)
                 .presentationBackground(.clear)
-                .navigationTransition(.zoom(sourceID: "nowPlaying", in: playerTransition))
         }
         .task(id: playerEngine.currentTrack?.stableId) {
             guard let track = playerEngine.currentTrack else {
@@ -1232,6 +1266,12 @@ struct MiniPlayerView: View {
             let artwork = await artworkManager.getThumbnail(for: track, maxPixelSize: 160)
             guard playerEngine.currentTrack?.stableId == track.stableId else { return }
             withAnimation(.easeInOut(duration: 0.25)) { currentArtwork = artwork }
+            // Warm what the full player starts from, so opening it shows the
+            // real cover and backdrop on its first frame (see PlayerView.init).
+            if let artwork {
+                _ = await ArtworkPaletteExtractor.palette(for: track.stableId, image: artwork)
+            }
+            _ = await artworkManager.getArtwork(for: track)
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToArtistFromPlayer"))) { _ in
             isExpanded = false
@@ -1308,15 +1348,15 @@ struct MiniPlayerView: View {
         .contentShape(cardShape)
         .adaptiveGlass(in: cardShape, interactive: true)
         .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 6)
-        .matchedTransitionSource(id: "nowPlaying", in: playerTransition) { source in
-            source.clipShape(cardShape)
-        }
         .offset(x: dragOffset)
         .onTapGesture {
             // The cover would otherwise open on top of a keyboard left up
             // by a list's search field.
             dismissSearchKeyboard()
-            isExpanded = true
+            // No system transition: the card raises itself (PlayerCard).
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) { isExpanded = true }
         }
         .gesture(swipeToSkip)
         .sensoryFeedback(.impact(weight: .light), trigger: skipTrigger)

@@ -21,7 +21,8 @@
 
 **Interface (iOS 26 Liquid Glass, with a material fallback on iOS 18–25)**
 - Now Playing: a slowly moving mesh gradient sampled from the artwork, artwork that settles back when paused, bare transport glyphs, an elastic scrubber, haptics throughout.
-- The mini player is a glass card that zooms into the full player; pull down anywhere to close it again. Swipe the card to skip.
+- The mini player is a glass card; tap it and the full player rises as a card that you pull down anywhere to close, its corners matching the screen's while it moves. Swipe the mini player to skip.
+- The playing queue opens in place, like lyrics: the artwork shrinks into the header and the queue sits above the controls, within thumb reach.
 - In-place synced lyrics: the artwork shrinks into the header, lines fill word by word at the display's refresh rate with a feathered edge, and the list advances with a staggered spring. Tap a line to seek.
 - Library, song and album screens on the plain system background with native large titles, glass toolbars, hairline separators and a Recently Added grid.
 

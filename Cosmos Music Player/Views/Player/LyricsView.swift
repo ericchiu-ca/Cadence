@@ -545,9 +545,10 @@ struct PlaybackClockAnchor: Equatable {
     var date: Date
 }
 
-/// Transparent edges for lyrics drawn over the artwork backdrop: the text
-/// itself fades out, so there is no coloured band to match the background.
-private struct LyricsEdgeMask: View {
+/// Transparent edges for lyrics, and the queue, drawn over the artwork
+/// backdrop: the content itself fades out, so there is no coloured band to
+/// match the background.
+struct LyricsEdgeMask: View {
     let top: CGFloat
     let bottom: CGFloat
 

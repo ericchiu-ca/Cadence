@@ -237,6 +237,11 @@ class ArtworkManager: ObservableObject {
         )
     }
 
+    /// The decoded cover if it is already in memory, without waiting.
+    func cachedArtwork(for stableId: String) -> UIImage? {
+        memoryCache.object(forKey: stableId as NSString)
+    }
+
     func getArtwork(for track: Track) async -> UIImage? {
         // 1. Check memory cache first (fastest)
         if let cachedImage = memoryCache.object(forKey: track.stableId as NSString) {
