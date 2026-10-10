@@ -380,9 +380,12 @@ struct LyricsView: View {
     @State private var showVersionPicker = false
 
     @ScaledMetric(relativeTo: .body) private var plainFontSize: CGFloat = 26
+    /// See `LyricsWidthScale`.
+    @State private var widthScale: CGFloat = 1
 
     var body: some View {
         content
+            .modifier(LyricsWidthScale(scale: $widthScale))
             .overlay(alignment: .topTrailing) {
                 if copyableText != nil {
                     actionsMenu
@@ -490,7 +493,7 @@ struct LyricsView: View {
             VStack(spacing: 26) {
                 ForEach(Array(stanzas(of: text).enumerated()), id: \.offset) { _, stanza in
                     Text(stanza)
-                        .font(.system(size: plainFontSize, weight: .bold))
+                        .font(.system(size: plainFontSize * widthScale, weight: .bold))
                         .foregroundColor(.white.opacity(0.92))
                         .lineSpacing(6)
                         .multilineTextAlignment(.leading)
@@ -624,6 +627,8 @@ private struct SyncedLyricsScroller: View {
     /// Every line is set at one size; only brightness, blur and a slight
     /// scale separate the sung line from the rest, so nothing reflows.
     @ScaledMetric(relativeTo: .title) private var fontSize: CGFloat = 30
+    /// See `LyricsWidthScale`.
+    @State private var widthScale: CGFloat = 1
 
     /// Rows this far from the sung line take part in the cascade; the rest
     /// are off screen and move with the list.
@@ -700,6 +705,7 @@ private struct SyncedLyricsScroller: View {
                 }
             }
         }
+        .modifier(LyricsWidthScale(scale: $widthScale))
     }
 
     // MARK: Rows
@@ -737,7 +743,7 @@ private struct SyncedLyricsScroller: View {
                 TimelineView(.animation(minimumInterval: nil, paused: !(isActive && isPlaying) || reduceMotion)) { context in
                     LyricLineText(
                         text: text,
-                        font: .system(size: fontSize, weight: .bold),
+                        font: .system(size: fontSize * widthScale, weight: .bold),
                         sweep: isActive ? lineSweep(row, at: interpolatedTime(at: context.date)) : nil
                     )
                 }
@@ -1366,4 +1372,20 @@ private struct LyricsVersionPicker: View {
     )
     .padding(20)
     .background(Color.indigo.gradient)
+}
+
+
+/// Lyric type grows with the panel, up to half again its phone size: set at
+/// the phone's size, lyrics on an iPad or a foldable's inner display read as
+/// small print lost in the middle of the screen.
+private struct LyricsWidthScale: ViewModifier {
+    @Binding var scale: CGFloat
+
+    func body(content: Content) -> some View {
+        content.onGeometryChange(for: CGFloat.self) { proxy in
+            min(max(proxy.size.width / 400, 1), 1.5)
+        } action: { newScale in
+            scale = newScale
+        }
+    }
 }

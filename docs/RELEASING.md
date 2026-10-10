@@ -27,6 +27,8 @@ Signing and submission need your Apple Developer account, so these steps happen 
 
 ## 3. App Store Connect
 
+Everything that goes into the listing - name, texts in English and Simplified Chinese, keywords, review notes, privacy answers - is in [APPSTORE.md](APPSTORE.md); screenshots are in [appstore/](appstore/) and the privacy policy is [PRIVACY.md](PRIVACY.md).
+
 - Create the app record with the name **Cadence** (the LICENSE forbids using the name "Cosmos Music Player" or its branding).
 - Privacy: the app works offline and collects no data. If you enable online artist lookups, declare that artist names are sent to Spotify/Discogs, and that lyric lookups send title, artist, album and duration to lrclib.net.
 - Provide a **link to the source code** (this GitHub repository) in the description or support URL. The GPL requires recipients to be able to get the corresponding source.

@@ -204,7 +204,13 @@ actor LyricsManager {
                 let keySpace = metadata.keySpace?.rawValue.lowercased()
                 let rawKey = (metadata.key as? String)?.lowercased()
 
+                // iTunes tags (M4A, ALAC, AAC) report their lyrics atom as
+                // "itsk/%A9lyr", the © percent-encoded, so a match on the
+                // literal "©lyr" never fired and every embedded lyric in an
+                // .m4a file went unread.
                 let looksLikeLyrics =
+                    metadata.identifier == .iTunesMetadataLyrics ||
+                    identifier?.contains("%a9lyr") == true ||
                     commonKey == "description" ||
                     commonKey == "lyrics" ||
                     rawKey?.contains("lyrics") == true ||

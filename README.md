@@ -53,6 +53,10 @@ A free Apple ID cannot use iCloud, App Groups or Siri capabilities; remove them 
 
 See [docs/RELEASING.md](docs/RELEASING.md).
 
+## Privacy
+
+No account, no analytics, no tracking. See [docs/PRIVACY.md](docs/PRIVACY.md).
+
 ## License
 
 Cadence is free software under the **GNU General Public License v3.0**, including the original project's *Apple App Store Distribution Exception* — see [LICENSE](LICENSE).
