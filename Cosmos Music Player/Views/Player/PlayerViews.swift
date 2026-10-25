@@ -126,8 +126,6 @@ struct PlayerView: View {
     @State private var currentLyrics: Lyrics? = nil
     @State private var isLoadingLyrics = false
     @State private var settings = DeleteSettings.load()
-    @State private var sleepTimerTask: Task<Void, Never>?
-    @State private var sleepTimerEndDate: Date?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.appColorScheme) private var appColorScheme
     /// Ends the presentation without a transition; see `PlayerCard.onSlidAway`.
@@ -953,15 +951,15 @@ struct PlayerView: View {
                 startSleepTimer(minutes: 60)
             }
 
-            if sleepTimerEndDate != nil {
+            if playerEngine.sleepTimerEndDate != nil {
                 Divider()
 
                 Button(Localized.cancelSleepTimer, role: .destructive) {
-                    cancelSleepTimer()
+                    playerEngine.cancelSleepTimer()
                 }
             }
         } label: {
-            toolGlyph(systemName: "moon.zzz", isActive: sleepTimerEndDate != nil)
+            toolGlyph(systemName: "moon.zzz", isActive: playerEngine.sleepTimerEndDate != nil)
         }
         .menuOrder(.fixed)
         .frame(maxWidth: .infinity)
@@ -969,27 +967,7 @@ struct PlayerView: View {
     }
 
     private func startSleepTimer(minutes: Int) {
-        sleepTimerTask?.cancel()
-        let endDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
-        sleepTimerEndDate = endDate
-
-        sleepTimerTask = Task {
-            try? await Task.sleep(nanoseconds: UInt64(minutes * 60) * 1_000_000_000)
-
-            guard !Task.isCancelled else { return }
-
-            await MainActor.run {
-                playerEngine.pause()
-                sleepTimerEndDate = nil
-                sleepTimerTask = nil
-            }
-        }
-    }
-
-    private func cancelSleepTimer() {
-        sleepTimerTask?.cancel()
-        sleepTimerTask = nil
-        sleepTimerEndDate = nil
+        playerEngine.startSleepTimer(minutes: minutes)
     }
 
     /// Adopts a specific lrclib record the user picked over the automatic match.

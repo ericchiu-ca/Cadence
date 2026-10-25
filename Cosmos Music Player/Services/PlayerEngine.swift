@@ -60,6 +60,31 @@ class PlayerEngine: NSObject, ObservableObject {
     }
     private var trackChangeHoldGeneration: UInt64?
 
+    /// When the sleep timer pauses playback, or nil when none is set. Kept
+    /// here rather than in PlayerView, which is rebuilt every time the full
+    /// player opens: reopening it lost the timer's state and its Cancel item
+    /// while the orphaned timer still paused playback.
+    @Published private(set) var sleepTimerEndDate: Date?
+    private var sleepTimerTask: Task<Void, Never>?
+
+    func startSleepTimer(minutes: Int) {
+        sleepTimerTask?.cancel()
+        sleepTimerEndDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
+        sleepTimerTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(minutes * 60) * 1_000_000_000)
+            guard !Task.isCancelled, let self else { return }
+            self.pause()
+            self.sleepTimerEndDate = nil
+            self.sleepTimerTask = nil
+        }
+    }
+
+    func cancelSleepTimer() {
+        sleepTimerTask?.cancel()
+        sleepTimerTask = nil
+        sleepTimerEndDate = nil
+    }
+
     /// What the transport shows. `isPlaying` drops to false while a skip
     /// loads the next track (the old node is stopped first), and the
     /// controls followed it: on every skip the glyph flickered to play, the
@@ -328,6 +353,10 @@ class PlayerEngine: NSObject, ObservableObject {
     /// The wait for a native pause's fade-out, or for the fade either side of
     /// dropping a scheduled successor.
     private var transportFadeTask: Task<Void, Never>?
+    /// True while dropScheduledSuccessorSmoothly() is fading out. A second
+    /// queue edit then needs nothing of its own: the drop reschedules from
+    /// whatever the queue is once the fade ends.
+    private var isDroppingScheduledSuccessor = false
     /// Fades the native output in the render thread; see TransportFader.
     /// Replaced along with the engine in resetAudioEngineForNative().
     private lazy var transportFader: TransportFader? = TransportFader.make()
@@ -1645,18 +1674,19 @@ class PlayerEngine: NSObject, ObservableObject {
             return .success
         }
 
+        // No explicit autoplay: nextTrack/previousTrack read displaysPlaying,
+        // which stays true while a skip loads. isPlaying is false for that
+        // whole load, so a second quick press stopped playback.
         cc.nextTrackCommand.addTarget { [weak self] _ in
             Task { @MainActor in
-                let shouldAutoplay = self?.isPlaying ?? false
-                await self?.nextTrack(autoplay: shouldAutoplay)
+                await self?.nextTrack()
             }
             return .success
         }
 
         cc.previousTrackCommand.addTarget { [weak self] _ in
             Task { @MainActor in
-                let shouldAutoplay = self?.isPlaying ?? false
-                await self?.previousTrack(autoplay: shouldAutoplay)
+                await self?.previousTrack()
             }
             return .success
         }
@@ -1696,7 +1726,7 @@ class PlayerEngine: NSObject, ObservableObject {
         // Toggle play/pause command (for headphone button and other accessories)
         cc.togglePlayPauseCommand.addTarget { [weak self] _ in
             Task { @MainActor in
-                if self?.isPlaying == true {
+                if self?.displaysPlaying == true {
                     self?.pause(fromControlCenter: true)
                 } else {
                     self?.play()
@@ -2595,9 +2625,14 @@ class PlayerEngine: NSObject, ObservableObject {
                     }
                     guard isCurrentLoad(generation) else { return false }
 
-                    if routeIsActive {
-                        await configureAudioSession(for: audioFile!.processingFormat)
-                        ensureAudioEngineSetup(with: audioFile!.processingFormat)
+                    if routeIsActive, let format = audioFile?.processingFormat {
+                        await configureAudioSession(for: format)
+                        // A skip, stop or newer load during that await clears
+                        // audioFile; building the graph for it would crash.
+                        guard isCurrentLoad(generation), audioFile != nil else { return false }
+                        ensureAudioEngineSetup(with: format)
+                    } else if routeIsActive {
+                        return false
                     } else {
                         // Keep the decoder loaded, but do not construct a graph
                         // from a stale/inactive route. play() retries activation
@@ -2854,10 +2889,17 @@ class PlayerEngine: NSObject, ObservableObject {
     /// taking it back then means stopping the node, and a 30 ms fade either
     /// side keeps that from clicking.
     private func dropScheduledSuccessorSmoothly() {
+        // Cancelling an in-flight drop left the fader at 0 with nothing to
+        // ramp it back: the first task still rescheduled (bumping the
+        // generation) but bailed as cancelled, and the second then failed its
+        // generation check - silent playback that still showed as playing.
+        guard !isDroppingScheduledSuccessor else { return }
+        isDroppingScheduledSuccessor = true
         let generation = scheduleGeneration
         transportFadeTask?.cancel()
         transportFadeTask = Task { @MainActor [weak self] in
             guard let self else { return }
+            defer { self.isDroppingScheduledSuccessor = false }
             await self.fadeOutNativeOutput(over: 0.03)
             // A skip, seek or new track meanwhile scheduled afresh, with the
             // current queue and loop settings, and set its own volume.

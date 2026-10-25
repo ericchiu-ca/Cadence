@@ -106,8 +106,13 @@ struct TrackBulkActionsModifier: ViewModifier {
     }
 
     private func bulkToggleLiked() {
+        // The button says "Add to Liked" (or "Remove" in a liked list), so
+        // only flip the songs not already in that state. Toggling every
+        // selected song un-liked the ones that were liked already.
+        let shouldBeLiked = !isLikedContext
         for trackId in selectedTracks {
-            if let track = selectionPool.first(where: { $0.stableId == trackId }) {
+            if let track = selectionPool.first(where: { $0.stableId == trackId }),
+               (try? appCoordinator.isFavorite(trackStableId: track.stableId)) == !shouldBeLiked {
                 try? appCoordinator.toggleFavorite(trackStableId: track.stableId)
             }
         }

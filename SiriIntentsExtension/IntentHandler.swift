@@ -570,21 +570,26 @@ class IntentHandler: INExtension, INPlayMediaIntentHandling, INAddMediaIntentHan
             let lowercased = mediaName.lowercased()
             print("🔍 Checking if '\(mediaName)' is a favorites request...")
 
-            let englishFavoriteKeywords = [
-                "favorite", "favourite", "liked", "love", "loved",
+            // Whole phrases only. Substring matching sent "Love Story",
+            // "Crazy in Love" or "Jaime" to Liked Songs instead of the song.
+            let favoritePhrase = lowercased.trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
+            let englishFavoriteKeywords: Set<String> = [
+                "favorite", "favorites", "favourite", "favourites", "liked",
+                "my favorites", "my favourites",
                 "liked songs", "favorite songs", "favourite songs",
                 "my liked songs", "my favorite songs", "my favourite songs",
                 "my loved songs", "loved songs"
             ]
             // French keywords
-            let frenchFavoriteKeywords = [
-                "préféré", "prefere", "favori", "favoris", "aimé", "aime", "coup de coeur",
+            let frenchFavoriteKeywords: Set<String> = [
+                "favori", "favoris", "mes favoris", "préférés", "mes préférés",
+                "coup de coeur", "coups de coeur", "mes coups de coeur",
                 "chansons préférées", "mes chansons préférées", "chansons aimées",
                 "mes chansons aimées", "musique préférée", "ma musique préférée"
             ]
 
-            let isFavorites = englishFavoriteKeywords.contains { lowercased.contains($0) } ||
-                             frenchFavoriteKeywords.contains { lowercased.contains($0) }
+            let isFavorites = englishFavoriteKeywords.contains(favoritePhrase) ||
+                             frenchFavoriteKeywords.contains(favoritePhrase)
 
             if isFavorites {
                 print("🎵 FAVORITES DETECTED: '\(mediaName)'")

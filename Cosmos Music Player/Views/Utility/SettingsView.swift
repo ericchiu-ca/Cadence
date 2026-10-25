@@ -10,7 +10,10 @@ struct SettingsView: View {
             let folderPlaylists = try DatabaseManager.shared.getAllFolderPlaylists()
             for playlist in folderPlaylists {
                 if let id = playlist.id {
-                    try DatabaseManager.shared.deletePlaylist(playlistId: id)
+                    // Through the coordinator so the iCloud/local JSON copy is
+                    // deleted too; otherwise the next scan's restore recreated
+                    // each one as an ordinary playlist.
+                    try AppCoordinator.shared.deletePlaylist(playlistId: id)
                 }
             }
             print("🗑️ Deleted \(folderPlaylists.count) folder playlist(s) after disabling auto-creation")

@@ -168,6 +168,18 @@ class AppCoordinator: ObservableObject {
         await playerEngine.restoreUIStateOnly()
 
         isInitialized = true
+
+        // With no scan this launch, the database is the one a completed scan
+        // left behind, so playlist edits can sync once other devices' changes
+        // are merged in (what a scan's completion does). Waiting for a scan
+        // meant most launches (the default interval is daily) never saved
+        // playlist changes to iCloud or refreshed the widget.
+        if !shouldAutoScan {
+            Task {
+                await restorePlaylistsFromiCloud()
+                hasCompletedInitialIndexing = true
+            }
+        }
     }
 
     private func shouldPerformAutoScan(lastScanDate: Date?, interval: LibraryScanInterval) -> Bool {
@@ -584,7 +596,7 @@ class AppCoordinator: ObservableObject {
                 } else {
                     // Playlist doesn't exist - create it
                     print("➕ Restoring new playlist: \(playlistState.title)")
-                    let playlist = try databaseManager.createPlaylist(title: playlistState.title)
+                    let playlist = try databaseManager.createPlaylist(title: playlistState.title, slug: playlistState.slug)
 
                     // Add tracks to playlist if they exist in the database
                     guard let playlistId = playlist.id else { continue }
@@ -842,11 +854,15 @@ class AppCoordinator: ObservableObject {
         try stateManager.deletePlaylist(slug: playlistSlug)
         
         print("✅ Playlist '\(playlist.title)' deleted from database and cloud storage")
+        // Refreshes the widget, which otherwise kept showing the playlist.
+        syncPlaylistsToCloud()
     }
 
     func renamePlaylist(playlistId: Int64, newTitle: String) throws {
         try databaseManager.renamePlaylist(playlistId: playlistId, newTitle: newTitle)
         print("✅ Playlist renamed to '\(newTitle)'")
+        // The cloud copy kept the old title, and a restore brought it back.
+        syncPlaylistsToCloud()
     }
 
     func updatePlaylistAccessed(playlistId: Int64) throws {
@@ -860,13 +876,17 @@ class AppCoordinator: ObservableObject {
     }
     
     private var isSyncingPlaylists = false
+    /// An edit that arrived mid-sync; the running sync may already have read
+    /// the playlists, so it reruns once instead of dropping the edit.
+    private var playlistSyncRequestedDuringSync = false
     private var hasCompletedInitialIndexing = false
 
     private func syncPlaylistsToCloud() {
         Task { @MainActor in
             // Prevent concurrent sync operations
             guard !isSyncingPlaylists else {
-                print("⏭️ Skipping playlist sync - already in progress")
+                print("⏭️ Playlist sync already in progress - will run again after it")
+                playlistSyncRequestedDuringSync = true
                 return
             }
 
@@ -878,7 +898,13 @@ class AppCoordinator: ObservableObject {
             }
 
             isSyncingPlaylists = true
-            defer { isSyncingPlaylists = false }
+            defer {
+                isSyncingPlaylists = false
+                if playlistSyncRequestedDuringSync {
+                    playlistSyncRequestedDuringSync = false
+                    syncPlaylistsToCloud()
+                }
+            }
 
             do {
                 let playlists = try databaseManager.getAllPlaylists()

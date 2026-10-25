@@ -1047,7 +1047,7 @@ actor LyricsManager {
 
     private func parseSyncedLyrics(_ lrcText: String) -> [LyricsLine] {
         var lines: [LyricsLine] = []
-        let pattern = #"\[(\d{1,3}):(\d{2})(?:\.(\d{1,3}))?\]\s*(.*)"#
+        let pattern = #"\[(\d{1,3}):(\d{2})(?:\.(\d{1,3}))?\]\s*"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             return lines
         }
@@ -1057,17 +1057,32 @@ actor LyricsManager {
             let range = NSRange(location: 0, length: nsLine.length)
 
             // Match common [mm:ss], [mm:ss.xx], and [mm:ss.xxx] timestamp formats.
-            if let match = regex.firstMatch(in: line, range: range) {
-                let minutes = Double(nsLine.substring(with: match.range(at: 1))) ?? 0
-                let seconds = Double(nsLine.substring(with: match.range(at: 2))) ?? 0
-                let fractionRange = match.range(at: 3)
+            // "[00:12.00][01:30.00]Chorus" is one line sung at both times. Only
+            // the first tag used to be read; the second leaked into the text
+            // and the line never appeared at 1:30.
+            var match = regex.firstMatch(in: line, range: range)
+            var timestamps: [Double] = []
+            var bodyStart = 0
+            while let current = match {
+                let minutes = Double(nsLine.substring(with: current.range(at: 1))) ?? 0
+                let seconds = Double(nsLine.substring(with: current.range(at: 2))) ?? 0
+                let fractionRange = current.range(at: 3)
                 let fractionText = fractionRange.location == NSNotFound ? "0" : nsLine.substring(with: fractionRange)
                 let fractionDivisor = pow(10.0, Double(fractionText.count))
                 let fraction = (Double(fractionText) ?? 0) / fractionDivisor
-                let textRange = match.range(at: 4)
-                let body = textRange.location == NSNotFound ? "" : nsLine.substring(with: textRange)
+                timestamps.append((minutes * 60) + seconds + fraction)
 
-                let timestamp = (minutes * 60) + seconds + fraction
+                bodyStart = current.range.location + current.range.length
+                match = regex.firstMatch(
+                    in: line,
+                    options: .anchored,
+                    range: NSRange(location: bodyStart, length: nsLine.length - bodyStart)
+                )
+            }
+
+            guard !timestamps.isEmpty else { continue }
+            let body = nsLine.substring(from: bodyStart)
+            for timestamp in timestamps {
                 let parsed = Self.parseEnhancedBody(body, lineStart: timestamp)
                 lines.append(LyricsLine(
                     timestamp: timestamp,

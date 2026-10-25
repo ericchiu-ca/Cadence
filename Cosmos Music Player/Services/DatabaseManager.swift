@@ -252,6 +252,7 @@ class DatabaseManager: @unchecked Sendable {
         configuration.prepareDatabase { db in
             // Enable foreign key constraints
             try db.execute(sql: "PRAGMA foreign_keys = ON")
+            db.add(function: DatabaseManager.searchFold)
         }
 
         dbWriter = try DatabasePool(path: databaseURL.path, configuration: configuration)
@@ -347,6 +348,7 @@ class DatabaseManager: @unchecked Sendable {
                 var configuration = Configuration()
                 configuration.prepareDatabase { db in
                     try db.execute(sql: "PRAGMA foreign_keys = ON")
+                    db.add(function: DatabaseManager.searchFold)
                 }
 
                 // Create in-memory database
@@ -1343,9 +1345,8 @@ class DatabaseManager: @unchecked Sendable {
 
     func searchArtists(query: String, limit: Int = 20) throws -> [Artist] {
         return try read { db in
-            let pattern = "%\(query)%"
             return try Artist
-                .filter(Column("name").like(pattern))
+                .filter(sql: Self.foldedContains("name"), arguments: [query])
                 .order(Column("name"))
                 .limit(limit)
                 .fetchAll(db)
@@ -1507,9 +1508,8 @@ class DatabaseManager: @unchecked Sendable {
 
     func searchAlbums(query: String, limit: Int = 30) throws -> [Album] {
         return try read { db in
-            let pattern = "%\(query)%"
             return try Album
-                .filter(Column("title").like(pattern))
+                .filter(sql: Self.foldedContains("title"), arguments: [query])
                 .order(Column("title"))
                 .limit(limit)
                 .fetchAll(db)
@@ -1785,7 +1785,7 @@ class DatabaseManager: @unchecked Sendable {
         }
 
         let literalRequest = Track
-            .filter(Column("title").like("%\(trimmed)%"))
+            .filter(sql: Self.foldedContains("title"), arguments: [trimmed])
             .order(Column("title"))
         let literal = try (limit.map { literalRequest.limit($0) } ?? literalRequest).fetchAll(db)
         if !literal.isEmpty { return literal }
@@ -1814,9 +1814,8 @@ class DatabaseManager: @unchecked Sendable {
 
     func searchAlbums(query: String) throws -> [Album] {
         return try read { db in
-            let searchPattern = "%\(query)%"
             return try Album
-                .filter(Column("title").like(searchPattern))
+                .filter(sql: Self.foldedContains("title"), arguments: [query])
                 .order(Column("title"))
                 .fetchAll(db)
         }
@@ -1824,9 +1823,8 @@ class DatabaseManager: @unchecked Sendable {
 
     func searchArtists(query: String) throws -> [Artist] {
         return try read { db in
-            let searchPattern = "%\(query)%"
             return try Artist
-                .filter(Column("name").like(searchPattern))
+                .filter(sql: Self.foldedContains("name"), arguments: [query])
                 .order(Column("name"))
                 .fetchAll(db)
         }
@@ -1834,9 +1832,8 @@ class DatabaseManager: @unchecked Sendable {
 
     func searchPlaylists(query: String) throws -> [Playlist] {
         return try read { db in
-            let searchPattern = "%\(query)%"
             return try Playlist
-                .filter(Column("title").like(searchPattern))
+                .filter(sql: Self.foldedContains("title"), arguments: [query])
                 .order(Column("title"))
                 .fetchAll(db)
         }
@@ -2261,9 +2258,36 @@ class DatabaseManager: @unchecked Sendable {
             }
     }
 
-    func createPlaylist(title: String) throws -> Playlist {
+    /// SQLite's LIKE folds ASCII case only, so "Beyoncé", "Кино" or "ガンダム"
+    /// never matched the folded query the search screen sends. Both sides go
+    /// through this instead: case, diacritics and width folded for any script.
+    /// Computed, not stored: each connection registers its own instance.
+    static var searchFold: DatabaseFunction {
+        DatabaseFunction("cosmos_search_fold", argumentCount: 1, pure: true) { values in
+            guard let string = String.fromDatabaseValue(values[0]) else { return nil }
+            return string.folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: nil)
+        }
+    }
+
+    /// `column` contains the single `?` argument, compared with searchFold.
+    private static func foldedContains(_ column: String) -> String {
+        "cosmos_search_fold(\(column)) LIKE '%' || cosmos_search_fold(?) || '%'"
+    }
+
+    /// `slug` lets an iCloud restore keep the slug its file is stored under;
+    /// a renamed playlist's slug no longer matches its title.
+    func createPlaylist(title: String, slug preferredSlug: String? = nil) throws -> Playlist {
         return try write { db in
-            let slug = title.lowercased().replacingOccurrences(of: " ", with: "-")
+            // Slugs are UNIQUE but titles are not, so a second "Rock" or a mix
+            // saved twice used to fail here. A restore's own slug is left as
+            // is: if it is taken, that playlist already exists.
+            let baseSlug = preferredSlug ?? title.lowercased().replacingOccurrences(of: " ", with: "-")
+            var slug = baseSlug
+            var suffix = 2
+            while preferredSlug == nil, try Playlist.filter(Column("slug") == slug).fetchOne(db) != nil {
+                slug = "\(baseSlug)-\(suffix)"
+                suffix += 1
+            }
             let now = Int64(Date().timeIntervalSince1970)
             let playlist = Playlist(
                 id: nil,
@@ -2365,9 +2389,8 @@ class DatabaseManager: @unchecked Sendable {
 
     func searchPlaylists(query: String, limit: Int = 15) throws -> [Playlist] {
         return try read { db in
-            let pattern = "%\(query)%"
             return try Playlist
-                .filter(Column("title").like(pattern))
+                .filter(sql: Self.foldedContains("title"), arguments: [query])
                 .order(Column("title"))
                 .limit(limit)
                 .fetchAll(db)

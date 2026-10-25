@@ -1660,6 +1660,10 @@ class LibraryIndexer: NSObject, ObservableObject {
                     return true
                 }
             }
+            // The loop yields on every item, and start() can stop and restart
+            // the query meanwhile, emptying its results; result(at:) past the
+            // end raises NSRangeException.
+            guard i < metadataQuery.resultCount else { break }
             guard let item = metadataQuery.result(at: i) as? NSMetadataItem else { continue }
 
             await processMetadataItem(item, generation: generation)

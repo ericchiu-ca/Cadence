@@ -878,8 +878,12 @@ struct TrackListView: View {
     // full list. Looking them up in the filtered list silently dropped every
     // song that the current query happens to hide.
     private func bulkAddToLikedSongs() {
+        // Add (or, on Liked Songs, remove) - never toggle: toggling un-liked
+        // every selected song that was already liked.
+        let shouldBeLiked = !isLikedSongsScreen
         for trackId in selectedTracks {
-            if let track = tracks.first(where: { $0.stableId == trackId }) {
+            if let track = tracks.first(where: { $0.stableId == trackId }),
+               (try? appCoordinator.isFavorite(trackStableId: track.stableId)) == !shouldBeLiked {
                 try? appCoordinator.toggleFavorite(trackStableId: track.stableId)
             }
         }
